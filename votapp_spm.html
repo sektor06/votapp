@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VotApp SPM — Presentación</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1a56db;
+  --blue-light: #e8f0fe;
+  --blue-dark: #0c3580;
+  --green: #0e7c4a;
+  --green-light: #e6f4ed;
+  --red: #c0392b;
+  --red-light: #fdecea;
+  --amber: #b45309;
+  --amber-light: #fef3c7;
+  --gray-50: #f8f9fa;
+  --gray-100: #f1f3f5;
+  --gray-200: #e9ecef;
+  --gray-400: #adb5bd;
+  --gray-600: #6c757d;
+  --gray-800: #343a40;
+  --gray-900: #212529;
+  --white: #ffffff;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: var(--gray-900); overflow-x: hidden; }
+
+/* SPLASH / NAV */
+.splash {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 2rem; text-align: center; position: relative; overflow: hidden;
+}
+.splash::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(26,86,219,0.25) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 70%, rgba(14,124,74,0.15) 0%, transparent 50%);
+}
+.splash-logo { position: relative; z-index: 1; margin-bottom: 2rem; }
+.logo-mark {
+  width: 72px; height: 72px; background: var(--blue);
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem; font-family: 'DM Serif Display', serif;
+  font-size: 28px; color: white; letter-spacing: -1px;
+}
+.splash h1 { font-family: 'DM Serif Display', serif; font-size: 2.8rem; color: white; line-height: 1.1; margin-bottom: 0.5rem; }
+.splash h1 span { color: #60a5fa; }
+.splash p { color: rgba(255,255,255,0.6); font-size: 1rem; margin-bottom: 2.5rem; }
+.splash-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 6px 14px; border-radius: 99px; font-size: 12px; margin-bottom: 1rem; }
+.nav-pills { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; position: relative; z-index: 1; }
+.nav-pill {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  color: white; padding: 14px 20px; border-radius: var(--radius);
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  transition: all .2s; text-align: left;
+}
+.nav-pill:active { transform: scale(0.97); background: rgba(255,255,255,0.15); }
+.nav-pill .pill-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.np-blue { background: rgba(26,86,219,0.4); }
+.np-green { background: rgba(14,124,74,0.4); }
+.np-purple { background: rgba(109,40,217,0.4); }
+.nav-pill .pill-text { flex: 1; }
+.nav-pill .pill-title { font-size: 14px; font-weight: 500; }
+.nav-pill .pill-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.nav-pill .pill-arrow { color: rgba(255,255,255,0.4); font-size: 16px; }
+
+/* SCREENS */
+.screen { display: none; min-height: 100vh; background: var(--gray-50); flex-direction: column; }
+.screen.active { display: flex; }
+
+/* HEADER */
+.header {
+  background: white; padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10;
+}
+.back-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--gray-100); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.header-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.header-sub { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+.header-avatar { width: 32px; height: 32px; border-radius: 99px; background: var(--blue-light); color: var(--blue); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-left: auto; flex-shrink: 0; }
+
+.content { flex: 1; overflow-y: auto; padding: 16px; }
+
+/* METRICS */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.metric { background: white; border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+.metric-label { font-size: 11px; color: var(--gray-600); margin-bottom: 4px; }
+.metric-value { font-size: 24px; font-weight: 600; color: var(--gray-900); line-height: 1; }
+.metric-sub { font-size: 11px; margin-top: 4px; }
+.sub-green { color: var(--green); }
+.sub-amber { color: var(--amber); }
+.metric.accent { background: var(--blue); }
+.metric.accent .metric-label { color: rgba(255,255,255,0.7); }
+.metric.accent .metric-value { color: white; }
+.metric.accent .metric-sub { color: rgba(255,255,255,0.7); }
+
+/* CARDS */
+.card { background: white; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 12px; }
+.section-title { font-size: 11px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+
+/* ZONE BARS */
+.zone-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.zone-name { font-size: 12px; color: var(--gray-800); width: 90px; flex-shrink: 0; }
+.zone-bar-bg { flex: 1; height: 6px; background: var(--gray-100); border-radius: 99px; overflow: hidden; }
+.zone-bar-fill { height: 100%; border-radius: 99px; }
+.zone-pct { font-size: 11px; font-weight: 600; width: 32px; text-align: right; }
+.pct-hi { color: var(--green); }
+.pct-md { color: var(--blue); }
+.pct-lo { color: var(--amber); }
+.pct-vl { color: var(--red); }
+
+/* DIRIGENTES */
+.dirigente-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.dirigente-row:last-child { border-bottom: none; }
+.d-left { display: flex; align-items: center; gap: 10px; }
+.av { width: 34px; height: 34px; border-radius: 99px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.av-b { background: var(--blue-light); color: var(--blue); }
+.av-g { background: var(--green-light); color: var(--green); }
+.av-a { background: var(--amber-light); color: var(--amber); }
+.d-name { font-size: 13px; font-weight: 500; color: var(--gray-900); }
+.d-zona { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+.d-right { text-align: right; }
+.d-count { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+.d-hoy { font-size: 11px; }
+.hoy-ok { color: var(--green); }
+.hoy-w { color: var(--amber); }
+.hoy-bad { color: var(--red); }
+
+/* PILLS */
+.pill { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+.pill-green { background: var(--green-light); color: var(--green); }
+.pill-amber { background: var(--amber-light); color: var(--amber); }
+.pill-red { background: var(--red-light); color: var(--red); }
+.pill-blue { background: var(--blue-light); color: var(--blue); }
+
+/* SELECTOR STEPS */
+.step-indicator { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 16px; background: white; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; }
+.step-item { flex: 1; padding: 10px 4px; text-align: center; font-size: 11px; color: var(--gray-400); border-bottom: 2px solid transparent; }
+.step-item.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.step-item.done { color: var(--green); }
+
+.sel-panel { display: none; }
+.sel-panel.active { display: block; }
+
+.sel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.sel-card { background: white; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 12px; cursor: pointer; transition: all .15s; }
+.sel-card:active { transform: scale(0.97); }
+.sel-card.sel { border-color: var(--blue); background: var(--blue-light); }
+.sel-card-name { font-size: 13px; font-weight: 500; color: var(--gray-900); }
+.sel-card-sub { font-size: 11px; color: var(--gray-600); margin-top: 2px; }
+.sel-card.sel .sel-card-name { color: var(--blue-dark); }
+.sel-card.sel .sel-card-sub { color: var(--blue); }
+
+.recinto-item { background: white; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+.recinto-item:active { transform: scale(0.98); }
+.recinto-item.sel { border-color: var(--blue); background: var(--blue-light); }
+.recinto-name { font-size: 13px; font-weight: 500; color: var(--gray-900); }
+.recinto-dir { font-size: 11px; color: var(--gray-600); margin-top: 2px; }
+.recinto-cols { font-size: 11px; color: var(--blue); margin-top: 4px; font-weight: 500; }
+
+.colegios-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+.col-chip { background: white; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; transition: all .15s; font-weight: 500; color: var(--gray-800); }
+.col-chip:active { transform: scale(0.96); }
+.col-chip.sel { background: var(--blue); border-color: var(--blue); color: white; }
+
+.breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.bc-btn { font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+.bc-sep { font-size: 12px; color: var(--gray-400); }
+.bc-cur { font-size: 12px; font-weight: 600; color: var(--gray-900); }
+
+.summary-box { background: var(--green-light); border-radius: var(--radius-sm); padding: 14px; margin-top: 14px; }
+.sum-title { font-size: 12px; font-weight: 600; color: var(--green); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.sum-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid rgba(14,124,74,0.15); }
+.sum-row:last-child { border-bottom: none; }
+.sum-label { color: var(--green); }
+.sum-val { font-weight: 600; color: var(--gray-900); text-align: right; max-width: 60%; }
+
+/* REGISTRO FORM */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 11px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; display: block; }
+.form-input { width: 100%; background: var(--gray-50); border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 11px 14px; font-size: 14px; color: var(--gray-900); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .15s; }
+.form-input:focus { border-color: var(--blue); background: white; }
+.form-input.prefilled { background: var(--blue-light); border-color: #bfd3f5; color: var(--blue-dark); }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-primary { width: 100%; background: var(--blue); color: white; border: none; border-radius: var(--radius-sm); padding: 15px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .15s; margin-top: 6px; }
+.btn-primary:active { transform: scale(0.98); background: var(--blue-dark); }
+.success-toast { background: var(--green); color: white; border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; font-weight: 500; text-align: center; margin-bottom: 14px; display: none; }
+.counter-strip { background: var(--blue); color: white; border-radius: var(--radius-sm); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cs-label { font-size: 11px; opacity: .8; }
+.cs-val { font-size: 20px; font-weight: 700; }
+
+/* PROGRESS */
+.prog-bar-bg { height: 8px; background: var(--gray-200); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+.prog-bar-fill { height: 100%; border-radius: 99px; background: var(--blue); transition: width 1s ease; }
+.prog-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--gray-600); }
+
+/* RECENT */
+.recent-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.recent-item:last-child { border-bottom: none; }
+.ri-name { font-size: 13px; font-weight: 500; color: var(--gray-900); }
+.ri-meta { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+.ri-time { font-size: 11px; color: var(--gray-400); }
+
+/* ALERT BOX */
+.alert { border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; margin-bottom: 12px; }
+.alert-red { background: var(--red-light); color: var(--red); }
+.alert-amber { background: var(--amber-light); color: var(--amber); }
+
+/* BOTTOM NAV */
+.bottom-nav { background: white; border-top: 1px solid var(--gray-200); display: flex; padding: 8px 0 env(safe-area-inset-bottom, 8px); position: sticky; bottom: 0; }
+.bn-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px; cursor: pointer; border: none; background: none; }
+.bn-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+.bn-label { font-size: 10px; color: var(--gray-400); font-family: 'DM Sans', sans-serif; }
+.bn-item.active .bn-label { color: var(--blue); font-weight: 600; }
+.bn-item.active svg { stroke: var(--blue) !important; }
+
+/* TAB BAR */
+.tab-bar { display: flex; background: var(--gray-100); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+.tab-item { flex: 1; padding: 8px; text-align: center; font-size: 12px; color: var(--gray-600); border-radius: 8px; cursor: pointer; transition: all .15s; font-weight: 500; }
+.tab-item.active { background: white; color: var(--blue); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+.dot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
+.dot-g { background: #22c55e; }
+.dot-a { background: #f59e0b; }
+.dot-r { background: #ef4444; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+  <div class="splash-logo">
+    <div class="logo-mark">VA</div>
+    <div class="splash-badge">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#86efac" stroke-width="1"/><path d="M3.5 6l2 2 3-3" stroke="#86efac" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Data oficial JCE · 475 colegios
+    </div>
+    <h1>Vot<span>App</span><br>SPM</h1>
+    <p>Sistema de gestión de votantes<br>Provincia San Pedro de Macorís</p>
+  </div>
+  <div class="nav-pills">
+    <div class="nav-pill" onclick="showScreen('candidato')">
+      <div class="pill-icon np-blue">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="white" stroke-width="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="white" stroke-width="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="white" stroke-width="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="white" stroke-width="1.5"/></svg>
+      </div>
+      <div class="pill-text">
+        <div class="pill-title">Panel del Candidato</div>
+        <div class="pill-sub">Resumen · Zonas · Municipios</div>
+      </div>
+      <div class="pill-arrow">›</div>
+    </div>
+    <div class="nav-pill" onclick="showScreen('dirigente')">
+      <div class="pill-icon np-green">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="7" r="3.5" stroke="white" stroke-width="1.5"/><path d="M2 16c0-3.5 3.1-5.5 7-5.5s7 2 7 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="pill-text">
+        <div class="pill-title">App del Dirigente</div>
+        <div class="pill-sub">Registrar votantes · Mis metas</div>
+      </div>
+      <div class="pill-arrow">›</div>
+    </div>
+    <div class="nav-pill" onclick="showScreen('selector')">
+      <div class="pill-icon np-purple">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2C6.2 2 4 4.2 4 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5z" stroke="white" stroke-width="1.5"/><circle cx="9" cy="7" r="2" stroke="white" stroke-width="1.3"/></svg>
+      </div>
+      <div class="pill-text">
+        <div class="pill-title">Colegios Electorales</div>
+        <div class="pill-sub">475 colegios reales de la JCE</div>
+      </div>
+      <div class="pill-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: CANDIDATO -->
+<div class="screen" id="screen-candidato">
+  <div class="header">
+    <button class="back-btn" onclick="goHome()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#343a40" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">Panel del Candidato</div>
+      <div class="header-sub">San Pedro de Macorís · 2028</div>
+    </div>
+    <div class="header-avatar">CA</div>
+  </div>
+  <div class="content">
+
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="candTab('resumen',this)">Resumen</div>
+      <div class="tab-item" onclick="candTab('municipios',this)">Municipios</div>
+      <div class="tab-item" onclick="candTab('dirigentes',this)">Dirigentes</div>
+    </div>
+
+    <!-- RESUMEN TAB -->
+    <div id="cand-resumen">
+      <div class="metrics">
+        <div class="metric accent">
+          <div class="metric-label">Total votantes</div>
+          <div class="metric-value">8,340</div>
+          <div class="metric-sub">+218 esta semana</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Meta provincial</div>
+          <div class="metric-value">56%</div>
+          <div class="metric-sub sub-amber">8,340 / 15,000</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Municipios</div>
+          <div class="metric-value">6</div>
+          <div class="metric-sub" style="color:var(--gray-600)">de 7 cubiertos</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Dirigentes</div>
+          <div class="metric-value">38</div>
+          <div class="metric-sub sub-amber">5 sin actividad</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Progreso por municipio</div>
+        <div class="zone-row"><div class="zone-name">SPM Ciudad</div><div class="zone-bar-bg"><div class="zone-bar-fill" style="width:71%;background:#1a56db"></div></div><div class="zone-pct pct-hi">71%</div></div>
+        <div class="zone-row"><div class="zone-name">Consuelo</div><div class="zone-bar-bg"><div class="zone-bar-fill" style="width:64%;background:#1a56db"></div></div><div class="zone-pct pct-md">64%</div></div>
+        <div class="zone-row"><div class="zone-name">Los Llanos</div><div class="zone-bar-bg"><div class="zone-bar-fill" style="width:51%;background:#b45309"></div></div><div class="zone-pct pct-lo">51%</div></div>
+        <div class="zone-row"><div class="zone-name">Quisqueya</div><div class="zone-bar-bg"><div class="zone-bar-fill" style="width:48%;background:#b45309"></div></div><div class="zone-pct pct-lo">48%</div></div>
+        <div class="zone-row"><div class="zone-name">Guayacanes</div><div class="zone-bar-bg"><div class="zone-bar-fill" style="width:38%;background:#c0392b"></div></div><div class="zone-pct pct-vl">38%</div></div>
+        <div class="zone-row"><div class="zone-name">Ramón Santana</div><div class="zone-bar-bg"><div class="zone-bar-fill" style="width:43%;background:#b45309"></div></div><div class="zone-pct pct-lo">43%</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Actividad reciente</div>
+        <div class="recent-item">
+          <div><div class="ri-name">Ana Paula Marte</div><div class="ri-meta">Miramar · Juan Lantigua · Col. 0048</div></div>
+          <div class="ri-time">5 min</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Luis Cedeño</div><div class="ri-meta">Restauración · Rafael Cedeño · Col. 0001</div></div>
+          <div class="ri-time">18 min</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Yolanda Reyes</div><div class="ri-meta">Villa Velázquez · Sara Méndez · Col. 0035</div></div>
+          <div class="ri-time">32 min</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Carlos Morales</div><div class="ri-meta">Ingenio Porvenir · Gloria Lara · Col. 0085</div></div>
+          <div class="ri-time">1h</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MUNICIPIOS TAB -->
+    <div id="cand-municipios" style="display:none">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">San Pedro de Macorís</div>
+            <div style="font-size:11px;color:var(--gray-600)">Coord: Ramón Castillo · 14 dirigentes</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700">3,120</div><span class="pill pill-green">71%</span></div>
+        </div>
+        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100)">
+          <div style="font-size:11px;color:var(--gray-600);margin-bottom:8px;font-weight:600">Sectores principales</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span class="pill pill-green">Miramar</span><span class="pill pill-green">Villa Providencia</span><span class="pill pill-blue">Restauración</span><span class="pill pill-blue">Centro Ciudad</span><span class="pill pill-amber">Japón</span><span class="pill pill-amber">Villa Progreso</span>
+          </div>
+        </div>
+        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">Consuelo</div>
+            <div style="font-size:11px;color:var(--gray-600)">Coord: Elsa Taveras · 8 dirigentes</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700">1,840</div><span class="pill pill-blue">64%</span></div>
+        </div>
+        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">Los Llanos</div>
+            <div style="font-size:11px;color:var(--gray-600)">Coord: Antonio Beltre · 9 dirigentes</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700">1,160</div><span class="pill pill-amber">51%</span></div>
+        </div>
+        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">Quisqueya</div>
+            <div style="font-size:11px;color:var(--gray-600)">Coord: Pedro Almonte · 7 dirigentes</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700">1,280</div><span class="pill pill-amber">48%</span></div>
+        </div>
+        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">Ramón Santana</div>
+            <div style="font-size:11px;color:var(--gray-600)">Coord: Luis Díaz · 5 dirigentes</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700">840</div><span class="pill pill-amber">43%</span></div>
+        </div>
+        <div style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">Guayacanes</div>
+            <div style="font-size:11px;color:var(--gray-600)">Coord: Carmen Villar · 5 dirigentes</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700">940</div><span class="pill pill-red">38%</span></div>
+        </div>
+      </div>
+      <div class="alert alert-red">Guayacanes por debajo del 40% — 3 dirigentes sin actividad hoy</div>
+    </div>
+
+    <!-- DIRIGENTES TAB -->
+    <div id="cand-dirigentes" style="display:none">
+      <div class="card">
+        <div class="card-title">Top dirigentes</div>
+        <div class="dirigente-row">
+          <div class="d-left"><div class="av av-b">RC</div><div><div class="d-name">Rafael Cedeño</div><div class="d-zona">Miramar · SPM <span class="pill pill-green">Activo</span></div></div></div>
+          <div class="d-right"><div class="d-count">486</div><div class="d-hoy hoy-ok">+22 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left"><div class="av av-g">YM</div><div><div class="d-name">Yolanda Mejía</div><div class="d-zona">Independencia · SPM <span class="pill pill-green">Activa</span></div></div></div>
+          <div class="d-right"><div class="d-count">412</div><div class="d-hoy hoy-ok">+17 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left"><div class="av av-g">MS</div><div><div class="d-name">Mercedes Santos</div><div class="d-zona">Batey Central · Consuelo <span class="pill pill-green">Activa</span></div></div></div>
+          <div class="d-right"><div class="d-count">380</div><div class="d-hoy hoy-ok">+14 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left"><div class="av av-a">GL</div><div><div class="d-name">Gloria Lara</div><div class="d-zona">El Cruce · Los Llanos <span class="pill pill-blue">Activa</span></div></div></div>
+          <div class="d-right"><div class="d-count">285</div><div class="d-hoy hoy-ok">+12 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left"><div class="av av-a">BF</div><div><div class="d-name">Bienvenido Frías</div><div class="d-zona">El Manguito · Guayacanes <span class="pill pill-amber">Baja</span></div></div></div>
+          <div class="d-right"><div class="d-count">142</div><div class="d-hoy hoy-w">+5 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left"><div class="av av-b">FG</div><div><div class="d-name">Franklin García</div><div class="d-zona">Boca Chica · SPM <span class="pill pill-red">Inactivo</span></div></div></div>
+          <div class="d-right"><div class="d-count">198</div><div class="d-hoy hoy-bad">0 hoy</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCREEN: DIRIGENTE -->
+<div class="screen" id="screen-dirigente">
+  <div class="header">
+    <button class="back-btn" onclick="goHome()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#343a40" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">María Rodríguez</div>
+      <div class="header-sub">Dirigente · Miramar · SPM</div>
+    </div>
+    <div class="header-avatar">MR</div>
+  </div>
+  <div class="content">
+
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="dirTab('registro',this)">Registrar</div>
+      <div class="tab-item" onclick="dirTab('mis',this)">Mis registros</div>
+      <div class="tab-item" onclick="dirTab('meta',this)">Mi meta</div>
+    </div>
+
+    <!-- REGISTRO TAB -->
+    <div id="dir-registro">
+      <div class="success-toast" id="toast-success">Votante registrado correctamente</div>
+      <div class="counter-strip">
+        <div><div class="cs-label">Registrados hoy</div><div class="cs-val" id="reg-hoy">42</div></div>
+        <div style="text-align:right"><div class="cs-label">Total acumulado</div><div class="cs-val">834</div></div>
+      </div>
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Nombre completo *</label>
+          <input class="form-input" type="text" placeholder="Ej. Ana Paula Marte Díaz">
+        </div>
+        <div class="row-2">
+          <div class="form-group">
+            <label class="form-label">Cédula *</label>
+            <input class="form-input" type="text" placeholder="001-0000000-0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono *</label>
+            <input class="form-input" type="tel" placeholder="809-000-0000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección / sector *</label>
+          <input class="form-input" type="text" placeholder="Barrio o sector">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Municipio</label>
+          <input class="form-input prefilled" type="text" value="San Pedro de Macorís" readonly>
+        </div>
+        <div class="row-2">
+          <div class="form-group">
+            <label class="form-label">Recinto</label>
+            <input class="form-input prefilled" type="text" value="Escuela San Antonio" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Colegio</label>
+            <input class="form-input prefilled" type="text" value="Colegio 0048" readonly>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="registrarVotante()">Registrar votante</button>
+      </div>
+    </div>
+
+    <!-- MIS REGISTROS TAB -->
+    <div id="dir-mis" style="display:none">
+      <div class="metrics" style="margin-bottom:12px">
+        <div class="metric"><div class="metric-label">Total registrados</div><div class="metric-value">834</div></div>
+        <div class="metric"><div class="metric-label">Hoy</div><div class="metric-value" style="color:var(--blue)">42</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Últimos registrados</div>
+        <div class="recent-item">
+          <div><div class="ri-name">Pedro Santos Díaz</div><div class="ri-meta">Miramar · Col. 0049</div></div>
+          <div class="ri-time">Hace 40m</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Luisa Fernández</div><div class="ri-meta">Miramar · Col. 0048</div></div>
+          <div class="ri-time">Hace 1h</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Carlos Morales</div><div class="ri-meta">Miramar · Col. 0105</div></div>
+          <div class="ri-time">Hace 2h</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Yolanda Cruz</div><div class="ri-meta">Miramar · Col. 0122</div></div>
+          <div class="ri-time">Ayer</div>
+        </div>
+        <div class="recent-item">
+          <div><div class="ri-name">Manuel Tejeda</div><div class="ri-meta">Miramar · Col. 0174</div></div>
+          <div class="ri-time">Ayer</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- META TAB -->
+    <div id="dir-meta" style="display:none">
+      <div class="card">
+        <div class="card-title">Mi progreso — Miramar</div>
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:40px;font-weight:700;color:var(--blue)">834</div>
+          <div style="font-size:13px;color:var(--gray-600)">de 1,000 votantes meta</div>
+        </div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:83.4%"></div></div>
+        <div class="prog-label"><span>83.4% completado</span><span>166 restantes</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Ranking de mi municipio</div>
+        <div class="dirigente-row">
+          <div class="d-left">
+            <div style="width:24px;height:24px;background:#fef3c7;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#b45309">#1</div>
+            <div class="av av-b" style="width:30px;height:30px;font-size:11px">MR</div>
+            <div><div class="d-name">Tú · María R.</div></div>
+          </div>
+          <div class="d-right"><div class="d-count">834</div><div class="d-hoy hoy-ok">+42 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left">
+            <div style="width:24px;height:24px;background:var(--gray-100);border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gray-600)">#2</div>
+            <div class="av av-g" style="width:30px;height:30px;font-size:11px">RC</div>
+            <div><div class="d-name">Rafael Cedeño</div></div>
+          </div>
+          <div class="d-right"><div class="d-count">486</div><div class="d-hoy hoy-ok">+22 hoy</div></div>
+        </div>
+        <div class="dirigente-row">
+          <div class="d-left">
+            <div style="width:24px;height:24px;background:var(--gray-100);border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gray-600)">#3</div>
+            <div class="av av-a" style="width:30px;height:30px;font-size:11px">YM</div>
+            <div><div class="d-name">Yolanda Mejía</div></div>
+          </div>
+          <div class="d-right"><div class="d-count">412</div><div class="d-hoy hoy-ok">+17 hoy</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCREEN: SELECTOR COLEGIOS -->
+<div class="screen" id="screen-selector">
+  <div class="header">
+    <button class="back-btn" onclick="goHome()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#343a40" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div>
+      <div class="header-title">Colegios Electorales</div>
+      <div class="header-sub">Data oficial JCE · 475 colegios SPM</div>
+    </div>
+  </div>
+  <div class="content">
+
+    <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#0e7c4a" stroke-width="1.3"/><path d="M5 8l2.5 2.5L11 5.5" stroke="#0e7c4a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="font-size:12px;color:var(--green);font-weight:500">Elecciones Municipales 18 feb 2024 · JCE oficial</span>
+    </div>
+
+    <div class="step-indicator" id="step-indicator">
+      <div class="step-item active" id="si1">Municipio</div>
+      <div class="step-item" id="si2">Sector</div>
+      <div class="step-item" id="si3">Recinto</div>
+      <div class="step-item" id="si4">Colegio</div>
+    </div>
+
+    <div class="sel-panel active" id="sel-mun">
+      <div class="section-title">Selecciona municipio</div>
+      <div id="mun-grid-sel" class="sel-grid"></div>
+    </div>
+
+    <div class="sel-panel" id="sel-sec">
+      <div class="breadcrumb">
+        <button class="bc-btn" onclick="selGoStep(1)">← Municipios</button>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur" id="bc1"></span>
+      </div>
+      <div class="section-title">Sector / barrio</div>
+      <div id="sec-grid-sel" class="sel-grid"></div>
+    </div>
+
+    <div class="sel-panel" id="sel-rec">
+      <div class="breadcrumb">
+        <button class="bc-btn" onclick="selGoStep(1)">← Municipios</button>
+        <span class="bc-sep">›</span>
+        <button class="bc-btn" onclick="selGoStep(2)" id="bc2b"></button>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur" id="bc2"></span>
+      </div>
+      <div class="section-title">Recinto electoral</div>
+      <div id="rec-list-sel"></div>
+    </div>
+
+    <div class="sel-panel" id="sel-col">
+      <div class="breadcrumb">
+        <button class="bc-btn" onclick="selGoStep(1)">← Inicio</button>
+        <span class="bc-sep">›</span>
+        <button class="bc-btn" onclick="selGoStep(2)" id="bc3m"></button>
+        <span class="bc-sep">›</span>
+        <button class="bc-btn" onclick="selGoStep(3)" id="bc3r"></button>
+      </div>
+      <div class="section-title">Selecciona colegio electoral</div>
+      <div id="col-wrap-sel" class="colegios-wrap"></div>
+      <div class="summary-box" id="sum-box" style="display:none">
+        <div class="sum-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#0e7c4a" stroke-width="1.2"/><path d="M4.5 7l2 2 3-3" stroke="#0e7c4a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Selección completa
+        </div>
+        <div class="sum-row"><span class="sum-label">Municipio</span><span class="sum-val" id="s-mun"></span></div>
+        <div class="sum-row"><span class="sum-label">Sector</span><span class="sum-val" id="s-sec"></span></div>
+        <div class="sum-row"><span class="sum-label">Recinto</span><span class="sum-val" id="s-rec"></span></div>
+        <div class="sum-row"><span class="sum-label">Dirección</span><span class="sum-val" id="s-dir"></span></div>
+        <div class="sum-row"><span class="sum-label">Colegio</span><span class="sum-val" id="s-col"></span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var DATA={"Consuelo":{"Alejandro Bass":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Alejandro Bass","colegios":["0030","0035"]}],"Centro De La Ciudad":[{"recinto":"Escuela Primaria Sor Leonor Guibb","direccion":"C/ Isidro Barros, Salida De Monte Coca","colegios":["0001","0002","0003","0004","0005","0006","0011","0038"]},{"recinto":"Esc. Prim. Antonio Paredes Mena","direccion":"Calle Carmen Salles Num. 68","colegios":["0007","0007A","0008","0008A","0009","0010","0036","0039"]},{"recinto":"Escuela Primaria Divina Providencia","direccion":"Calle Jose Francisco Peña Gomez No. 30","colegios":["0012","0013","0014","0015","0021","0022","0023","0024","0027","0028","0034","0040"]},{"recinto":"Liceo Astin Jacobo","direccion":"Calle Duarte, Antiguo Ingenio","colegios":["0018","0025","0026","0033"]},{"recinto":"Escuela Santa Margarita Yuribit","direccion":"Calle Respaldo Isidro Bass","colegios":["45"]}],"Don Juan":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Don Juan","colegios":["0031","0043"]}],"Euskarduna":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Cañada El Negro","colegios":["32"]}],"La Aviacion":[{"recinto":"Escuela Primaria La Salles","direccion":"Calle Primera","colegios":["41"]}],"Los Chicharrones":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Los Chicharrones","colegios":["29"]}],"Sueño Real":[{"recinto":"Liceo Sor Ana Nolan","direccion":"C/ Sor Antonia Scully No. 1","colegios":["0016","0017","0019","0020","0037","0042","0044"]}]},"Guayacanes":{"Centro De La Ciudad":[{"recinto":"Liceo Juan Pablo Duarte Diez","direccion":"Centro De La Ciudad","colegios":["0096","0096A","0096B","0097","0097A","0136"]},{"recinto":"Centro Educativo Laura Vicini Barletta","direccion":"Centro De La Ciudad","colegios":["0141","0145","0149"]}],"Juan Dolio":[{"recinto":"Escuela Basica Surinam","direccion":"Calle Principal, Juan Dolio","colegios":["0139","0144","0148"]}],"Los Conucos":[{"recinto":"Escuela Basica Los Conucos","direccion":"Paraje Los Conucos","colegios":["0001","0143","0147"]}],"Honduras":[{"recinto":"Escuela Basica Honduras","direccion":"Paraje Honduras","colegios":["137"]}],"Hoyo Del Toro":[{"recinto":"Escuela Basica Hoyo Del Toro","direccion":"Paraje Hoyo Del Toro","colegios":["138"]}],"H-3 Los Solares":[{"recinto":"Escuela Costa Real","direccion":"Barrio H-3 Los Solares","colegios":["146"]}],"Los Bancos De Arena":[{"recinto":"Escuela Basica Los Bancos De Arena","direccion":"Paraje Los Bancos De Arena","colegios":["142"]}],"Cruce De Cayacoa":[{"recinto":"Policlinica Rural Cruce De Cayacoa","direccion":"Paraje Cruce De Cayacoa","colegios":["140"]}]},"Los Llanos":{"Centro De La Ciudad":[{"recinto":"Escuela Maria Nicolasa Billini","direccion":"Calle Proyecto Esq. San Jose","colegios":["0001","0002","0003","0004","0037","0042","0042A"]},{"recinto":"Liceo Sec. Servio Tulio Sosa","direccion":"C/ Prolongacion Fernando Deligne","colegios":["0046","0047","0050","0053"]}],"Batey Cayacoa":[{"recinto":"Escuela Atabey Fe Y Alegria","direccion":"Paraje Batey Cayacoa","colegios":["0036","0052"]}],"Batey Paloma":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Batey Paloma","colegios":["0017","0018","0043"]}],"El Puerto":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje El Puerto","colegios":["0005","0005A","0045"]},{"recinto":"Liceo Fabio Fiallo","direccion":"Calle Primera","colegios":["0006","0048","0051"]}],"Gautier":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Gautier","colegios":["0034","0034A","0041","0049"]}],"El Guayabal":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje El Guayabal","colegios":["0015","0016","0038"]}],"Batey Contador":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Batey Contador","colegios":["14"]}],"La Estrella":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje La Estrella","colegios":["0009","0010"]}],"Tintero":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Tintero","colegios":["0035","0044"]}],"Caimito":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Caimito","colegios":["8"]}],"Cayacoita":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Cayacoita","colegios":["33"]}],"El Bronce":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje El Bronce","colegios":["32"]}],"El Coco":[{"recinto":"Escuela Basica El Coco","direccion":"Paraje El Coco","colegios":["13"]}],"El Rancho":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje El Rancho","colegios":["11"]}],"Consuelito":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Consuelito","colegios":["19"]}],"Saca Turron":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Saca Turron","colegios":["7"]}],"San Jose":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje San Jose","colegios":["31"]}]},"Quisqueya":{"Centro De La Ciudad":[{"recinto":"Liceo Eugenio Maria De Hostos","direccion":"Centro De La Ciudad","colegios":["0001","0027","0027A","0028","0029","0029A","0039","0039A","0040"]},{"recinto":"Escuela Primaria Urbana","direccion":"Ciudad","colegios":["0024","0024A","0025","0025A","0026","0026A"]},{"recinto":"Escuela Virgen De La Caridad","direccion":"Centro De La Ciudad","colegios":["0041","0042","0043","0044","0045","0046"]},{"recinto":"Escuela Profesora Silvia Sosa","direccion":"Manzana C.","colegios":["0022","0022A","0023","0023A"]}],"Ulloa":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Ulloa","colegios":["12"]}],"Canutillo":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Canutillo","colegios":["20"]}],"La Ciria":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje La Ciria","colegios":["30"]}],"Los Montones":[{"recinto":"Escuela Primaria Rural","direccion":"Paraje Los Montones","colegios":["21"]}]},"Ramón Santana":{"Centro De La Ciudad":[{"recinto":"Escuela Federico Bermudez","direccion":"Calle 12 De Julio No.65","colegios":["0001","0002"]},{"recinto":"Salon De Actos Del Ayunt. Municipal","direccion":"Calle Hermanas Mirabal","colegios":["0011","0012"]},{"recinto":"Liceo Federico Bermudez De Ramon Santana","direccion":"Gaston Fernando Deligne","colegios":["0014","0019"]}],"Batey El Soco":[{"recinto":"Centro Educativo El Soco","direccion":"Paraje Batey El Soco","colegios":["15"]},{"recinto":"Centro Comunal Del Batey El Soco","direccion":"Paraje Batey El Soco","colegios":["9"]}],"Batey La Cubana":[{"recinto":"Centro Educativo La Cubana","direccion":"Batey La Cubana","colegios":["0005","0005A"]}],"Batey Los Arados":[{"recinto":"Centro Educativo Los Arados","direccion":"Paraje Batey Los Arados","colegios":["10"]}],"Batey Campiña":[{"recinto":"Centro Educativo Campiña","direccion":"Paraje Batey Campiña","colegios":["0006","0017"]}],"Batey Jagual":[{"recinto":"Centro Educativo Batey Jagual","direccion":"Paraje Batey Jagual","colegios":["8"]}],"Batey La Margarita":[{"recinto":"Centro Educativo Margarita","direccion":"Batey Margarita","colegios":["4"]}],"Cabeza De Toro":[{"recinto":"Centro Educativo Cabeza De Toro","direccion":"Paraje Cabeza De Toro","colegios":["13"]}],"Paso Del Medio":[{"recinto":"Centro Educativo Paso Del Medio","direccion":"Paraje Paso Del Medio","colegios":["0003","0018"]}],"Laguna Prieta":[{"recinto":"Centro Educativo Laguna Prieta","direccion":"Paraje Laguna Prieta","colegios":["16"]}],"Plumita Regajo":[{"recinto":"Centro Educativo Regajo","direccion":"Paraje Plumita Regajo","colegios":["7"]}]},"San Pedro de Macorís":{"Miramar":[{"recinto":"Escuela San Antonio","direccion":"Calle Ignacio Arias / Larancuent","colegios":["0048","0048A","0049","0049A","0105","0122","0174"]},{"recinto":"Colegio San Esteban","direccion":"Calle Eugenio Payano Es. Elias Camarena","colegios":["0050","0050A","0051","0051A","0106"]},{"recinto":"Colegio Evangelico Bethel","direccion":"Calle Ignacio Arias No. 83 Esq. Dr. George","colegios":["0047","0047A","0140","0147","0199"]}],"Restauracion":[{"recinto":"Estadio Tetelo Vargas","direccion":"Carretera Mella Km. 1 1/2","colegios":["0001","0001A","0001B","0002","0002A","0002B","0003","0003A","0003B","0004","0004A","0004B","0005","0005A","0005B","0006","0006A","0006B","0007","0007A","0007B","0101","0162","0177"]},{"recinto":"Colegio Monte De Sion","direccion":"Roberto Figueroa Chapo #91","colegios":["0117","0117A","0117B","0158"]}],"Centro De La Ciudad":[{"recinto":"Colegio Evangelico Limardo","direccion":"General Cabral E. Valdez #56","colegios":["0017","0017A","0017B"]},{"recinto":"Escuela Puerto Rico","direccion":"Calle Prof. Puelo No. 152","colegios":["0033","0033A","0033B","0033C","0034","0034A","0034B","0160"]},{"recinto":"Camara De Comercio","direccion":"C/ Colon","colegios":["0041","0041A","0042","0042A"]},{"recinto":"Cuerpo De Bomberos","direccion":"C/ Duarte #46","colegios":["0039","0039A","0040","0040A"]},{"recinto":"Casa De La Cultura","direccion":"Calle Alejo Martinez Esq. General Cabral","colegios":["0037","0037A","0038","0038A","0038B"]}],"Villa Providencia":[{"recinto":"Colegio Juan Pablo Duarte","direccion":"Gral. Ramon Castillo #5","colegios":["0015","0015A","0016","0016A","0018","0018A"]},{"recinto":"Esc. Ana Josefa Puello","direccion":"Gral. Ramon Castillo","colegios":["0011","0012","0013","0013A","0014","0014A","0019","0019A"]},{"recinto":"Colegio San Benito Abad","direccion":"Carretera Mella Esq. Hermanas Mirabal No. 41","colegios":["0080","0080A","0080B"]}],"Japon":[{"recinto":"Escuela Primaria Luis A. Bermudez","direccion":"Calle Moscoso Puello No. 28","colegios":["0052","0052A","0052B","0053","0053A","0053B","0054","0054A","0054B","0054C","0107","0108","0132","0142"]},{"recinto":"Liceo Pedro Mir","direccion":"Calle Ramon Mota","colegios":["182"]}],"Villa Velazquez":[{"recinto":"Escuela Evangelina Rodriguez","direccion":"Ave Independencia 106","colegios":["0036","0036A","0036B","0036C"]},{"recinto":"Liceo Jose Joaquin Perez","direccion":"C/ Sergio A. Beras","colegios":["0034C","0034D","0035","0035A","0035B","0035C","0127","0155","0198"]}],"Libertad":[{"recinto":"Palacio De Justicia","direccion":"C/ Laureano Canto Ant. Carret. Mella","colegios":["0077","0077A","0077B","0078","0078A","0078B","0079","0079A"]}],"Mexico":[{"recinto":"Escuela Juan Vicente Moscoso","direccion":"Carretera Mella Km. 2","colegios":["0008","0008A","0009","0009A","0009B","0010","0010A","0010B","0010C","0010D","0153","0178","0183"]},{"recinto":"Centro Educativo Idp","direccion":"C/ Simon Bolivar","colegios":["0141","0148","0168","0200"]},{"recinto":"Escuela Nueva","direccion":"Carretera Mella Km. 2","colegios":["0100","0100A","0201"]}],"Ingenio Porvenir":[{"recinto":"Liceo Secundario Gaston F. Deligne","direccion":"Paraje Porvenir Av. Independencia","colegios":["0074","0074A","0074B","0075","0075A","0075B","0076","0076A","0076B","0086","0086A","0086B","0086C","0086D","0111","0113","0120","0121","0154","0195"]},{"recinto":"Escuela Central","direccion":"Paraje Ingenio Porvenir","colegios":["0085","0085A","0085B","0085C","0085D","0085E","0164","0175","0194"]}],"Ingenio Santa Fe":[{"recinto":"Escuela Primaria Eduardo Mañon","direccion":"Paraje Ingenio Santa Fe","colegios":["0083","0083A","0083B","0084","0084A","0084B","0112","0112A","0138","0180"]},{"recinto":"Colegio Episcopal Santa Cruz","direccion":"Paraje Ingenio Santa Fe C/ Duarte #1","colegios":["0081","0081A","0082","0082A","0082B","0145"]}],"Villa Progreso":[{"recinto":"Escuela Villa Progreso","direccion":"Bo. V. Progreso Del Km 3 1/2","colegios":["0099","0099A","0099B","0099C","0099D","0126","0161","0193"]},{"recinto":"Oficina De Obras Publicas","direccion":"Carret. Mella Km. 3 1/2","colegios":["0115","0125","0163"]}],"Placer Bonito":[{"recinto":"Escuela Santa Clara","direccion":"Av. Francisco Caamaño #35","colegios":["0020","0020A","0020B","0021","0021A","0021B","0021C","0102","0119","0119A","0172"]},{"recinto":"Sociedad Mutualista Esperanza","direccion":"Calle Virgilio Diaz Ordoñez No. 8","colegios":["0024","0024A","0025","0025A"]}],"Lindo":[{"recinto":"Escuela Primaria Urbana Tres Llaves","direccion":"Calle Las Artes","colegios":["0098","0098A","0098B","0098C","0098D","0098E","0098F","0098G"]},{"recinto":"Escuela Profesor Agustin Berroa","direccion":"Calle Las Artes","colegios":["0159","0173","0190","0203"]}],"Blanco":[{"recinto":"Escuela Barrio Blanco","direccion":"C/ Presidente Meriño","colegios":["0022","0023","0023A","0026","0026A","0026B","0103","0130"]}],"Villa Faro":[{"recinto":"Escuela Primaria Villa Faro","direccion":"Paraje Villa Faro","colegios":["0123","0124","0149","0156","0186"]}],"Ingenio Angelina":[{"recinto":"Liceo Lic. Pedro Luis Santana Corominas","direccion":"Calle Principal Pueblo Nuevo","colegios":["0071","0072","0073","0205"]}],"Toconal":[{"recinto":"Logia Industrial","direccion":"Calle Pres. Henriquez No.50","colegios":["0043","0043A","0044","0044A","0045","0045A"]}],"Sarmiento":[{"recinto":"Edificio Aulas No. 3 (Uce)","direccion":"C/ Francisco Alberto Caamaño","colegios":["0089","0089A","0089B","0090","0090A"]}]}};
+
+var sM='',sS='',sR=null,sC='';
+
+function showScreen(s){
+  document.getElementById('splash').style.display='none';
+  document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active')});
+  document.getElementById('screen-'+s).classList.add('active');
+  if(s==='selector') renderMuns();
+}
+function goHome(){
+  document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active')});
+  document.getElementById('splash').style.display='flex';
+}
+
+function candTab(t,el){
+  document.querySelectorAll('#screen-candidato .tab-item').forEach(function(x){x.classList.remove('active')});
+  el.classList.add('active');
+  ['resumen','municipios','dirigentes'].forEach(function(id){
+    document.getElementById('cand-'+id).style.display=id===t?'block':'none';
+  });
+}
+function dirTab(t,el){
+  document.querySelectorAll('#screen-dirigente .tab-item').forEach(function(x){x.classList.remove('active')});
+  el.classList.add('active');
+  ['registro','mis','meta'].forEach(function(id){
+    document.getElementById('dir-'+id).style.display=id===t?'block':'none';
+  });
+}
+
+function registrarVotante(){
+  var t=document.getElementById('toast-success');
+  var c=document.getElementById('reg-hoy');
+  t.style.display='block';
+  c.textContent=parseInt(c.textContent)+1;
+  setTimeout(function(){t.style.display='none'},2500);
+}
+
+function selGoStep(n){
+  ['sel-mun','sel-sec','sel-rec','sel-col'].forEach(function(id,i){
+    document.getElementById(id).className='sel-panel'+(i+1===n?' active':'');
+  });
+  ['si1','si2','si3','si4'].forEach(function(id,i){
+    document.getElementById(id).className='step-item'+(i+1===n?' active':i+1<n?' done':'');
+  });
+}
+
+function munStats(m){
+  var d=DATA[m],s=Object.keys(d).length,r=0,c=0;
+  Object.values(d).forEach(function(rs){r+=rs.length;rs.forEach(function(x){c+=x.colegios.length})});
+  return {s:s,r:r,c:c};
+}
+
+function renderMuns(){
+  var g=document.getElementById('mun-grid-sel'); g.innerHTML='';
+  Object.keys(DATA).sort().forEach(function(m){
+    var st=munStats(m);
+    var d=document.createElement('div');
+    d.className='sel-card';
+    d.innerHTML='<div class="sel-card-name">'+m+'</div><div class="sel-card-sub">'+st.s+' sectores · '+st.c+' colegios</div>';
+    d.onclick=function(){sM=m;document.getElementById('bc1').textContent=m;document.getElementById('bc3m').textContent=m;renderSecs(m);selGoStep(2)};
+    g.appendChild(d);
+  });
+}
+
+function renderSecs(m){
+  var g=document.getElementById('sec-grid-sel'); g.innerHTML='';
+  Object.keys(DATA[m]).sort().forEach(function(s){
+    var rs=DATA[m][s],c=rs.reduce(function(a,r){return a+r.colegios.length},0);
+    var d=document.createElement('div');
+    d.className='sel-card';
+    d.innerHTML='<div class="sel-card-name">'+s+'</div><div class="sel-card-sub">'+rs.length+' recinto'+(rs.length>1?'s':'')+' · '+c+' colegios</div>';
+    d.onclick=function(){sS=s;document.getElementById('bc2').textContent=s;document.getElementById('bc2b').textContent=m;document.getElementById('bc3r').textContent=s;renderRecs(m,s);selGoStep(3)};
+    g.appendChild(d);
+  });
+}
+
+function renderRecs(m,s){
+  var g=document.getElementById('rec-list-sel'); g.innerHTML='';
+  DATA[m][s].forEach(function(r){
+    var d=document.createElement('div');
+    d.className='recinto-item';
+    d.innerHTML='<div class="recinto-name">'+r.recinto+'</div><div class="recinto-dir">'+r.direccion+'</div><div class="recinto-cols">'+r.colegios.length+' colegio'+(r.colegios.length>1?'s electorales':' electoral')+'</div>';
+    d.onclick=function(){sR=r;renderCols(r);selGoStep(4)};
+    g.appendChild(d);
+  });
+}
+
+function renderCols(r){
+  var g=document.getElementById('col-wrap-sel'); g.innerHTML='';
+  document.getElementById('sum-box').style.display='none';
+  r.colegios.forEach(function(c){
+    var d=document.createElement('div');
+    d.className='col-chip';
+    d.textContent='Col. '+c;
+    d.onclick=function(){
+      document.querySelectorAll('.col-chip').forEach(function(x){x.classList.remove('sel')});
+      this.classList.add('sel');
+      sC=c;
+      document.getElementById('s-mun').textContent=sM;
+      document.getElementById('s-sec').textContent=sS;
+      document.getElementById('s-rec').textContent=r.recinto;
+      document.getElementById('s-dir').textContent=r.direccion;
+      document.getElementById('s-col').textContent='Colegio '+c;
+      document.getElementById('sum-box').style.display='block';
+    };
+    g.appendChild(d);
+  });
+}
+</script>
+</body>
+</html>
