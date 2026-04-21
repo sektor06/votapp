@@ -414,33 +414,109 @@ body { font-family: 'DM Sans', sans-serif; background: #0f172a; color: var(--gra
 
     <!-- DIRIGENTES TAB -->
     <div id="cand-dirigentes" style="display:none">
-      <div class="card">
-        <div class="card-title">Top dirigentes</div>
-        <div class="dirigente-row">
-          <div class="d-left"><div class="av av-b">RC</div><div><div class="d-name">Rafael Cedeño</div><div class="d-zona">Miramar · SPM <span class="pill pill-green">Activo</span></div></div></div>
-          <div class="d-right"><div class="d-count">486</div><div class="d-hoy hoy-ok">+22 hoy</div></div>
+
+      <div id="dir-toast" style="display:none;background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#0e7c4a;margin-bottom:12px;align-items:center;gap:8px">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#0e7c4a" stroke-width="1.2"/><path d="M4.5 7l2 2 3-3" stroke="#0e7c4a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="dir-toast-msg"></span>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <select id="dir-filtro" style="font-size:12px" onchange="filtrarDir()">
+            <option value="">Todas las zonas</option>
+            <option>San Pedro de Macorís</option>
+            <option>Consuelo</option>
+            <option>Quisqueya</option>
+            <option>Guayacanes</option>
+            <option>Los Llanos</option>
+            <option>Ramón Santana</option>
+          </select>
+          <span id="dir-count" style="font-size:11px;background:var(--gray-100);padding:2px 8px;border-radius:99px;color:var(--gray-600)">6 dirigentes</span>
         </div>
-        <div class="dirigente-row">
-          <div class="d-left"><div class="av av-g">YM</div><div><div class="d-name">Yolanda Mejía</div><div class="d-zona">Independencia · SPM <span class="pill pill-green">Activa</span></div></div></div>
-          <div class="d-right"><div class="d-count">412</div><div class="d-hoy hoy-ok">+17 hoy</div></div>
-        </div>
-        <div class="dirigente-row">
-          <div class="d-left"><div class="av av-g">MS</div><div><div class="d-name">Mercedes Santos</div><div class="d-zona">Batey Central · Consuelo <span class="pill pill-green">Activa</span></div></div></div>
-          <div class="d-right"><div class="d-count">380</div><div class="d-hoy hoy-ok">+14 hoy</div></div>
-        </div>
-        <div class="dirigente-row">
-          <div class="d-left"><div class="av av-a">GL</div><div><div class="d-name">Gloria Lara</div><div class="d-zona">El Cruce · Los Llanos <span class="pill pill-blue">Activa</span></div></div></div>
-          <div class="d-right"><div class="d-count">285</div><div class="d-hoy hoy-ok">+12 hoy</div></div>
-        </div>
-        <div class="dirigente-row">
-          <div class="d-left"><div class="av av-a">BF</div><div><div class="d-name">Bienvenido Frías</div><div class="d-zona">El Manguito · Guayacanes <span class="pill pill-amber">Baja</span></div></div></div>
-          <div class="d-right"><div class="d-count">142</div><div class="d-hoy hoy-w">+5 hoy</div></div>
-        </div>
-        <div class="dirigente-row">
-          <div class="d-left"><div class="av av-b">FG</div><div><div class="d-name">Franklin García</div><div class="d-zona">Boca Chica · SPM <span class="pill pill-red">Inactivo</span></div></div></div>
-          <div class="d-right"><div class="d-count">198</div><div class="d-hoy hoy-bad">0 hoy</div></div>
+        <button onclick="showDirModal()" style="background:var(--blue);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">+ Nuevo</button>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="dir-lista">
+          <div class="dirigente-row" style="padding:9px 14px" data-zona="San Pedro de Macorís">
+            <div class="d-left"><div class="av av-b">RC</div><div><div class="d-name">Rafael Cedeño</div><div class="d-zona">Miramar · SPM · 809-555-0101</div></div></div>
+            <div class="d-right"><div class="d-count">486</div><div class="d-hoy hoy-ok">+22 hoy</div></div>
+          </div>
+          <div class="dirigente-row" style="padding:9px 14px" data-zona="San Pedro de Macorís">
+            <div class="d-left"><div class="av av-g">YM</div><div><div class="d-name">Yolanda Mejía</div><div class="d-zona">Independencia · SPM · 809-555-0202</div></div></div>
+            <div class="d-right"><div class="d-count">412</div><div class="d-hoy hoy-ok">+17 hoy</div></div>
+          </div>
+          <div class="dirigente-row" style="padding:9px 14px" data-zona="Consuelo">
+            <div class="d-left"><div class="av av-g">MS</div><div><div class="d-name">Mercedes Santos</div><div class="d-zona">Batey Central · Consuelo · 809-555-0303</div></div></div>
+            <div class="d-right"><div class="d-count">380</div><div class="d-hoy hoy-ok">+14 hoy</div></div>
+          </div>
+          <div class="dirigente-row" style="padding:9px 14px" data-zona="Los Llanos">
+            <div class="d-left"><div class="av av-a">GL</div><div><div class="d-name">Gloria Lara</div><div class="d-zona">El Cruce · Los Llanos · 809-555-0404</div></div></div>
+            <div class="d-right"><div class="d-count">285</div><div class="d-hoy hoy-ok">+12 hoy</div></div>
+          </div>
+          <div class="dirigente-row" style="padding:9px 14px" data-zona="Guayacanes">
+            <div class="d-left"><div class="av av-a">BF</div><div><div class="d-name">Bienvenido Frías</div><div class="d-zona">El Manguito · Guayacanes · 809-555-0505</div></div></div>
+            <div class="d-right"><div class="d-count">142</div><div class="d-hoy hoy-w">+5 hoy</div></div>
+          </div>
+          <div class="dirigente-row" style="padding:9px 14px" data-zona="Quisqueya">
+            <div class="d-left"><div class="av av-b">LD</div><div><div class="d-name">Luis Disla</div><div class="d-zona">Pueblo Nuevo · Quisqueya · 809-555-0606</div></div></div>
+            <div class="d-right"><div class="d-count">310</div><div class="d-hoy hoy-ok">+9 hoy</div></div>
+          </div>
         </div>
       </div>
+
+      <div id="dir-modal-wrap" style="display:none;margin-top:12px">
+        <div style="background:rgba(0,0,0,0.35);border-radius:12px;padding:1.5rem;display:flex;align-items:center;justify-content:center;min-height:480px">
+          <div style="background:var(--white);border-radius:12px;border:1px solid var(--gray-200);padding:1.25rem;width:100%">
+            <div style="font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:1rem;display:flex;align-items:center;gap:8px">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3.5" stroke="#1a56db" stroke-width="1.3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5" stroke="#1a56db" stroke-width="1.3"/></svg>
+              Crear dirigente
+            </div>
+            <div style="margin-bottom:11px">
+              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Nombre completo *</label>
+              <input type="text" id="df-nombre" placeholder="Ej. Pedro Almonte García" oninput="updateDirSMS()" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900)">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:11px">
+              <div>
+                <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Cédula *</label>
+                <input type="text" id="df-cedula" placeholder="001-0000000-0" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900)">
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Teléfono *</label>
+                <input type="tel" id="df-tel" placeholder="809-000-0000" oninput="updateDirSMS()" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900)">
+              </div>
+            </div>
+            <div style="margin-bottom:11px">
+              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Municipio / Zona *</label>
+              <select id="df-zona" onchange="updateDirSectores()" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900)">
+                <option value="">Selecciona municipio</option>
+                <option>San Pedro de Macorís</option>
+                <option>Consuelo</option>
+                <option>Quisqueya</option>
+                <option>Guayacanes</option>
+                <option>Los Llanos</option>
+                <option>Ramón Santana</option>
+              </select>
+            </div>
+            <div style="margin-bottom:11px">
+              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Sector / Barrio *</label>
+              <select id="df-sector" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900)">
+                <option value="">Primero selecciona municipio</option>
+              </select>
+            </div>
+            <div style="margin-bottom:11px">
+              <label style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Meta de votantes</label>
+              <input type="number" id="df-meta" placeholder="Ej. 500" style="width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900)">
+            </div>
+            <div id="df-sms" style="display:none;background:#f0fdf4;border-radius:8px;padding:9px 12px;font-size:11px;color:#166534;margin-bottom:11px"></div>
+            <div style="display:flex;gap:8px">
+              <button onclick="hideDirModal()" style="flex:1;border:1.5px solid var(--gray-200);border-radius:8px;padding:11px;font-size:12px;background:white;font-family:inherit;cursor:pointer">Cancelar</button>
+              <button onclick="crearDir()" style="flex:2;background:#1a56db;color:white;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">Crear y enviar SMS</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -673,6 +749,15 @@ function showScreen(s){
   document.getElementById('screen-'+s).classList.add('active');
   if(s==='selector') renderMuns();
 }
+var dirSectores={'San Pedro de Macorís':['Miramar','Restauración','Centro de la Ciudad','Villa Providencia','Japón','Villa Velázquez','Libertad','México','Ingenio Porvenir','Ingenio Santa Fe','Villa Progreso','Placer Bonito','Lindo','Blanco','Villa Faro','Toconal','Sarmiento'],'Consuelo':['Centro de la Ciudad','Batey Central','Sueño Real','Alejandro Bass','Don Juan','La Aviación','Los Chicharrones','Euskarduna'],'Quisqueya':['Centro de la Ciudad','Ulloa','Canutillo','La Ciria','Los Montones'],'Guayacanes':['Centro de la Ciudad','Juan Dolio','Los Conucos','Honduras','Hoyo del Toro','H-3 Los Solares','Los Bancos de Arena','Cruce de Cayacoa'],'Los Llanos':['Centro de la Ciudad','Batey Cayacoa','Batey Paloma','El Puerto','Gautier','El Guayabal','Batey Contador','La Estrella','Tintero','El Coco','El Bronce','El Rancho','Caimito','Cayacoita','Consuelito','Saca Turrón','San José'],'Ramón Santana':['Centro de la Ciudad','Batey El Soco','Batey La Cubana','Batey Los Arados','Batey Campiña','Batey Jagual','Batey La Margarita','Cabeza de Toro','Paso del Medio','Laguna Prieta','Plumita Regajo']};
+var dirColorIdx=0;var dirColors=['av-b','av-g','av-a'];
+function showDirModal(){document.getElementById('dir-modal-wrap').style.display='block';}
+function hideDirModal(){document.getElementById('dir-modal-wrap').style.display='none';['df-nombre','df-cedula','df-tel','df-meta'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('df-zona').value='';document.getElementById('df-sector').innerHTML='<option value="">Primero selecciona municipio</option>';document.getElementById('df-sms').style.display='none';}
+function updateDirSectores(){var z=document.getElementById('df-zona').value;var s=document.getElementById('df-sector');s.innerHTML='';if(!z){s.innerHTML='<option value="">Primero selecciona municipio</option>';return;}s.innerHTML='<option value="">Selecciona sector</option>';(dirSectores[z]||[]).forEach(function(sec){var o=document.createElement('option');o.value=sec;o.textContent=sec;s.appendChild(o);});updateDirSMS();}
+function updateDirSMS(){var n=document.getElementById('df-nombre').value;var t=document.getElementById('df-tel').value;var el=document.getElementById('df-sms');if(n&&t){var p='SPM'+Math.floor(1000+Math.random()*9000);el.innerHTML='SMS: "Hola '+n.split(' ')[0]+', eres dirigente en VotApp SPM. Usuario: '+t+' | Clave: '+p+'"';el.style.display='block';}else{el.style.display='none';}}
+function crearDir(){var n=document.getElementById('df-nombre').value.trim();var t=document.getElementById('df-tel').value.trim();var z=document.getElementById('df-zona').value;var s=document.getElementById('df-sector').value;if(!n||!t||!z||!s){alert('Completa nombre, teléfono, municipio y sector.');return;}var ini=n.split(' ').slice(0,2).map(function(w){return w[0]}).join('').toUpperCase();var av=dirColors[dirColorIdx%dirColors.length];dirColorIdx++;var meta=document.getElementById('df-meta').value||'500';var row=document.createElement('div');row.className='dirigente-row';row.style.cssText='padding:9px 14px';row.setAttribute('data-zona',z);row.innerHTML='<div class="d-left"><div class="av '+av+'">'+ini+'</div><div><div class="d-name">'+n+' <span style="background:#EAF3DE;color:#3B6D11;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500">Nuevo</span></div><div class="d-zona">'+s+' · '+z+' · '+t+'</div></div></div><div class="d-right"><div class="d-count">0</div><div class="d-hoy" style="font-size:10px;color:#1a56db">Meta: '+meta+'</div></div>';document.getElementById('dir-lista').appendChild(row);actualizarDirCount();hideDirModal();var toast=document.getElementById('dir-toast');document.getElementById('dir-toast-msg').textContent=n+' creado. SMS enviado al '+t+'.';toast.style.display='flex';setTimeout(function(){toast.style.display='none';},3500);}
+function filtrarDir(){var f=document.getElementById('dir-filtro').value;document.querySelectorAll('#dir-lista .dirigente-row').forEach(function(r){r.style.display=(!f||r.getAttribute('data-zona')===f)?'':'none';});actualizarDirCount();}
+function actualizarDirCount(){var f=document.getElementById('dir-filtro').value;var v=0;document.querySelectorAll('#dir-lista .dirigente-row').forEach(function(r){if(!f||r.getAttribute('data-zona')===f)v++;});var el=document.getElementById('dir-count');if(el)el.textContent=v+' dirigente'+(v!==1?'s':'');}
 function goHome(){
   document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active')});
   document.getElementById('splash').style.display='flex';
