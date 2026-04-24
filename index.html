@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VotApp SPM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+:root {
+  --blue:#1a56db;--blue-d:#0c3580;--blue-l:#e8f0fe;
+  --green:#0a7c4a;--green-l:#e6f4ed;
+  --red:#c0392b;--red-l:#fdecea;
+  --amber:#b45309;--amber-l:#fef3c7;
+  --gray-50:#f8f9fa;--gray-100:#f1f3f5;--gray-200:#e9ecef;
+  --gray-400:#adb5bd;--gray-600:#6c757d;--gray-800:#343a40;--gray-900:#212529;
+  --white:#fff;--radius:12px;--radius-sm:8px;
+  --shadow:0 2px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:#0f172a;color:var(--gray-900);overflow-x:hidden}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SPLASH ── */
+.splash{min-height:100vh;background:linear-gradient(145deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;position:relative;overflow:hidden}
+.splash::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(26,86,219,.25) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(10,124,74,.15) 0%,transparent 50%)}
+.splash-inner{position:relative;z-index:1;animation:fadeIn .6s ease}
+.logo-mark{width:80px;height:80px;background:var(--blue);border-radius:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;font-family:'DM Serif Display',serif;font-size:30px;color:white;letter-spacing:-1px;box-shadow:0 8px 32px rgba(26,86,219,.4)}
+.splash h1{font-family:'DM Serif Display',serif;font-size:3rem;color:white;line-height:1.1;margin-bottom:.5rem}
+.splash h1 span{color:#60a5fa}
+.splash p{color:rgba(255,255,255,.55);font-size:1rem;margin-bottom:2.5rem}
+.splash-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);padding:6px 14px;border-radius:99px;font-size:12px;margin-bottom:1.5rem}
+.nav-pills{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px}
+.nav-pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:white;padding:14px 18px;border-radius:var(--radius);display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;text-align:left}
+.nav-pill:active,.nav-pill:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25)}
+.pill-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.np-purple{background:rgba(124,58,237,.35)}
+.np-blue{background:rgba(26,86,219,.35)}
+.np-green{background:rgba(10,124,74,.35)}
+.np-coral{background:rgba(220,38,38,.25)}
+.pill-title{font-size:14px;font-weight:600}
+.pill-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+.pill-arrow{color:rgba(255,255,255,.3);font-size:18px;margin-left:auto}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;background:var(--gray-50);flex-direction:column}
+.screen.active{display:flex;animation:slideUp .3s ease}
+
+/* ── HEADER ── */
+.header{background:white;padding:14px 16px 12px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+.back-btn{width:34px;height:34px;border-radius:10px;background:var(--gray-100);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.header-info{flex:1}
+.header-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+.header-sub{font-size:11px;color:var(--gray-600);margin-top:1px}
+.header-av{width:34px;height:34px;border-radius:99px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto}
+.av-purple{background:#ede9fe;color:#5b21b6}
+.av-blue{background:var(--blue-l);color:var(--blue)}
+.av-green{background:var(--green-l);color:var(--green)}
+
+.content{flex:1;overflow-y:auto;padding:16px}
+
+/* ── COMPONENTS ── */
+.card{background:white;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.card-title{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:12px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metric{background:white;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.metric.accent{background:var(--blue)}
+.metric-label{font-size:11px;color:var(--gray-600);margin-bottom:4px}
+.metric.accent .metric-label{color:rgba(255,255,255,.7)}
+.metric-value{font-size:24px;font-weight:700;color:var(--gray-900);line-height:1}
+.metric.accent .metric-value{color:white}
+.metric-sub{font-size:11px;margin-top:3px;color:var(--gray-600)}
+.metric.accent .metric-sub{color:rgba(255,255,255,.6)}
+.sub-green{color:var(--green)}
+.sub-amber{color:var(--amber)}
+.tab-bar{display:flex;background:var(--gray-100);border-radius:10px;padding:3px;margin-bottom:14px}
+.tab{flex:1;padding:8px;text-align:center;font-size:12px;color:var(--gray-600);border-radius:8px;cursor:pointer;transition:all .15s;font-weight:500}
+.tab.active{background:white;color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.1);font-weight:700}
+.btn{border:none;border-radius:var(--radius-sm);padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:var(--blue-d)}
+.btn-secondary{background:var(--gray-100);color:var(--gray-800)}
+.btn-danger{background:var(--red-l);color:var(--red)}
+.btn-full{width:100%;justify-content:center;padding:14px}
+.pill{display:inline-block;font-size:10px;padding:2px 9px;border-radius:99px;font-weight:600}
+.pill-green{background:var(--green-l);color:var(--green)}
+.pill-blue{background:var(--blue-l);color:var(--blue)}
+.pill-amber{background:var(--amber-l);color:var(--amber)}
+.pill-red{background:var(--red-l);color:var(--red)}
+.pill-gray{background:var(--gray-100);color:var(--gray-600)}
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px}
+.form-input{width:100%;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:10px 13px;font-size:14px;color:var(--gray-900);font-family:inherit;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--blue);background:white}
+.form-input.prefilled{background:var(--blue-l);border-color:#c7d9f7;color:var(--blue-d)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.divider{border:none;border-top:1px solid var(--gray-100);margin:14px 0}
+.list-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--gray-100)}
+.list-row:last-child{border-bottom:none}
+.list-av{width:36px;height:36px;border-radius:99px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.list-name{font-size:13px;font-weight:600;color:var(--gray-900)}
+.list-sub{font-size:11px;color:var(--gray-600);margin-top:1px}
+.list-count{font-size:15px;font-weight:700;color:var(--gray-900)}
+.list-today{font-size:10px;color:var(--green)}
+.toast{border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;font-weight:500;display:none;align-items:center;gap:8px;margin-bottom:12px;animation:fadeIn .2s ease}
+.toast-ok{background:var(--green-l);color:var(--green)}
+.toast-err{background:var(--red-l);color:var(--red)}
+.toast-info{background:var(--blue-l);color:var(--blue)}
+.spinner-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;gap:10px}
+.spinner{width:28px;height:28px;border:2.5px solid var(--gray-200);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+.spinner-text{font-size:12px;color:var(--gray-600)}
+.empty-state{text-align:center;padding:2rem 1rem;color:var(--gray-400)}
+.empty-icon{margin:0 auto 10px;opacity:.3;display:block}
+.empty-text{font-size:13px}
+.progress-bg{height:8px;background:var(--gray-200);border-radius:99px;overflow:hidden;margin-bottom:5px}
+.progress-fill{height:100%;border-radius:99px;background:var(--blue);transition:width 1s ease}
+.progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-600)}
+.alert{border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;margin-bottom:12px}
+.alert-red{background:var(--red-l);color:var(--red)}
+.alert-amber{background:var(--amber-l);color:var(--amber)}
+.alert-green{background:var(--green-l);color:var(--green)}
+.alert-blue{background:var(--blue-l);color:var(--blue)}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;justify-content:center;padding:0}
+.modal-overlay.active{display:flex;animation:fadeIn .2s ease}
+.modal{background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp .3s ease}
+.modal-handle{width:40px;height:4px;background:var(--gray-200);border-radius:99px;margin:0 auto 16px}
+.modal-title{font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:16px}
+
+/* ── QR ── */
+.qr-wrap{text-align:center;padding:1rem}
+.qr-box{background:white;border-radius:var(--radius);padding:20px;display:inline-block;box-shadow:var(--shadow-lg);margin-bottom:14px}
+.qr-name{font-size:15px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.qr-sub{font-size:12px;color:var(--gray-600);margin-bottom:12px}
+.qr-actions{display:flex;gap:8px;justify-content:center}
+
+/* ── CEDULA SEARCH ── */
+.ced-input{width:100%;background:var(--gray-50);border:2.5px solid var(--blue);border-radius:var(--radius-sm);padding:13px 44px 13px 14px;font-size:18px;font-weight:700;letter-spacing:.08em;color:var(--gray-900);font-family:inherit;outline:none}
+.search-wrap{position:relative;margin-bottom:6px}
+.search-icon{position:absolute;right:13px;top:50%;transform:translateY(-50%)}
+.result-card{background:var(--gray-50);border-radius:var(--radius-sm);padding:13px;margin-bottom:12px}
+.result-header{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--gray-200);margin-bottom:10px}
+.result-av{width:44px;height:44px;border-radius:99px;background:var(--blue-l);color:var(--blue);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.data-item{background:white;border-radius:6px;padding:8px 10px}
+.data-label{font-size:10px;color:var(--gray-600);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.data-val{font-size:12px;font-weight:600;color:var(--gray-900)}
+.data-item.full{grid-column:1/-1}
+.counter-strip{background:var(--blue);color:white;border-radius:var(--radius-sm);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cs-label{font-size:11px;opacity:.75}
+.cs-val{font-size:20px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SPLASH ═══════════════ -->
+<div class="splash" id="splash">
+  <div class="splash-inner">
+    <div class="logo-mark">VA</div>
+    <div class="splash-badge">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#86efac" stroke-width="1"/><path d="M3.5 6l2 2 3-3" stroke="#86efac" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Conectado a Supabase · SPM 2028
+    </div>
+    <h1>Vot<span>App</span></h1>
+    <p>Sistema de gestión electoral<br>San Pedro de Macorís</p>
+    <div class="nav-pills">
+      <div class="nav-pill" onclick="showScreen('superadmin')">
+        <div class="pill-icon np-purple">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="2" stroke="white" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="2" stroke="white" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="2" stroke="white" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="2" stroke="white" stroke-width="1.5"/></svg>
+        </div>
+        <div>
+          <div class="pill-title">Mi Panel — Superadmin</div>
+          <div class="pill-sub">Gestionar candidatos · métricas globales</div>
+        </div>
+        <div class="pill-arrow">›</div>
+      </div>
+      <div class="nav-pill" onclick="showScreen('candidato')">
+        <div class="pill-icon np-blue">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.2 2 5 4.2 5 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5z" stroke="white" stroke-width="1.5"/><circle cx="10" cy="7" r="2" stroke="white" stroke-width="1.3"/></svg>
+        </div>
+        <div>
+          <div class="pill-title">Panel del Candidato</div>
+          <div class="pill-sub">Dashboard · dirigentes · QR · reportes</div>
+        </div>
+        <div class="pill-arrow">›</div>
+      </div>
+      <div class="nav-pill" onclick="showScreen('dirigente')">
+        <div class="pill-icon np-green">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" stroke="white" stroke-width="1.5"/><path d="M3 18c0-3.9 3.1-6 7-6s7 2.1 7 6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="pill-title">App del Dirigente</div>
+          <div class="pill-sub">Buscar cédula · registrar votante</div>
+        </div>
+        <div class="pill-arrow">›</div>
+      </div>
+      <div class="nav-pill" style="opacity:.6" onclick="showQRScanner()">
+        <div class="pill-icon np-coral">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="6" height="6" rx="1" stroke="white" stroke-width="1.5"/><rect x="12" y="2" width="6" height="6" rx="1" stroke="white" stroke-width="1.5"/><rect x="2" y="12" width="6" height="6" rx="1" stroke="white" stroke-width="1.5"/><path d="M12 14h2M14 12v2M12 12h.01M16 16h.01M16 12h.01M12 16h.01" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="pill-title">Escanear QR</div>
+          <div class="pill-sub">Dirigente — abre tu app escaneando</div>
+        </div>
+        <div class="pill-arrow">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SUPERADMIN ═══════════════ -->
+<div class="screen" id="screen-superadmin">
+  <div class="header">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#343a40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="header-info">
+      <div class="header-title">Mi Panel</div>
+      <div class="header-sub">Superadmin · VotApp SPM</div>
+    </div>
+    <div class="header-av av-purple">SA</div>
+  </div>
+  <div class="content">
+    <div id="sa-toast-ok" class="toast toast-ok"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 7l2 2 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="sa-toast-msg"></span></div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="saTab('candidatos',this)">Candidatos</div>
+      <div class="tab" onclick="saTab('metricas',this)">Métricas</div>
+    </div>
+
+    <!-- CANDIDATOS TAB -->
+    <div id="sa-candidatos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--gray-600)" id="sa-count">Cargando...</div>
+        <button class="btn btn-primary" onclick="openModalCandidato()">+ Nuevo candidato</button>
+      </div>
+      <div id="sa-lista">
+        <div class="spinner-wrap"><div class="spinner"></div><div class="spinner-text">Cargando candidatos...</div></div>
+      </div>
+    </div>
+
+    <!-- METRICAS TAB -->
+    <div id="sa-metricas" style="display:none">
+      <div class="metrics">
+        <div class="metric accent"><div class="metric-label">Total candidatos</div><div class="metric-value" id="m-candidatos">-</div><div class="metric-sub">en la plataforma</div></div>
+        <div class="metric"><div class="metric-label">Total dirigentes</div><div class="metric-value" id="m-dirigentes">-</div><div class="metric-sub sub-green">registrados</div></div>
+        <div class="metric"><div class="metric-label">Total votantes</div><div class="metric-value" id="m-votantes">-</div><div class="metric-sub sub-green">en la base</div></div>
+        <div class="metric"><div class="metric-label">Hoy</div><div class="metric-value" id="m-hoy">-</div><div class="metric-sub sub-amber">nuevos registros</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Actividad por candidato</div>
+        <div id="sa-actividad"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CANDIDATO ═══════════════ -->
+<div class="screen" id="screen-candidato">
+  <div class="header">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#343a40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="header-info">
+      <div class="header-title" id="cand-header-title">Panel del Candidato</div>
+      <div class="header-sub" id="cand-header-sub">San Pedro de Macorís · 2028</div>
+    </div>
+    <div class="header-av av-blue" id="cand-header-av">CA</div>
+  </div>
+  <div class="content">
+    <div id="cand-toast-ok" class="toast toast-ok"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 7l2 2 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="cand-toast-msg"></span></div>
+
+    <!-- SELECTOR CANDIDATO -->
+    <div id="cand-selector" class="card">
+      <div class="card-title">Selecciona un candidato</div>
+      <select id="cand-select" class="form-input" onchange="cargarCandidato(this.value)">
+        <option value="">— Seleccionar —</option>
+      </select>
+    </div>
+
+    <div id="cand-panel" style="display:none">
+      <div class="tab-bar">
+        <div class="tab active" onclick="candTab('dashboard',this)">Dashboard</div>
+        <div class="tab" onclick="candTab('dirigentes',this)">Dirigentes</div>
+        <div class="tab" onclick="candTab('votantes',this)">Votantes</div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="cand-dashboard">
+        <div class="metrics">
+          <div class="metric accent"><div class="metric-label">Total votantes</div><div class="metric-value" id="cd-total">0</div><div class="metric-sub" id="cd-hoy">+0 hoy</div></div>
+          <div class="metric"><div class="metric-label">Meta</div><div class="metric-value" id="cd-pct">0%</div><div class="metric-sub" id="cd-meta-txt">de 0</div></div>
+          <div class="metric"><div class="metric-label">Dirigentes</div><div class="metric-value" id="cd-dirs">0</div><div class="metric-sub">registrados</div></div>
+          <div class="metric"><div class="metric-label">Municipios</div><div class="metric-value" id="cd-muns">0</div><div class="metric-sub">cubiertos</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Por municipio</div>
+          <div id="cd-mun-bars"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Últimos registros</div>
+          <div id="cd-recientes"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- DIRIGENTES -->
+      <div id="cand-dirigentes" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span id="dir-count-lbl" style="font-size:12px;color:var(--gray-600)">0 dirigentes</span>
+          <button class="btn btn-primary" onclick="openModalDirigente()">+ Nuevo dirigente</button>
+        </div>
+        <div id="cand-dir-lista"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- VOTANTES -->
+      <div id="cand-votantes" style="display:none">
+        <div style="margin-bottom:12px">
+          <input class="form-input" type="text" placeholder="Buscar por nombre o cédula..." oninput="buscarVotante(this.value)" id="vot-search">
+        </div>
+        <div id="cand-vot-lista"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DIRIGENTE ═══════════════ -->
+<div class="screen" id="screen-dirigente">
+  <div class="header">
+    <button class="back-btn" onclick="goHome()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#343a40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="header-info">
+      <div class="header-title" id="dir-header-name">App del Dirigente</div>
+      <div class="header-sub" id="dir-header-sub">Cargando...</div>
+    </div>
+    <div class="header-av av-green" id="dir-header-av">DI</div>
+  </div>
+  <div class="content">
+    <div id="dir-toast-ok" class="toast toast-ok"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 7l2 2 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="dir-toast-msg"></span></div>
+    <div id="dir-toast-err" class="toast toast-err"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4v3M7 9v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span id="dir-err-msg"></span></div>
+
+    <!-- SELECTOR DIRIGENTE (demo) -->
+    <div id="dir-selector" class="card">
+      <div class="card-title">Selecciona tu perfil</div>
+      <div class="alert alert-blue">En producción esto se abre automáticamente al escanear el QR</div>
+      <select id="dir-select" class="form-input" onchange="cargarDirigente(this.value)">
+        <option value="">— Seleccionar dirigente —</option>
+      </select>
+    </div>
+
+    <div id="dir-panel" style="display:none">
+      <div class="tab-bar">
+        <div class="tab active" onclick="dirTab('registrar',this)">Registrar</div>
+        <div class="tab" onclick="dirTab('misregistros',this)">Mis registros</div>
+        <div class="tab" onclick="dirTab('mimeta',this)">Mi meta</div>
+      </div>
+
+      <!-- REGISTRAR -->
+      <div id="dir-registrar">
+        <div class="counter-strip">
+          <div><div class="cs-label">Registrados hoy</div><div class="cs-val" id="dir-hoy">0</div></div>
+          <div style="text-align:right"><div class="cs-label">Total</div><div class="cs-val" id="dir-total">0</div></div>
+        </div>
+        <div class="card">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Buscar en el padrón</div>
+          <div class="search-wrap">
+            <input class="ced-input" id="ced-inp" type="tel" maxlength="13" placeholder="Digita la cédula..." autocomplete="off" oninput="onCedInput(this.value)">
+            <div class="search-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#adb5bd" stroke-width="1.5"/><path d="M12.5 12.5l3 3" stroke="#adb5bd" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          </div>
+          <div style="font-size:11px;color:var(--gray-600);text-align:center;margin-bottom:12px">Los datos aparecen automáticamente</div>
+          <div id="ced-empty" style="text-align:center;padding:1.5rem 0;color:var(--gray-400)">
+            <svg class="empty-icon" width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.3"/><circle cx="16" cy="11" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M6 26c0-5 4.5-7 10-7s10 2 10 7" stroke="currentColor" stroke-width="1.3"/></svg>
+            <div class="empty-text">Digita la cédula para buscar</div>
+          </div>
+          <div id="ced-searching" style="display:none"><div class="spinner-wrap"><div class="spinner"></div><div class="spinner-text">Buscando en el padrón...</div></div></div>
+          <div id="ced-notfound" style="display:none;text-align:center;padding:1rem 0">
+            <div style="font-size:12px;font-weight:700;color:var(--red)">Cédula no encontrada en el padrón de SPM</div>
+          </div>
+          <div id="ced-result" style="display:none">
+            <div class="result-card">
+              <div class="result-header">
+                <div class="result-av" id="cr-av"></div>
+                <div><div style="font-size:14px;font-weight:700;color:var(--gray-900)" id="cr-name"></div><div style="font-size:11px;color:var(--gray-600)" id="cr-ced"></div><div style="margin-top:4px" id="cr-status"></div></div>
+              </div>
+              <div class="data-grid">
+                <div class="data-item"><div class="data-label">Municipio</div><div class="data-val" id="cr-mun"></div></div>
+                <div class="data-item"><div class="data-label">Sector</div><div class="data-val" id="cr-sec"></div></div>
+                <div class="data-item"><div class="data-label">Recinto</div><div class="data-val" id="cr-rec"></div></div>
+                <div class="data-item"><div class="data-label">Colegio</div><div class="data-val" id="cr-col"></div></div>
+              </div>
+            </div>
+            <button id="btn-agregar" class="btn btn-primary btn-full" onclick="agregarVotante()">Agregar votante</button>
+          </div>
+        </div>
+        <div id="dir-recientes-wrap" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Últimos agregados</div>
+          <div class="card" style="padding:0;overflow:hidden"><div id="dir-rec-list"></div></div>
+        </div>
+      </div>
+
+      <!-- MIS REGISTROS -->
+      <div id="dir-misregistros" style="display:none">
+        <div class="metrics">
+          <div class="metric accent"><div class="metric-label">Total registros</div><div class="metric-value" id="mr-total">0</div></div>
+          <div class="metric"><div class="metric-label">Hoy</div><div class="metric-value" id="mr-hoy" style="color:var(--blue)">0</div></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden"><div id="mr-lista"><div class="spinner-wrap"><div class="spinner"></div></div></div></div>
+      </div>
+
+      <!-- MI META -->
+      <div id="dir-mimeta" style="display:none">
+        <div class="card">
+          <div class="card-title">Mi progreso</div>
+          <div style="text-align:center;padding:8px 0 16px">
+            <div style="font-size:42px;font-weight:700;color:var(--blue)" id="meta-total-val">0</div>
+            <div style="font-size:13px;color:var(--gray-600)" id="meta-sub">de 0 meta</div>
+          </div>
+          <div class="progress-bg"><div class="progress-fill" id="meta-bar" style="width:0%"></div></div>
+          <div class="progress-labels"><span id="meta-pct">0%</span><span id="meta-rest">0 restantes</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Mi zona</div>
+          <div id="meta-zona-info"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- Modal nuevo candidato -->
+<div class="modal-overlay" id="modal-candidato">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo candidato</div>
+    <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" id="mc-nombre" placeholder="Ej. Rafael Peralta Jiménez"></div>
+    <div class="row-2">
+      <div class="form-group"><label class="form-label">Partido</label><input class="form-input" id="mc-partido" placeholder="PRM, PLD..."></div>
+      <div class="form-group"><label class="form-label">Cargo</label><input class="form-input" id="mc-cargo" placeholder="Senador..."></div>
+    </div>
+    <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="mc-email" type="email" placeholder="correo@ejemplo.com"></div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="mc-tel" placeholder="809-000-0000"></div>
+    <div class="form-group"><label class="form-label">Meta de votantes</label><input class="form-input" id="mc-meta" type="number" placeholder="15000"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modal-candidato')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2" onclick="crearCandidato()">Crear candidato</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nuevo dirigente -->
+<div class="modal-overlay" id="modal-dirigente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo dirigente</div>
+    <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" id="md-nombre" placeholder="Ej. Pedro Almonte García"></div>
+    <div class="row-2">
+      <div class="form-group"><label class="form-label">Cédula *</label><input class="form-input" id="md-cedula" placeholder="001-0000000-0"></div>
+      <div class="form-group"><label class="form-label">Teléfono *</label><input class="form-input" id="md-tel" placeholder="809-000-0000"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Municipio *</label>
+      <select class="form-input" id="md-municipio" onchange="loadSectores(this.value);loadSectoresFromReal(this.options[this.selectedIndex].text)">
+        <option value="">Selecciona municipio</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Sector *</label>
+      <select class="form-input" id="md-sector" onchange="loadRecintosBySector()"><option value="">Primero selecciona municipio</option></select>
+    </div>
+    <div class="form-group" id="md-recinto-wrap" style="display:none"><label class="form-label">Recinto</label>
+      <select class="form-input" id="md-recinto"><option value="">Selecciona recinto</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Meta de votantes</label><input class="form-input" id="md-meta" type="number" placeholder="500"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modal-dirigente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2" onclick="crearDirigente()">Crear y generar QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal QR -->
+<div class="modal-overlay" id="modal-qr">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="qr-wrap">
+      <div class="qr-name" id="qr-nombre"></div>
+      <div class="qr-sub" id="qr-sub"></div>
+      <div class="qr-box"><canvas id="qr-canvas"></canvas></div>
+      <div style="font-size:11px;color:var(--gray-600);margin-bottom:14px">El dirigente escanea este QR y la app se abre con sus datos</div>
+      <div class="qr-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-qr')">Cerrar</button>
+        <button class="btn btn-primary" onclick="compartirQR()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 4l3-3 3 3M2 10v2h10v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Compartir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ SUPABASE ═══
+const SUPA_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
+const SUPA_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
+const { createClient } = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
+
+// ═══ PADRÓN LOCAL (demo - se reemplaza con el real) ═══
+const PADRON = {
+  "00100123452":{"nombre":"Ana Paula Marte Díaz","municipio":"San Pedro de Macorís","sector":"Miramar","recinto":"Escuela San Antonio","colegio":"0048"},
+  "00100543211":{"nombre":"Luis Alberto Cedeño Pérez","municipio":"San Pedro de Macorís","sector":"Restauración","recinto":"Estadio Tetelo Vargas","colegio":"0003"},
+  "00100999999":{"nombre":"Carmen Rosa Familia Ortiz","municipio":"San Pedro de Macorís","sector":"Villa Providencia","recinto":"Colegio Juan Pablo Duarte","colegio":"0015"},
+  "00100789013":{"nombre":"Pedro Antonio Santos Jiménez","municipio":"Consuelo","sector":"Centro de la Ciudad","recinto":"Escuela Primaria Divina Providencia","colegio":"0012"},
+  "00100456786":{"nombre":"Yolanda Mercedes Cruz Beltre","municipio":"Los Llanos","sector":"Centro de la Ciudad","recinto":"Escuela Maria Nicolasa Billini","colegio":"0002"},
+  "00100111115":{"nombre":"Roberto Miguel Disla Rosario","municipio":"Quisqueya","sector":"Centro de la Ciudad","recinto":"Liceo Eugenio Maria De Hostos","colegio":"0027"},
+  "00100222228":{"nombre":"María Altagracia Tejeda Núñez","municipio":"Guayacanes","sector":"Juan Dolio","recinto":"Escuela Basica Surinam","colegio":"0139"},
+  "00100333334":{"nombre":"Franklin José Guerrero Martínez","municipio":"Ramón Santana","sector":"Batey El Soco","recinto":"Centro Educativo El Soco","colegio":"15"},
+  "00100555557":{"nombre":"Belkis Esperanza Marte Reyes","municipio":"San Pedro de Macorís","sector":"Japón","recinto":"Escuela Primaria Luis A. Bermudez","colegio":"0054"},
+  "00100666660":{"nombre":"Héctor Manuel Báez Comprés","municipio":"San Pedro de Macorís","sector":"Libertad","recinto":"Palacio De Justicia","colegio":"0077"}
+};
+
+// ═══ STATE ═══
+let currentCandidatoId = null;
+let currentDirigenteId = null;
+let currentDirigenteData = null;
+let cedTimer = null;
+let cedData = null;
+let regSet = new Set();
+let dirRecientes = [];
+let municipiosData = [];
+let sectoresData = [];
+
+// ═══ NAVIGATION ═══
+function showScreen(s) {
+  document.getElementById('splash').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + s).classList.add('active');
+  if(s === 'superadmin') initSuperadmin();
+  if(s === 'candidato') initCandidato();
+  if(s === 'dirigente') initDirigente();
+}
+function goHome() {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('splash').style.display = 'flex';
+}
+function showQRScanner() {
+  alert('En producción, el dirigente escanea el QR con la cámara del teléfono y la app se abre automáticamente con sus datos.');
+}
+
+// ═══ TABS ═══
+function saTab(t, el) {
+  document.querySelectorAll('#screen-superadmin .tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sa-candidatos').style.display = t === 'candidatos' ? 'block' : 'none';
+  document.getElementById('sa-metricas').style.display = t === 'metricas' ? 'block' : 'none';
+  if(t === 'metricas') loadMetricas();
+}
+function candTab(t, el) {
+  document.querySelectorAll('#screen-candidato .tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  ['dashboard','dirigentes','votantes'].forEach(id => {
+    document.getElementById('cand-' + id).style.display = id === t ? 'block' : 'none';
+  });
+  if(t === 'dirigentes') loadDirigentes();
+  if(t === 'votantes') loadVotantes();
+}
+function dirTab(t, el) {
+  document.querySelectorAll('#screen-dirigente .tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  ['registrar','misregistros','mimeta'].forEach(id => {
+    document.getElementById('dir-' + id).style.display = id === t ? 'block' : 'none';
+  });
+  if(t === 'misregistros') loadMisRegistros();
+  if(t === 'mimeta') loadMiMeta();
+}
+
+// ═══ MODALS ═══
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// ═══ TOAST ═══
+function showToast(prefix, msg, type='ok') {
+  const el = document.getElementById(prefix + '-toast-' + type);
+  const msgEl = document.getElementById(prefix + '-toast-msg') || document.getElementById(prefix + (type==='ok'?'-toast-msg':'-err-msg'));
+  if(!el) return;
+  if(msgEl) msgEl.textContent = msg;
+  el.style.display = 'flex';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+// ═══ SUPERADMIN ═══
+async function initSuperadmin() {
+  await loadCandidatosList();
+}
+
+async function loadCandidatosList() {
+  const { data, error } = await db.from('candidatos').select('*').order('created_at', { ascending: false });
+  const lista = document.getElementById('sa-lista');
+  const count = document.getElementById('sa-count');
+  if(error || !data) { lista.innerHTML = '<div class="alert alert-red">Error cargando candidatos</div>'; return; }
+  count.textContent = data.length + ' candidato' + (data.length !== 1 ? 's' : '');
+  if(data.length === 0) {
+    lista.innerHTML = '<div class="empty-state"><svg class="empty-icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="1.3"/><path d="M20 12v8M20 24v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><div class="empty-text">No hay candidatos aún.<br>Crea el primero.</div></div>';
+    return;
+  }
+  lista.innerHTML = '';
+  for(const c of data) {
+    const { count: vCount } = await db.from('votantes').select('*', { count: 'exact', head: true }).eq('candidato_id', c.id);
+    const { count: dCount } = await db.from('dirigentes').select('*', { count: 'exact', head: true }).eq('candidato_id', c.id);
+    const pct = c.meta_total ? Math.round((vCount||0) / c.meta_total * 100) : 0;
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.cssText = 'animation:fadeIn .3s ease;cursor:pointer';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="list-av av-blue">${c.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}</div>
+          <div>
+            <div class="list-name">${c.nombre}</div>
+            <div class="list-sub">${c.partido||''} · ${c.cargo||''}</div>
+          </div>
+        </div>
+        <span class="pill ${c.activo ? 'pill-green' : 'pill-gray'}">${c.activo ? 'Activo' : 'Inactivo'}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="text-align:center;background:var(--gray-50);border-radius:6px;padding:8px">
+          <div style="font-size:18px;font-weight:700;color:var(--gray-900)">${vCount||0}</div>
+          <div style="font-size:10px;color:var(--gray-600)">Votantes</div>
+        </div>
+        <div style="text-align:center;background:var(--gray-50);border-radius:6px;padding:8px">
+          <div style="font-size:18px;font-weight:700;color:var(--gray-900)">${dCount||0}</div>
+          <div style="font-size:10px;color:var(--gray-600)">Dirigentes</div>
+        </div>
+        <div style="text-align:center;background:var(--gray-50);border-radius:6px;padding:8px">
+          <div style="font-size:18px;font-weight:700;color:var(--blue)">${pct}%</div>
+          <div style="font-size:10px;color:var(--gray-600)">Meta</div>
+        </div>
+      </div>
+      <div class="progress-bg"><div class="progress-fill" style="width:${Math.min(pct,100)}%"></div></div>`;
+    lista.appendChild(div);
+  }
+}
+
+async function loadMetricas() {
+  const { count: c1 } = await db.from('candidatos').select('*', { count: 'exact', head: true });
+  const { count: c2 } = await db.from('dirigentes').select('*', { count: 'exact', head: true });
+  const { count: c3 } = await db.from('votantes').select('*', { count: 'exact', head: true });
+  const today = new Date().toISOString().split('T')[0];
+  const { count: c4 } = await db.from('votantes').select('*', { count: 'exact', head: true }).gte('created_at', today);
+  document.getElementById('m-candidatos').textContent = c1 || 0;
+  document.getElementById('m-dirigentes').textContent = c2 || 0;
+  document.getElementById('m-votantes').textContent = c3 || 0;
+  document.getElementById('m-hoy').textContent = c4 || 0;
+  const { data } = await db.from('candidatos').select('id,nombre');
+  const act = document.getElementById('sa-actividad');
+  if(!data || data.length === 0) { act.innerHTML = '<div class="empty-state"><div class="empty-text">Sin candidatos aún</div></div>'; return; }
+  act.innerHTML = '';
+  for(const c of data) {
+    const { count } = await db.from('votantes').select('*', { count: 'exact', head: true }).eq('candidato_id', c.id);
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    row.innerHTML = `<div class="list-av av-blue">${c.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}</div><div style="margin-left:10px;flex:1"><div class="list-name">${c.nombre}</div></div><div class="list-count">${count||0}</div>`;
+    act.appendChild(row);
+  }
+}
+
+function openModalCandidato() { openModal('modal-candidato'); }
+
+async function crearCandidato() {
+  const nombre = document.getElementById('mc-nombre').value.trim();
+  const email = document.getElementById('mc-email').value.trim();
+  if(!nombre || !email) { alert('Nombre y email son obligatorios'); return; }
+  const { error } = await db.from('candidatos').insert({
+    nombre, email,
+    partido: document.getElementById('mc-partido').value,
+    cargo: document.getElementById('mc-cargo').value,
+    telefono: document.getElementById('mc-tel').value,
+    meta_total: parseInt(document.getElementById('mc-meta').value) || 10000
+  });
+  if(error) { alert('Error: ' + error.message); return; }
+  closeModal('modal-candidato');
+  ['mc-nombre','mc-email','mc-partido','mc-cargo','mc-tel','mc-meta'].forEach(id => document.getElementById(id).value = '');
+  showToast('sa', nombre + ' creado correctamente');
+  await loadCandidatosList();
+  // refresh selector
+  await loadCandidatosSelect();
+}
+
+// ═══ CANDIDATO PANEL ═══
+async function initCandidato() {
+  await loadCandidatosSelect();
+  await loadMunicipiosData();
+}
+
+async function loadCandidatosSelect() {
+  const { data } = await db.from('candidatos').select('id,nombre,partido').order('nombre');
+  const sel = document.getElementById('cand-select');
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+  if(data) data.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.nombre + (c.partido ? ' · ' + c.partido : '');
+    sel.appendChild(o);
+  });
+}
+
+async function cargarCandidato(id) {
+  if(!id) { document.getElementById('cand-panel').style.display = 'none'; return; }
+  currentCandidatoId = id;
+  const { data } = await db.from('candidatos').select('*').eq('id', id).single();
+  if(!data) return;
+  const ini = data.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  document.getElementById('cand-header-title').textContent = data.nombre;
+  document.getElementById('cand-header-sub').textContent = (data.partido||'') + ' · ' + (data.cargo||'');
+  document.getElementById('cand-header-av').textContent = ini;
+  document.getElementById('cand-selector').style.display = 'none';
+  document.getElementById('cand-panel').style.display = 'block';
+  await loadDashboard(data);
+}
+
+async function loadDashboard(cand) {
+  const { count: total } = await db.from('votantes').select('*', { count:'exact', head:true }).eq('candidato_id', currentCandidatoId);
+  const today = new Date().toISOString().split('T')[0];
+  const { count: hoy } = await db.from('votantes').select('*', { count:'exact', head:true }).eq('candidato_id', currentCandidatoId).gte('created_at', today);
+  const { count: dirs } = await db.from('dirigentes').select('*', { count:'exact', head:true }).eq('candidato_id', currentCandidatoId);
+  const pct = cand.meta_total ? Math.round((total||0) / cand.meta_total * 100) : 0;
+  document.getElementById('cd-total').textContent = total || 0;
+  document.getElementById('cd-hoy').textContent = '+' + (hoy||0) + ' hoy';
+  document.getElementById('cd-pct').textContent = pct + '%';
+  document.getElementById('cd-meta-txt').textContent = 'de ' + (cand.meta_total||0).toLocaleString();
+  document.getElementById('cd-dirs').textContent = dirs || 0;
+  // por municipio
+  const { data: munData } = await db.from('votantes').select('municipio_id, municipios(nombre)').eq('candidato_id', currentCandidatoId);
+  const munCount = {};
+  if(munData) munData.forEach(v => {
+    const name = v.municipios?.nombre || 'Otro';
+    munCount[name] = (munCount[name]||0) + 1;
+  });
+  document.getElementById('cd-muns').textContent = Object.keys(munCount).length;
+  const bars = document.getElementById('cd-mun-bars');
+  if(Object.keys(munCount).length === 0) { bars.innerHTML = '<div class="empty-state"><div class="empty-text">Sin registros aún</div></div>'; }
+  else {
+    const max = Math.max(...Object.values(munCount));
+    bars.innerHTML = Object.entries(munCount).sort((a,b)=>b[1]-a[1]).map(([name,count]) => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--gray-800);width:120px;flex-shrink:0">${name}</div>
+        <div style="flex:1;height:6px;background:var(--gray-100);border-radius:99px;overflow:hidden">
+          <div style="width:${Math.round(count/max*100)}%;height:100%;background:var(--blue);border-radius:99px"></div>
+        </div>
+        <div style="font-size:12px;font-weight:600;width:36px;text-align:right">${count}</div>
+      </div>`).join('');
+  }
+  // recientes
+  const { data: rec } = await db.from('votantes').select('nombre,cedula,created_at,municipios(nombre),dirigentes(nombre)').eq('candidato_id', currentCandidatoId).order('created_at', { ascending:false }).limit(5);
+  const recDiv = document.getElementById('cd-recientes');
+  if(!rec || rec.length === 0) { recDiv.innerHTML = '<div class="empty-state"><div class="empty-text">Sin registros aún</div></div>'; }
+  else {
+    recDiv.innerHTML = rec.map(v => {
+      const t = new Date(v.created_at);
+      const diff = Math.round((Date.now() - t.getTime()) / 60000);
+      const timeStr = diff < 1 ? 'Ahora' : diff < 60 ? diff + 'm' : Math.round(diff/60) + 'h';
+      return `<div class="list-row"><div><div class="list-name">${v.nombre}</div><div class="list-sub">${v.municipios?.nombre||''} · ${v.dirigentes?.nombre||''}</div></div><div style="font-size:11px;color:var(--gray-400)">${timeStr}</div></div>`;
+    }).join('');
+  }
+}
+
+async function loadDirigentes() {
+  if(!currentCandidatoId) return;
+  const { data } = await db.from('resumen_dirigentes').select('*').eq('candidato_id', currentCandidatoId).order('total_votantes', { ascending:false });
+  const lista = document.getElementById('cand-dir-lista');
+  document.getElementById('dir-count-lbl').textContent = (data?.length||0) + ' dirigentes';
+  if(!data || data.length === 0) {
+    lista.innerHTML = '<div class="empty-state"><svg class="empty-icon" width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" stroke="currentColor" stroke-width="1.3"/><circle cx="18" cy="12" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M6 30c0-6 5.4-9 12-9s12 3 12 9" stroke="currentColor" stroke-width="1.3"/></svg><div class="empty-text">No hay dirigentes aún</div></div>';
+    return;
+  }
+  lista.innerHTML = '';
+  data.forEach(d => {
+    const ini = d.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const colors = ['av-blue','av-green'];
+    const av = colors[Math.abs(d.nombre.charCodeAt(0)) % colors.length];
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.cssText = 'animation:fadeIn .3s ease';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="list-av ${av}">${ini}</div>
+          <div>
+            <div class="list-name">${d.nombre}</div>
+            <div class="list-sub">${d.sector||''} · ${d.municipio||''}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="list-count">${d.total_votantes||0}</div>
+          <div class="list-today">+${d.votantes_hoy||0} hoy</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-secondary" style="flex:1;font-size:11px" onclick="verQR('${d.id}','${d.nombre}','${d.sector||''}','${d.municipio||''}','${d.qr_token}')">Ver QR</button>
+        <div style="flex:1;background:var(--gray-50);border-radius:6px;padding:6px;text-align:center">
+          <div style="font-size:10px;color:var(--gray-600)">Meta: ${d.meta||0}</div>
+          <div style="font-size:11px;font-weight:600;color:var(--blue)">${d.meta ? Math.round((d.total_votantes||0)/d.meta*100) : 0}%</div>
+        </div>
+      </div>`;
+    lista.appendChild(div);
+  });
+}
+
+async function loadVotantes(search='') {
+  if(!currentCandidatoId) return;
+  let q = db.from('votantes').select('nombre,cedula,created_at,municipios(nombre),dirigentes(nombre)').eq('candidato_id', currentCandidatoId).order('created_at', { ascending:false }).limit(50);
+  if(search) q = q.or(`nombre.ilike.%${search}%,cedula.ilike.%${search}%`);
+  const { data } = await q;
+  const lista = document.getElementById('cand-vot-lista');
+  if(!data || data.length === 0) { lista.innerHTML = '<div class="empty-state"><div class="empty-text">Sin resultados</div></div>'; return; }
+  lista.innerHTML = '<div class="card" style="padding:0;overflow:hidden">' + data.map(v => `
+    <div class="list-row" style="padding:10px 14px">
+      <div>
+        <div class="list-name">${v.nombre}</div>
+        <div class="list-sub">${v.cedula} · ${v.municipios?.nombre||''} · ${v.dirigentes?.nombre||''}</div>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function buscarVotante(val) { clearTimeout(window.vSearch); window.vSearch = setTimeout(() => loadVotantes(val), 400); }
+
+// ═══ MUNICIPIOS / SECTORES ═══
+async function loadMunicipiosData() {
+  const { data } = await db.from('municipios').select('*').order('nombre');
+  municipiosData = data || [];
+  // populate modal select
+  const sel = document.getElementById('md-municipio');
+  sel.innerHTML = '<option value="">Selecciona municipio</option>';
+  municipiosData.forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.nombre; sel.appendChild(o); });
+  // also populate dir select
+  await loadDirigentesSelect();
+}
+
+async function loadSectores(munId) {
+  const sel = document.getElementById('md-sector');
+  if(!munId) { sel.innerHTML = '<option value="">Primero selecciona municipio</option>'; return; }
+  const { data } = await db.from('sectores').select('*').eq('municipio_id', munId).order('nombre');
+  sel.innerHTML = '<option value="">Selecciona sector</option>';
+  (data||[]).forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.nombre; sel.appendChild(o); });
+}
+
+
+function loadSectoresFromReal(munNombre) {
+  const munMap = {
+    'San Pedro de Macorís': 'San Pedro de Macorís',
+    'Consuelo': 'Consuelo', 'Quisqueya': 'Quisqueya',
+    'Guayacanes': 'Guayacanes', 'Los Llanos': 'Los Llanos',
+    'Ramón Santana': 'Ramón Santana'
+  };
+  const key = munMap[munNombre] || munNombre;
+  const sectores = Object.keys(RECINTOS_SPM[key] || {}).sort();
+  const sel = document.getElementById('md-sector');
+  sel.innerHTML = '<option value="">Selecciona sector</option>';
+  sectores.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+  document.getElementById('md-recinto-wrap').style.display = 'none';
+}
+
+function loadRecintosBySector() {
+  const munSel = document.getElementById('md-municipio');
+  const munNombre = munSel.options[munSel.selectedIndex]?.text || '';
+  const sector = document.getElementById('md-sector').value;
+  const munMap = {'San Pedro de Macorís':'San Pedro de Macorís','Consuelo':'Consuelo','Quisqueya':'Quisqueya','Guayacanes':'Guayacanes','Los Llanos':'Los Llanos','Ramón Santana':'Ramón Santana'};
+  const key = munMap[munNombre] || munNombre;
+  const recintos = (RECINTOS_SPM[key] || {})[sector] || [];
+  const wrap = document.getElementById('md-recinto-wrap');
+  const sel = document.getElementById('md-recinto');
+  if(recintos.length === 0) { wrap.style.display='none'; return; }
+  wrap.style.display = 'block';
+  sel.innerHTML = '<option value="">Selecciona recinto</option>';
+  recintos.forEach(r => { const o = document.createElement('option'); o.value = r.recinto; o.textContent = r.recinto + ' (' + r.total + ' colegios)'; sel.appendChild(o); });
+}
+
+function getSectoresByMunNombre(munNombre) {
+  return Object.keys(RECINTOS_SPM[munNombre] || {}).sort();
+}
+
+function getRecintosBySector(munNombre, sectorNombre) {
+  return (RECINTOS_SPM[munNombre] || {})[sectorNombre] || [];
+}
+
+// ═══ CREAR DIRIGENTE ═══
+function openModalDirigente() { openModal('modal-dirigente'); }
+
+async function crearDirigente() {
+  const nombre = document.getElementById('md-nombre').value.trim();
+  const cedula = document.getElementById('md-cedula').value.trim();
+  const telefono = document.getElementById('md-tel').value.trim();
+  const municipio_id = document.getElementById('md-municipio').value;
+  const sector_id = document.getElementById('md-sector').value;
+  if(!nombre || !cedula || !telefono || !municipio_id || !sector_id) { alert('Completa todos los campos obligatorios'); return; }
+  if(!currentCandidatoId) { alert('Selecciona un candidato primero'); return; }
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const { data, error } = await db.from('dirigentes').insert({
+    nombre, cedula, telefono,
+    candidato_id: currentCandidatoId,
+    municipio_id: parseInt(municipio_id),
+    sector_id: parseInt(sector_id),
+    meta: parseInt(document.getElementById('md-meta').value) || 500,
+    qr_token: token
+  }).select().single();
+  if(error) { alert('Error: ' + error.message); return; }
+  closeModal('modal-dirigente');
+  ['md-nombre','md-cedula','md-tel','md-meta'].forEach(id => document.getElementById(id).value = '');
+  showToast('cand', nombre + ' creado correctamente');
+  // Show QR
+  const mun = municipiosData.find(m => m.id == municipio_id);
+  const { data: secData } = await db.from('sectores').select('nombre').eq('id', sector_id).single();
+  verQR(data.id, nombre, secData?.nombre||'', mun?.nombre||'', token);
+  await loadDirigentes();
+  await loadDirigentesSelect();
+}
+
+function verQR(id, nombre, sector, municipio, token) {
+  document.getElementById('qr-nombre').textContent = nombre;
+  document.getElementById('qr-sub').textContent = sector + ' · ' + municipio;
+  const url = window.location.href.split('?')[0] + '?token=' + token;
+  const canvas = document.getElementById('qr-canvas');
+  QRCode.toCanvas(canvas, url, { width:200, margin:2, color:{ dark:'#0f172a', light:'#ffffff' } });
+  openModal('modal-qr');
+}
+
+async function compartirQR() {
+  const canvas = document.getElementById('qr-canvas');
+  canvas.toBlob(async blob => {
+    if(navigator.share) {
+      const file = new File([blob], 'qr-dirigente.png', { type:'image/png' });
+      await navigator.share({ title:'VotApp - QR Dirigente', files:[file] });
+    } else {
+      const a = document.createElement('a'); a.download = 'qr-dirigente.png';
+      a.href = URL.createObjectURL(blob); a.click();
+    }
+  });
+}
+
+// ═══ DIRIGENTE APP ═══
+async function initDirigente() {
+  // Check URL token
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if(token) {
+    await cargarDirigenteByToken(token);
+  } else {
+    await loadDirigentesSelect();
+  }
+}
+
+async function loadDirigentesSelect() {
+  const { data } = await db.from('dirigentes').select('id,nombre,candidato_id').order('nombre');
+  const sel = document.getElementById('dir-select');
+  sel.innerHTML = '<option value="">— Seleccionar dirigente —</option>';
+  (data||[]).forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = d.nombre; sel.appendChild(o); });
+}
+
+async function cargarDirigenteByToken(token) {
+  const { data } = await db.from('dirigentes').select('*,municipios(nombre),sectores(nombre)').eq('qr_token', token).single();
+  if(data) {
+    currentDirigenteId = data.id;
+    currentDirigenteData = data;
+    document.getElementById('dir-selector').style.display = 'none';
+    renderDirigentePanel(data);
+    // update last access
+    await db.from('dirigentes').update({ ultimo_acceso: new Date().toISOString() }).eq('id', data.id);
+  }
+}
+
+async function cargarDirigente(id) {
+  if(!id) return;
+  const { data } = await db.from('dirigentes').select('*,municipios(nombre),sectores(nombre)').eq('id', id).single();
+  if(!data) return;
+  currentDirigenteId = data.id;
+  currentDirigenteData = data;
+  document.getElementById('dir-selector').style.display = 'none';
+  renderDirigentePanel(data);
+}
+
+function renderDirigentePanel(d) {
+  const ini = d.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  document.getElementById('dir-header-name').textContent = d.nombre;
+  document.getElementById('dir-header-sub').textContent = (d.sectores?.nombre||'') + ' · ' + (d.municipios?.nombre||'');
+  document.getElementById('dir-header-av').textContent = ini;
+  document.getElementById('dir-panel').style.display = 'block';
+  loadDirContadores();
+}
+
+async function loadDirContadores() {
+  const { count: total } = await db.from('votantes').select('*', { count:'exact', head:true }).eq('dirigente_id', currentDirigenteId);
+  const today = new Date().toISOString().split('T')[0];
+  const { count: hoy } = await db.from('votantes').select('*', { count:'exact', head:true }).eq('dirigente_id', currentDirigenteId).gte('created_at', today);
+  document.getElementById('dir-hoy').textContent = hoy||0;
+  document.getElementById('dir-total').textContent = total||0;
+  document.getElementById('mr-total').textContent = total||0;
+  document.getElementById('mr-hoy').textContent = hoy||0;
+}
+
+// ═══ CÉDULA SEARCH ═══
+function formatCed(d) {
+  if(d.length <= 3) return d;
+  if(d.length <= 10) return d.slice(0,3)+'-'+d.slice(3);
+  return d.slice(0,3)+'-'+d.slice(3,10)+'-'+d.slice(10,11);
+}
+
+function onCedInput(v) {
+  const d = v.replace(/\D/g,'');
+  document.getElementById('ced-inp').value = formatCed(d);
+  clearTimeout(cedTimer); cedData = null;
+  if(d.length < 11) { setCedState('empty'); return; }
+  setCedState('searching');
+  cedTimer = setTimeout(() => {
+    const found = PADRON[d] || PADRON[d.replace(/^0+/,'').padStart(11,'0')];
+    if(found) { cedData = { ...found, _key:d, _ced:formatCed(d) }; renderCedResult(cedData); }
+    else setCedState('notfound');
+  }, 600);
+}
+
+function setCedState(s) {
+  ['empty','searching','notfound'].forEach(id => document.getElementById('ced-'+id).style.display = id===s?'block':'none');
+  document.getElementById('ced-result').style.display = 'none';
+  cedData = null;
+}
+
+function renderCedResult(d) {
+  ['empty','searching','notfound'].forEach(id => document.getElementById('ced-'+id).style.display = 'none');
+  const ini = d.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  document.getElementById('cr-av').textContent = ini;
+  document.getElementById('cr-name').textContent = d.nombre;
+  document.getElementById('cr-ced').textContent = d._ced;
+  document.getElementById('cr-mun').textContent = d.municipio;
+  document.getElementById('cr-sec').textContent = d.sector;
+  document.getElementById('cr-rec').textContent = d.recinto;
+  document.getElementById('cr-col').textContent = 'Colegio ' + d.colegio;
+  const dup = regSet.has(d._key);
+  document.getElementById('cr-status').innerHTML = dup
+    ? '<span class="pill pill-amber">Ya registrado</span>'
+    : '<span class="pill pill-green">Listo para agregar</span>';
+  const btn = document.getElementById('btn-agregar');
+  btn.textContent = dup ? 'Ya fue agregado' : 'Agregar votante';
+  btn.disabled = dup;
+  btn.style.background = dup ? 'var(--gray-400)' : '';
+  document.getElementById('ced-result').style.display = 'block';
+}
+
+async function agregarVotante() {
+  if(!cedData || regSet.has(cedData._key)) return;
+  if(!currentDirigenteId || !currentDirigenteData) { alert('No hay dirigente activo'); return; }
+  // Get municipio_id and sector_id
+  const { data: munRow } = await db.from('municipios').select('id').eq('nombre', cedData.municipio).single();
+  const { data: secRow } = await db.from('sectores').select('id').eq('nombre', cedData.sector).single();
+  const { error } = await db.from('votantes').insert({
+    candidato_id: currentDirigenteData.candidato_id,
+    dirigente_id: currentDirigenteId,
+    municipio_id: munRow?.id,
+    sector_id: secRow?.id,
+    cedula: cedData._ced,
+    nombre: cedData.nombre,
+    recinto: cedData.recinto,
+    colegio: cedData.colegio
+  });
+  if(error && error.code !== '23505') { showToast('dir','Error al guardar: ' + error.message,'err'); return; }
+  if(error?.code === '23505') { showToast('dir','Esta cédula ya está registrada','err'); return; }
+  regSet.add(cedData._key);
+  // Update counters
+  const hoyEl = document.getElementById('dir-hoy');
+  const totEl = document.getElementById('dir-total');
+  hoyEl.textContent = parseInt(hoyEl.textContent)+1;
+  totEl.textContent = parseInt(totEl.textContent)+1;
+  // Add to recent
+  dirRecientes.unshift({ nombre: cedData.nombre, cedula: cedData._ced, sector: cedData.sector });
+  if(dirRecientes.length > 5) dirRecientes = dirRecientes.slice(0,5);
+  renderDirRecientes();
+  const nombre2 = cedData.nombre.split(' ')[0] + ' ' + (cedData.nombre.split(' ')[2]||'');
+  showToast('dir', nombre2 + ' registrado correctamente');
+  document.getElementById('ced-inp').value = '';
+  setCedState('empty');
+  cedData = null;
+}
+
+function renderDirRecientes() {
+  const w = document.getElementById('dir-recientes-wrap');
+  const l = document.getElementById('dir-rec-list');
+  if(dirRecientes.length === 0) { w.style.display='none'; return; }
+  w.style.display = 'block';
+  l.innerHTML = dirRecientes.map(r =>
+    `<div class="list-row" style="padding:9px 14px"><div><div class="list-name">${r.nombre}</div><div class="list-sub">${r.cedula} · ${r.sector}</div></div><div style="font-size:11px;color:var(--gray-400)">Ahora</div></div>`
+  ).join('');
+  l.lastChild && (l.lastChild.style.borderBottom = 'none');
+}
+
+async function loadMisRegistros() {
+  const { data } = await db.from('votantes').select('nombre,cedula,municipios(nombre),created_at').eq('dirigente_id', currentDirigenteId).order('created_at', { ascending:false }).limit(30);
+  const lista = document.getElementById('mr-lista');
+  if(!data || data.length === 0) { lista.innerHTML = '<div class="empty-state" style="padding:1.5rem"><div class="empty-text">Sin registros aún</div></div>'; return; }
+  lista.innerHTML = data.map((v,i) => {
+    const t = new Date(v.created_at);
+    const diff = Math.round((Date.now()-t.getTime())/60000);
+    const timeStr = diff < 1 ? 'Ahora' : diff < 60 ? diff+'m' : diff < 1440 ? Math.round(diff/60)+'h' : 'Ayer';
+    return `<div class="list-row" style="padding:10px 14px${i===data.length-1?';border-bottom:none':''}">
+      <div><div class="list-name">${v.nombre}</div><div class="list-sub">${v.cedula} · ${v.municipios?.nombre||''}</div></div>
+      <div style="font-size:11px;color:var(--gray-400)">${timeStr}</div></div>`;
+  }).join('');
+}
+
+async function loadMiMeta() {
+  const { count: total } = await db.from('votantes').select('*',{count:'exact',head:true}).eq('dirigente_id', currentDirigenteId);
+  const meta = currentDirigenteData?.meta || 500;
+  const pct = Math.min(Math.round((total||0)/meta*100), 100);
+  document.getElementById('meta-total-val').textContent = total||0;
+  document.getElementById('meta-sub').textContent = 'de ' + meta.toLocaleString() + ' meta';
+  document.getElementById('meta-bar').style.width = pct + '%';
+  document.getElementById('meta-pct').textContent = pct + '% completado';
+  document.getElementById('meta-rest').textContent = Math.max(0, meta-(total||0)) + ' restantes';
+  document.getElementById('meta-zona-info').innerHTML = `
+    <div class="list-row"><div class="list-sub" style="font-size:12px">Municipio</div><div class="list-name">${currentDirigenteData?.municipios?.nombre||''}</div></div>
+    <div class="list-row"><div class="list-sub" style="font-size:12px">Sector</div><div class="list-name">${currentDirigenteData?.sectores?.nombre||''}</div></div>
+    <div class="list-row" style="border-bottom:none"><div class="list-sub" style="font-size:12px">Meta asignada</div><div class="list-name">${meta.toLocaleString()} votantes</div></div>`;
+}
+
+// ═══ INIT ═══
+// Check for QR token on load
+window.addEventListener('load', async () => {
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('token')) {
+    showScreen('dirigente');
+  }
+});
+</script>
+</body>
+</html>
