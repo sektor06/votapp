@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PRM SPM — Sistema de Gestión Electoral</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --prm:#0047AB;--prm-d:#003380;--prm-l:#e6eeff;--prm-xl:#f0f5ff;
+  --blue:#1a56db;--cyan:#0891b2;
+  --green:#0a7c4a;--green-l:#e6f4ed;
+  --red:#c0392b;--red-l:#fdecea;
+  --amber:#b45309;--amber-l:#fef3c7;
+  --purple:#6d28d9;--purple-l:#ede9fe;
+  --pink:#db2777;--pink-l:#fce7f3;
+  --teal:#0d9488;--teal-l:#ccfbf1;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;--g800:#1e293b;--g900:#0f172a;
+  --r:14px;--rs:10px;--sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 12px rgba(0,0,0,.08);--sh-lg:0 12px 32px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.page{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;display:none;animation:fadeIn .25s ease}
+.page.active{display:block}
+
+/* SPLASH + LOGIN */
+#pg-splash,#pg-login{background:linear-gradient(155deg,#0f172a 0%,#003380 55%,#0047AB 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center}
+#pg-splash.active,#pg-login.active{display:flex}
+.brand-logo{width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,#0047AB,#1a56db);display:flex;align-items:center;justify-content:center;margin:0 auto 1.4rem;font-family:'Sora',sans-serif;font-weight:800;font-size:30px;color:#fff;box-shadow:0 12px 40px rgba(0,71,171,.6);letter-spacing:-1px}
+.brand-h1{font-family:'Sora',sans-serif;font-weight:800;font-size:2.2rem;color:#fff;margin-bottom:.4rem;letter-spacing:-.5px}
+.brand-h1 span{color:#60a5fa}
+.brand-sub{color:rgba(255,255,255,.55);margin-bottom:.6rem;font-size:.95rem;font-weight:500}
+.brand-badge{background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.35);color:#93c5fd;font-size:11px;font-weight:700;padding:5px 16px;border-radius:99px;letter-spacing:.08em;margin-bottom:2.5rem}
+.login-card{background:#fff;border-radius:24px;padding:1.9rem;width:100%;max-width:390px;box-shadow:0 24px 64px rgba(0,0,0,.4);animation:slideUp .3s ease}
+.lc-mark{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#0047AB,#1a56db);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:#fff}
+.lc-title{font-family:'Sora',sans-serif;font-size:19px;font-weight:700;text-align:center;color:var(--g900)}
+.lc-sub{font-size:12px;color:var(--g500);text-align:center;margin-top:3px;margin-bottom:1.4rem}
+.fl{font-size:11px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px}
+.fi{width:100%;background:var(--g50);border:1.5px solid var(--g200);border-radius:var(--rs);padding:12px 14px;font-size:14px;color:var(--g900);font-family:inherit;outline:none;transition:all .15s;margin-bottom:12px}
+.fi:focus{border-color:var(--prm);background:#fff;box-shadow:0 0 0 3px var(--prm-l)}
+.login-err{background:var(--red-l);color:var(--red);border-radius:var(--rs);padding:10px 13px;font-size:12px;font-weight:600;margin-bottom:12px;display:none}
+.btn-login{width:100%;background:linear-gradient(135deg,#0047AB,#1a56db);color:#fff;border:none;border-radius:var(--rs);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .1s}
+.btn-login:active{transform:scale(.98)}
+.splash-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:16px 20px;border-radius:var(--r);display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .2s;width:100%;max-width:370px}
+.splash-btn:hover{background:rgba(255,255,255,.14)}
+.saved-pill{width:100%;max-width:370px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:var(--r);padding:15px 18px;display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:10px;transition:background .2s}
+.saved-pill:hover{background:rgba(255,255,255,.16)}
+.saved-av{width:44px;height:44px;border-radius:99px;background:#fff;color:var(--prm);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Sora',sans-serif}
+.change-acc{background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;text-decoration:underline}
+
+
+</style>
+</head>
+<body>
+<style>
+/* ═══ LAYOUT PRINCIPAL ═══ */
+#pg-app{background:var(--g100)}
+#pg-app.active{display:flex;flex-direction:column;height:100%}
+.topbar{background:linear-gradient(135deg,#003380,#0047AB);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,51,128,.3);z-index:100}
+.tb-logo{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#fff;flex-shrink:0}
+.tb-info{flex:1;min-width:0}
+.tb-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
+.tb-logout{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:9px;padding:8px 13px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;transition:background .15s}
+.tb-logout:active{background:rgba(255,255,255,.25)}
+
+.app-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.content{padding:14px;max-width:680px;margin:0 auto}
+
+/* ═══ MENÚ DE MÓDULOS (HOME) ═══ */
+.home-hero{background:linear-gradient(135deg,#003380,#0047AB);margin:-14px -14px 0;padding:20px 18px 28px;color:#fff}
+.hh-greet{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:3px}
+.hh-name{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;margin-bottom:16px}
+.hh-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.hh-stat{background:rgba(255,255,255,.12);border-radius:12px;padding:12px;backdrop-filter:blur(8px)}
+.hh-stat-v{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;line-height:1}
+.hh-stat-l{font-size:10px;color:rgba(255,255,255,.7);margin-top:4px}
+
+.modules-section{margin-top:-14px;padding-top:0}
+.modules-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px}
+.mod-card{background:#fff;border-radius:var(--r);padding:16px;cursor:pointer;border:1px solid var(--g200);box-shadow:var(--sh);transition:all .18s;position:relative;overflow:hidden;text-align:left}
+.mod-card:active{transform:scale(.97)}
+.mod-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent,var(--prm))}
+.mod-card-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px;background:var(--accent-l,var(--prm-l))}
+.mod-card-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--g900);line-height:1.25;margin-bottom:3px}
+.mod-card-desc{font-size:10.5px;color:var(--g500);line-height:1.3}
+.mod-card-badge{position:absolute;top:12px;right:12px;background:var(--accent,var(--prm));color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
+.section-label{font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.07em;margin:22px 0 0}
+
+/* ═══ VISTA DE MÓDULO ═══ */
+.mod-header{display:flex;align-items:center;gap:12px;margin:-14px -14px 16px;padding:14px 16px;background:#fff;border-bottom:1px solid var(--g200);position:sticky;top:0;z-index:50}
+.mod-back{width:36px;height:36px;border-radius:10px;background:var(--g100);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--g700);flex-shrink:0}
+.mod-back:active{background:var(--g200)}
+.mod-h-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--g900)}
+.mod-h-sub{font-size:11px;color:var(--g500);margin-top:1px}
+
+/* ═══ COMPONENTES ═══ */
+.card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh);margin-bottom:12px;border:1px solid var(--g200)}
+.card-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--g900);margin-bottom:12px}
+.metrics{display:grid;gap:10px;margin-bottom:12px}
+.m2{grid-template-columns:1fr 1fr}.m3{grid-template-columns:1fr 1fr 1fr}
+.metric{background:#fff;border-radius:var(--r);padding:14px;box-shadow:var(--sh);border:1px solid var(--g200)}
+.metric.ac{background:linear-gradient(135deg,#003380,#0047AB);border:none}
+.ml{font-size:10.5px;color:var(--g500);margin-bottom:5px;font-weight:500}
+.metric.ac .ml{color:rgba(255,255,255,.75)}
+.mv{font-family:'Sora',sans-serif;font-size:23px;font-weight:700;color:var(--g900);line-height:1}
+.metric.ac .mv{color:#fff}
+.ms{font-size:10.5px;margin-top:4px;color:var(--g500)}
+.metric.ac .ms{color:rgba(255,255,255,.65)}
+
+.btn{border:none;border-radius:var(--rs);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.97)}
+.btn-prm{background:var(--prm);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red-l);color:var(--red)}
+.btn-amber{background:var(--amber-l);color:var(--amber)}
+.btn-gray{background:var(--g100);color:var(--g700)}
+.btn-sm{padding:7px 12px;font-size:11px}
+.btn-block{width:100%}
+
+.pill{display:inline-block;font-size:10px;padding:3px 9px;border-radius:99px;font-weight:600}
+.pg{background:var(--green-l);color:var(--green)}
+.pb{background:var(--prm-l);color:var(--prm)}
+.pa{background:var(--amber-l);color:var(--amber)}
+.pr{background:var(--red-l);color:var(--red)}
+.pgr{background:var(--g100);color:var(--g500)}
+.ppurp{background:var(--purple-l);color:var(--purple)}
+
+.fg{margin-bottom:12px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+select.fi{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L2 4h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+.search-fi{width:100%;background:#fff;border:1.5px solid var(--g200);border-radius:var(--rs);padding:11px 14px;font-size:14px;color:var(--g900);font-family:inherit;outline:none;margin-bottom:12px}
+.search-fi:focus{border-color:var(--prm)}
+
+.tabs-sub{display:flex;background:var(--g100);border-radius:11px;padding:3px;margin-bottom:14px;overflow-x:auto}
+.tab-sub{flex:1;padding:8px 6px;text-align:center;font-size:11px;color:var(--g500);border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap}
+.tab-sub.on{background:#fff;color:var(--prm);box-shadow:var(--sh)}
+
+.lrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--g100)}
+.lrow:last-child{border-bottom:none}
+.lav{width:38px;height:38px;border-radius:99px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Sora',sans-serif}
+.av-b{background:var(--prm-l);color:var(--prm)}
+.av-g{background:var(--green-l);color:var(--green)}
+.av-a{background:var(--amber-l);color:var(--amber)}
+.lname{font-size:13px;font-weight:600;color:var(--g900)}
+.lsub{font-size:11px;color:var(--g500);margin-top:1px}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9999;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:#fff;border-radius:24px 24px 0 0;padding:22px;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;animation:slideUp .3s ease}
+.mhandle{width:42px;height:4px;background:var(--g200);border-radius:99px;margin:0 auto 18px}
+.mtitle{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--g900);margin-bottom:16px}
+.mactions{display:flex;gap:10px;margin-top:16px}
+
+.spinner{width:28px;height:28px;border:3px solid var(--g200);border-top-color:var(--prm);border-radius:50%;animation:spin .7s linear infinite;margin:1.5rem auto}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--g400);font-size:13px;line-height:1.5}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99999;width:calc(100% - 32px);max-width:400px;pointer-events:none}
+.toast{border-radius:var(--rs);padding:13px 16px;font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;box-shadow:var(--sh-lg);margin-bottom:8px}
+.toast.show{display:flex;animation:slideUp .25s ease}
+.t-ok{background:#fff;color:var(--green);border-left:4px solid var(--green)}
+.t-err{background:#fff;color:var(--red);border-left:4px solid var(--red)}
+
+.bar-track{height:6px;background:var(--g100);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .5s ease}
+#map-zonas{height:340px;border-radius:var(--r);overflow:hidden;border:1px solid var(--g200);margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid var(--g200);background:#fff;color:var(--g600)}
+.chip.on{background:var(--prm);color:#fff;border-color:var(--prm)}
+.chips-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+
+/* ═══════════ RESPONSIVE — PANTALLA COMPLETA EN COMPUTADORA ═══════════ */
+@media(min-width:768px){
+  .content{max-width:1100px;padding:24px}
+  .modules-grid{grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
+  .mod-card{padding:20px}
+  .mod-card-icon{width:52px;height:52px;font-size:26px}
+  .mod-card-title{font-size:14px}
+  .mod-card-desc{font-size:11.5px}
+  .home-hero{margin:-24px -24px 0;padding:32px 36px 40px;border-radius:0}
+  .hh-name{font-size:28px}
+  .hh-stats{max-width:560px}
+  .topbar{padding:16px 32px}
+  .tb-title{font-size:17px}
+  .mod-header{margin:-24px -24px 20px;padding:18px 32px}
+  .metrics.m2,.metrics.m3{max-width:none}
+  .modal{max-width:760px;border-radius:24px;margin:auto 0}
+  .modal-bg{align-items:center;padding:20px}
+  /* Listas en grid para aprovechar ancho */
+  #pad-lista>.card,#afil-lista>.card{max-width:none}
+  #map-zonas{height:460px}
+}
+@media(min-width:1100px){
+  .content{max-width:1280px}
+  .modules-grid{gap:18px}
+  /* Padrón, recintos, dirigentes en 2 columnas en pantallas anchas */
+  #rec-lista,#dir-lista,#asp-lista{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #rec-lista .card,#dir-lista .card,#asp-lista .card{margin-bottom:0}
+  #asp-lista .section-label{grid-column:1/-1}
+}
+@media(min-width:1400px){
+  .content{max-width:1400px}
+  .modules-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+<div class="toast-wrap">
+  <div class="toast t-ok" id="toast-ok"></div>
+  <div class="toast t-err" id="toast-err"></div>
+</div>
+
+<!-- ═══ SPLASH ═══ -->
+<div class="page" id="pg-splash" style="display:flex">
+  <div class="brand-logo">PRM</div>
+  <h1 class="brand-h1">Gestión <span>Electoral</span></h1>
+  <p class="brand-sub">Partido Revolucionario Moderno</p>
+  <div class="brand-badge">SAN PEDRO DE MACORÍS · 2028</div>
+  <div id="splash-saved" style="width:100%;display:flex;flex-direction:column;align-items:center"></div>
+  <div id="splash-default" style="width:100%;display:flex;flex-direction:column;align-items:center">
+    <button class="splash-btn" onclick="goPage('pg-login')">
+      <div style="width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div style="text-align:left;flex:1"><div style="font-size:15px;font-weight:700">Entrar al sistema</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">Panel central del partido</div></div>
+      <div style="color:rgba(255,255,255,.35);font-size:20px">›</div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="page" id="pg-login">
+  <div class="login-card">
+    <div class="lc-mark">PRM</div>
+    <div class="lc-title">Sistema de Gestión Electoral</div>
+    <div class="lc-sub">San Pedro de Macorís · 2028</div>
+    <div class="login-err" id="login-err"></div>
+    <label class="fl">Correo electrónico</label>
+    <input class="fi" id="login-email" type="email" placeholder="tu@email.com" autocomplete="email">
+    <label class="fl">Contraseña</label>
+    <input class="fi" id="login-pass" type="password" placeholder="••••••••">
+    <button class="btn-login" onclick="doLogin()" id="login-btn">Entrar</button>
+    <div style="text-align:center;margin-top:12px"><button onclick="goPage('pg-splash')" style="font-size:12px;color:var(--g500);background:none;border:none;cursor:pointer;font-family:inherit">← Volver</button></div>
+  </div>
+</div>
+
+<!-- ═══ APP PRINCIPAL ═══ -->
+<div class="page" id="pg-app">
+  <div class="topbar">
+    <div class="tb-logo">PRM</div>
+    <div class="tb-info">
+      <div class="tb-title">PRM San Pedro de Macorís</div>
+      <div class="tb-sub" id="tb-user">Sistema de Gestión Electoral</div>
+    </div>
+    <button class="tb-logout" onclick="doLogout()">Salir</button>
+  </div>
+
+  <div class="app-body">
+    <!-- HOME -->
+    <div id="view-home" class="content">
+      <div class="home-hero">
+        <div class="hh-greet" id="hh-greet">Bienvenido</div>
+        <div class="hh-name" id="hh-name">Partido</div>
+        <div class="hh-stats">
+          <div class="hh-stat"><div class="hh-stat-v" id="hh-electores">0</div><div class="hh-stat-l">Electores padrón</div></div>
+          <div class="hh-stat"><div class="hh-stat-v" id="hh-afiliados">0</div><div class="hh-stat-l">Afiliados PRM</div></div>
+          <div class="hh-stat"><div class="hh-stat-v" id="hh-dirigentes">0</div><div class="hh-stat-l">Dirigentes</div></div>
+        </div>
+      </div>
+
+      <div class="modules-section">
+        <div class="section-label">Datos electorales</div>
+        <div class="modules-grid">
+          <button class="mod-card" style="--accent:#0047AB;--accent-l:#e6eeff" onclick="openMod('padron')">
+            <div class="mod-card-icon">📋</div>
+            <div class="mod-card-title">Padrón Electoral</div>
+            <div class="mod-card-desc">112,510 electores con análisis político</div>
+          </button>
+          <button class="mod-card" style="--accent:#0891b2;--accent-l:#cffafe" onclick="openMod('recintos')">
+            <div class="mod-card-icon">🏫</div>
+            <div class="mod-card-title">Recintos Electorales</div>
+            <div class="mod-card-desc">Colegios, mesas y mercado electoral</div>
+          </button>
+          <button class="mod-card" style="--accent:#0d9488;--accent-l:#ccfbf1" onclick="openMod('territorial')">
+            <div class="mod-card-icon">🗺️</div>
+            <div class="mod-card-title">Organización Territorial</div>
+            <div class="mod-card-desc">Zonas con mapa interactivo</div>
+          </button>
+          <button class="mod-card" style="--accent:#6d28d9;--accent-l:#ede9fe" onclick="openMod('afiliados')">
+            <div class="mod-card-icon">🪪</div>
+            <div class="mod-card-title">Registro de Afiliados</div>
+            <div class="mod-card-desc">Base de miembros del partido</div>
+          </button>
+        </div>
+
+        <div class="section-label">Estructura del partido</div>
+        <div class="modules-grid">
+          <button class="mod-card" style="--accent:#0a7c4a;--accent-l:#e6f4ed" onclick="openMod('dirigencial')">
+            <div class="mod-card-icon">👥</div>
+            <div class="mod-card-title">Estructura Dirigencial</div>
+            <div class="mod-card-desc">Dirigentes y coordinadores</div>
+          </button>
+          <button class="mod-card" style="--accent:#b45309;--accent-l:#fef3c7" onclick="openMod('aspiraciones')">
+            <div class="mod-card-icon">🏛️</div>
+            <div class="mod-card-title">Aspiraciones</div>
+            <div class="mod-card-desc">Aspirantes a posiciones electivas</div>
+          </button>
+          <button class="mod-card" style="--accent:#db2777;--accent-l:#fce7f3" onclick="openMod('nomina')">
+            <div class="mod-card-icon">🏢</div>
+            <div class="mod-card-title">Nómina Pública</div>
+            <div class="mod-card-desc">Dirigentes en cargos del gobierno</div>
+          </button>
+          <button class="mod-card" style="--accent:#6d28d9;--accent-l:#ede9fe" onclick="openMod('encuestas')">
+            <div class="mod-card-icon">📊</div>
+            <div class="mod-card-title">Encuestas</div>
+            <div class="mod-card-desc">Reconocimiento, simpatía, intención</div>
+          </button>
+        </div>
+
+        <div class="section-label">Campaña electoral</div>
+        <div class="modules-grid">
+          <button class="mod-card" style="--accent:#b45309;--accent-l:#fef3c7" onclick="openMod('logistica')">
+            <div class="mod-card-icon">💰</div>
+            <div class="mod-card-title">Logística y Presupuesto</div>
+            <div class="mod-card-desc">Caravanas, gastos y recursos</div>
+          </button>
+          <button class="mod-card" style="--accent:#0891b2;--accent-l:#cffafe" onclick="openMod('montaje')">
+            <div class="mod-card-icon">🚩</div>
+            <div class="mod-card-title">Montaje Electoral</div>
+            <div class="mod-card-desc">Delegados por recinto y mesa</div>
+          </button>
+          <button class="mod-card" style="--accent:#0a7c4a;--accent-l:#e6f4ed" onclick="openMod('seguimiento')">
+            <div class="mod-card-icon">📡</div>
+            <div class="mod-card-title">Seguimiento de Votación</div>
+            <div class="mod-card-desc">Asistencia el día de elecciones</div>
+          </button>
+          <button class="mod-card" style="--accent:#c0392b;--accent-l:#fdecea" onclick="openMod('conteo')">
+            <div class="mod-card-icon">🗳️</div>
+            <div class="mod-card-title">Conteo y Reporte Final</div>
+            <div class="mod-card-desc">Resultados y actas finales</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA DE MÓDULO (dinámica) -->
+    <div id="view-module" class="content" style="display:none">
+      <div class="mod-header">
+        <button class="mod-back" onclick="goHome()">←</button>
+        <div><div class="mod-h-title" id="mod-title">Módulo</div><div class="mod-h-sub" id="mod-subtitle"></div></div>
+      </div>
+      <div id="mod-content"></div>
+    </div>
+  </div>
+</div>
+<!-- MODALES -->
+<div class="modal-bg" id="m-elector"><div class="modal"><div class="mhandle"></div><div id="m-elector-body"></div><button class="btn btn-gray btn-block" style="margin-top:12px" onclick="closeModal('m-elector')">Cerrar</button></div></div>
+
+<div class="modal-bg" id="m-recinto"><div class="modal"><div class="mhandle"></div><div id="m-recinto-body"></div><button class="btn btn-gray btn-block" style="margin-top:12px" onclick="closeModal('m-recinto')">Cerrar</button></div></div>
+
+<div class="modal-bg" id="m-conteo"><div class="modal"><div class="mhandle"></div><div id="m-conteo-body"></div><button class="btn btn-gray btn-block" style="margin-top:12px" onclick="closeModal('m-conteo')">Cerrar</button></div></div>
+
+<div class="modal-bg" id="m-afiliado"><div class="modal"><div class="mhandle"></div><div class="mtitle">Nuevo afiliado</div>
+  <div class="fg"><label class="fl">Nombre completo *</label><input class="fi" id="af-nom"></div>
+  <div class="row2"><div class="fg"><label class="fl">Cédula *</label><input class="fi" id="af-ced"></div><div class="fg"><label class="fl">Teléfono</label><input class="fi" id="af-tel"></div></div>
+  <div class="row2"><div class="fg"><label class="fl">Municipio</label><select class="fi" id="af-mun"><option value="">Selecciona</option><option>San Pedro de Macorís</option><option>Consuelo</option><option>Quisqueya</option><option>Guayacanes</option><option>Los Llanos</option><option>Ramón Santana</option></select></div><div class="fg"><label class="fl">Sector</label><input class="fi" id="af-sec"></div></div>
+  <div class="mactions"><button class="btn btn-gray" style="flex:1" onclick="closeModal('m-afiliado')">Cancelar</button><button class="btn btn-prm" style="flex:2" onclick="guardarAfiliado()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="m-aspirante"><div class="modal"><div class="mhandle"></div><div class="mtitle">Nuevo aspirante</div>
+  <div class="fg"><label class="fl">Nombre completo *</label><input class="fi" id="asp-nom"></div>
+  <div class="row2"><div class="fg"><label class="fl">Posición *</label><select class="fi" id="asp-pos"><option value="">Selecciona</option><option>Senador</option><option>Diputado</option><option>Alcalde</option><option>Síndico</option><option>Regidor</option><option>Vocal</option></select></div><div class="fg"><label class="fl">Municipio *</label><select class="fi" id="asp-mun"><option value="">Selecciona</option><option>San Pedro de Macorís</option><option>Consuelo</option><option>Quisqueya</option><option>Guayacanes</option><option>Los Llanos</option><option>Ramón Santana</option></select></div></div>
+  <div class="row2"><div class="fg"><label class="fl">Email</label><input class="fi" id="asp-email" type="email"></div><div class="fg"><label class="fl">Meta votos</label><input class="fi" id="asp-meta" type="number"></div></div>
+  <div class="mactions"><button class="btn btn-gray" style="flex:1" onclick="closeModal('m-aspirante')">Cancelar</button><button class="btn btn-prm" style="flex:2" onclick="guardarAspirante()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="m-nomina"><div class="modal"><div class="mhandle"></div><div class="mtitle">Registrar en nómina pública</div>
+  <div class="fg"><label class="fl">Nombre completo *</label><input class="fi" id="nm-nom"></div>
+  <div class="fg"><label class="fl">Cédula</label><input class="fi" id="nm-ced"></div>
+  <div class="row2"><div class="fg"><label class="fl">Cargo</label><input class="fi" id="nm-cargo"></div><div class="fg"><label class="fl">Salario RD$</label><input class="fi" id="nm-salario" type="number"></div></div>
+  <div class="fg"><label class="fl">Institución</label><input class="fi" id="nm-inst"></div>
+  <div class="mactions"><button class="btn btn-gray" style="flex:1" onclick="closeModal('m-nomina')">Cancelar</button><button class="btn btn-prm" style="flex:2" onclick="guardarNomina()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="m-dirigente"><div class="modal"><div class="mhandle"></div><div class="mtitle">Nuevo dirigente</div>
+  <div style="font-size:12px;color:var(--g500);margin-bottom:12px">Para crear dirigentes con QR completo usa la sección de estructura. Aquí registras lo básico.</div>
+  <div class="fg"><label class="fl">Nombre *</label><input class="fi" id="di-nom"></div>
+  <div class="row2"><div class="fg"><label class="fl">Cédula *</label><input class="fi" id="di-ced"></div><div class="fg"><label class="fl">Teléfono *</label><input class="fi" id="di-tel"></div></div>
+  <div class="mactions"><button class="btn btn-gray" style="flex:1" onclick="closeModal('m-dirigente')">Cancelar</button><button class="btn btn-prm" style="flex:2" onclick="guardarDirigente()">Crear y generar QR</button></div>
+</div></div>
+
+<div class="modal-bg" id="m-encuesta"><div class="modal"><div class="mhandle"></div><div class="mtitle">Nueva encuesta</div>
+  <div class="fg"><label class="fl">Título *</label><input class="fi" id="en-titulo"></div>
+  <div class="row2"><div class="fg"><label class="fl">Tipo</label><select class="fi" id="en-tipo"><option value="reconocimiento">Reconocimiento</option><option value="simpatia">Simpatía</option><option value="intencion">Intención de voto</option></select></div><div class="fg"><label class="fl">Meta</label><input class="fi" id="en-meta" type="number"></div></div>
+  <div class="mactions"><button class="btn btn-gray" style="flex:1" onclick="closeModal('m-encuesta')">Cancelar</button><button class="btn btn-prm" style="flex:2" onclick="guardarEncuesta()">Crear</button></div>
+</div></div>
+
+<div class="modal-bg" id="m-proceso"><div class="modal"><div class="mhandle"></div><div class="mtitle">Nuevo proceso de conteo</div>
+  <div class="fg"><label class="fl">Nombre *</label><input class="fi" id="pr-nom"></div>
+  <div class="fg"><label class="fl">Posición</label><select class="fi" id="pr-pos"><option value="">Selecciona</option><option>Senador</option><option>Diputado</option><option>Alcalde</option><option>Síndico</option><option>Regidor</option></select></div>
+  <div class="mactions"><button class="btn btn-gray" style="flex:1" onclick="closeModal('m-proceso')">Cancelar</button><button class="btn btn-prm" style="flex:2" onclick="guardarProceso()">Crear</button></div>
+</div></div>
+
+<div class="modal-bg" id="m-qr"><div class="modal"><div class="mhandle"></div><div style="text-align:center">
+  <div style="font-family:Sora;font-size:15px;font-weight:700" id="qr-nom"></div>
+  <div style="font-size:12px;color:var(--g500);margin-bottom:14px" id="qr-sub"></div>
+  <div style="background:#fff;border-radius:14px;padding:18px;display:inline-block;box-shadow:var(--sh-md);margin-bottom:14px"><div id="qr-div"></div></div>
+  <button class="btn btn-gray btn-block" onclick="closeModal('m-qr')">Cerrar</button>
+</div></div></div>
+<script>
+const SB_URL='https://izyqrakicqqdzgdlmxfb.supabase.co';
+const SB_KEY='sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
+const db=supabase.createClient(SB_URL,SB_KEY);
+const PADRON_TOTAL=112510;
+
+const PADRON_MUN={'San Pedro de Macorís':73177,'Consuelo':13936,'Quisqueya':9352,'Los Llanos':6424,'Guayacanes':5163,'Ramón Santana':4458};
+
+let currentUser=null;
+
+// ═══ NAVEGACIÓN ═══
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  const el=document.getElementById(id);
+  el.classList.add('active');
+  el.style.display=(id==='pg-app')?'flex':'flex';
+  window.scrollTo(0,0);
+}
+function toast(t,msg){const el=document.getElementById('toast-'+t);el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ═══ AUTH ═══
+function initSaved(){
+  const s=localStorage.getItem('prm_session');
+  if(!s) return;
+  try{
+    const d=JSON.parse(s);
+    const ini=d.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    document.getElementById('splash-default').style.display='none';
+    document.getElementById('splash-saved').innerHTML=`
+      <div style="width:100%;max-width:370px;display:flex;flex-direction:column;align-items:center">
+        <div class="saved-pill" onclick="entrarGuardado()">
+          <div class="saved-av">${ini}</div>
+          <div style="flex:1;text-align:left"><div style="font-size:15px;font-weight:700;color:#fff">${d.nombre}</div><div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:1px">Sistema de Gestión Electoral</div></div>
+          <div style="background:#fff;color:var(--prm);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700">Entrar</div>
+        </div>
+        <button class="change-acc" onclick="cerrarSesionGuardada()">Entrar con otra cuenta</button>
+      </div>`;
+  }catch(e){}
+}
+async function entrarGuardado(){
+  const s=JSON.parse(localStorage.getItem('prm_session'));
+  const {data:user}=await db.from('superadmins').select('*').eq('id',s.id).single();
+  if(!user){cerrarSesionGuardada();return;}
+  setupApp(user);
+}
+function cerrarSesionGuardada(){
+  localStorage.removeItem('prm_session');
+  document.getElementById('splash-saved').innerHTML='';
+  document.getElementById('splash-default').style.display='flex';
+}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  const btn=document.getElementById('login-btn');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='Ingresa correo y contraseña';err.style.display='block';return;}
+  btn.textContent='Verificando...';btn.disabled=true;
+  const {data,error}=await db.auth.signInWithPassword({email,password:pass});
+  btn.textContent='Entrar';btn.disabled=false;
+  if(error){err.textContent='Correo o contraseña incorrectos';err.style.display='block';return;}
+  const {data:admin}=await db.from('superadmins').select('*').eq('email',email).single();
+  if(!admin){err.textContent='No tienes acceso al sistema';err.style.display='block';await db.auth.signOut();return;}
+  localStorage.setItem('prm_session',JSON.stringify({id:admin.id,nombre:admin.nombre}));
+  setupApp(admin);
+}
+function setupApp(user){
+  currentUser=user;
+  document.getElementById('tb-user').textContent=user.nombre;
+  document.getElementById('hh-name').textContent=user.nombre;
+  const h=new Date().getHours();
+  document.getElementById('hh-greet').textContent=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+  goPage('pg-app');
+  goHome();
+  loadHomeStats();
+}
+function doLogout(){db.auth.signOut();localStorage.removeItem('prm_session');currentUser=null;goPage('pg-splash');}
+
+// ═══ HOME ═══
+async function loadHomeStats(){
+  const {count:elec}=await db.from('padron_prm').select('*',{count:'exact',head:true});
+  const {count:afil}=await db.from('padron_prm').select('*',{count:'exact',head:true}).eq('afiliacion','PRM');
+  const {count:dirs}=await db.from('dirigentes').select('*',{count:'exact',head:true}).eq('activo',true);
+  // Fallback to old padron table if new is empty
+  let electores=elec||0;
+  if(electores===0){const {count:oldp}=await db.from('padron').select('*',{count:'exact',head:true});electores=oldp||0;}
+  document.getElementById('hh-electores').textContent=electores>999?(electores/1000).toFixed(0)+'k':electores;
+  document.getElementById('hh-afiliados').textContent=(afil||0)>999?((afil||0)/1000).toFixed(1)+'k':(afil||0);
+  document.getElementById('hh-dirigentes').textContent=dirs||0;
+}
+
+function goHome(){
+  document.getElementById('view-home').style.display='block';
+  document.getElementById('view-module').style.display='none';
+  window.scrollTo(0,0);
+}
+
+// ═══ ROUTER DE MÓDULOS ═══
+const MODULOS={
+  padron:{t:'Padrón Electoral',s:'Electores con análisis político',load:loadPadron},
+  recintos:{t:'Recintos Electorales',s:'Colegios y mercado electoral',load:loadRecintos},
+  territorial:{t:'Organización Territorial',s:'Zonas y mapa',load:loadTerritorial},
+  afiliados:{t:'Registro de Afiliados',s:'Miembros del partido',load:loadAfiliados},
+  dirigencial:{t:'Estructura Dirigencial',s:'Dirigentes y coordinadores',load:loadDirigencial},
+  aspiraciones:{t:'Aspiraciones a Posiciones',s:'Aspirantes electivos',load:loadAspiraciones},
+  nomina:{t:'Nómina Pública',s:'Dirigentes en cargos públicos',load:loadNomina},
+  encuestas:{t:'Encuestas',s:'Reconocimiento, simpatía, intención',load:loadEncuestasMod},
+  logistica:{t:'Logística y Presupuesto',s:'Recursos de campaña',load:loadLogisticaMod},
+  montaje:{t:'Montaje Electoral',s:'Delegados por recinto',load:loadMontaje},
+  seguimiento:{t:'Seguimiento de Votación',s:'Día de elecciones',load:loadSeguimiento},
+  conteo:{t:'Conteo y Reporte Final',s:'Resultados finales',load:loadConteo}
+};
+
+function openMod(key){
+  const m=MODULOS[key];
+  if(!m) return;
+  document.getElementById('mod-title').textContent=m.t;
+  document.getElementById('mod-subtitle').textContent=m.s;
+  document.getElementById('mod-content').innerHTML='<div class="spinner"></div>';
+  document.getElementById('view-home').style.display='none';
+  document.getElementById('view-module').style.display='block';
+  window.scrollTo(0,0);
+  if(m.load) m.load();
+}
+// ═══════════ MÓDULO 1: PADRÓN ELECTORAL ═══════════
+let padronTimer;
+function loadPadron(){
+  const c=document.getElementById('mod-content');
+  c.innerHTML=`
+    <div class="metrics m3">
+      <div class="metric ac"><div class="ml">Total padrón</div><div class="mv" id="pad-total">—</div></div>
+      <div class="metric" style="border-left:3px solid var(--green)"><div class="ml">Afiliados PRM</div><div class="mv" id="pad-prm" style="color:var(--green);font-size:19px">—</div></div>
+      <div class="metric" style="border-left:3px solid var(--red)"><div class="ml">Voto Duro</div><div class="mv" id="pad-duro" style="color:var(--red);font-size:19px">—</div></div>
+    </div>
+    <div class="chips-row" id="pad-chips">
+      <div class="chip on" onclick="filtrarPadron('',this)">Todos</div>
+      <div class="chip" onclick="filtrarPadron('PRM',this)">PRM</div>
+      <div class="chip" onclick="filtrarPadron('PLD',this)">PLD</div>
+      <div class="chip" onclick="filtrarPadron('FP',this)">FP</div>
+      <div class="chip" onclick="filtrarPadronClas('Voto Duro',this)">Voto Duro</div>
+      <div class="chip" onclick="filtrarPadronClas('Posible',this)">Posibles</div>
+      <div class="chip" onclick="filtrarPadronClas('Voto Difícil',this)">Voto Difícil</div>
+    </div>
+    <input class="search-fi" id="pad-search" type="text" placeholder="Buscar por cédula o nombre..." oninput="buscarPadron(this.value)">
+    <div id="pad-lista"><div class="empty"><div class="empty-icon">🔍</div>Escribe para buscar un elector<br>o usa los filtros de arriba</div></div>`;
+  loadPadronStats();
+}
+async function loadPadronStats(){
+  const {count:total}=await db.from('padron_prm').select('*',{count:'exact',head:true});
+  if(!total){
+    document.getElementById('pad-total').textContent='0';
+    document.getElementById('pad-prm').textContent='0';
+    document.getElementById('pad-duro').textContent='0';
+    document.getElementById('pad-lista').innerHTML='<div class="empty"><div class="empty-icon">📋</div>El padrón nuevo aún no está cargado.<br>Procesa los PDFs del padrón PRM primero.</div>';
+    return;
+  }
+  const {count:prm}=await db.from('padron_prm').select('*',{count:'exact',head:true}).eq('afiliacion','PRM');
+  const {count:duro}=await db.from('padron_prm').select('*',{count:'exact',head:true}).eq('clasificacion','Voto Duro');
+  document.getElementById('pad-total').textContent=(total||0).toLocaleString();
+  document.getElementById('pad-prm').textContent=(prm||0).toLocaleString();
+  document.getElementById('pad-duro').textContent=(duro||0).toLocaleString();
+}
+let padFiltroAfil='',padFiltroClas='';
+function filtrarPadron(afil,el){
+  padFiltroAfil=afil;padFiltroClas='';
+  document.querySelectorAll('#pad-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  buscarPadron(document.getElementById('pad-search').value);
+}
+function filtrarPadronClas(clas,el){
+  padFiltroClas=clas;padFiltroAfil='';
+  document.querySelectorAll('#pad-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  buscarPadron(document.getElementById('pad-search').value);
+}
+function buscarPadron(q){
+  clearTimeout(padronTimer);
+  padronTimer=setTimeout(async()=>{
+    const div=document.getElementById('pad-lista');
+    if(q.length<3&&!padFiltroAfil&&!padFiltroClas){div.innerHTML='<div class="empty"><div class="empty-icon">🔍</div>Escribe para buscar un elector</div>';return;}
+    div.innerHTML='<div class="spinner"></div>';
+    let query=db.from('padron_prm').select('*').limit(30);
+    if(q.length>=3) query=query.or(`nombre.ilike.%${q}%,cedula.ilike.%${q}%`);
+    if(padFiltroAfil) query=query.eq('afiliacion',padFiltroAfil);
+    if(padFiltroClas) query=query.eq('clasificacion',padFiltroClas);
+    const {data}=await query;
+    if(!data||!data.length){div.innerHTML='<div class="empty">Sin resultados</div>';return;}
+    const clasC={'Voto Duro':'pr','Posible':'pa','Voto Difícil':'pgr'};
+    const afilC={'PRM':'pg','PLD':'pb','FP':'ppurp'};
+    div.innerHTML='<div class="card" style="padding:0">'+data.map((p,i)=>`
+      <div onclick="verElector('${p.id}')" style="padding:12px 14px;border-bottom:${i===data.length-1?'none':'1px solid var(--g100)'};cursor:pointer">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <div class="lname">${p.nombre}</div>
+          <div style="display:flex;gap:4px">
+            ${p.afiliacion?`<span class="pill ${afilC[p.afiliacion]||'pgr'}">${p.afiliacion}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="lsub">${p.cedula} · ${p.zona||p.municipio||''}</div>
+          ${p.clasificacion?`<span class="pill ${clasC[p.clasificacion]||'pgr'}" style="font-size:9px">${p.clasificacion}</span>`:''}
+        </div>
+      </div>`).join('')+'</div>';
+  },350);
+}
+async function verElector(id){
+  const {data:p}=await db.from('padron_prm').select('*').eq('id',id).single();
+  if(!p) return;
+  const hist=[];
+  if(p.voto_2010)hist.push('2010');if(p.voto_2012)hist.push('2012');if(p.voto_2016)hist.push('2016');
+  if(p.voto_2020m)hist.push('2020-M');if(p.voto_2020p)hist.push('2020-P');if(p.voto_2024m)hist.push('2024-M');
+  document.getElementById('m-elector-body').innerHTML=`
+    <div style="text-align:center;margin-bottom:16px">
+      <div class="lav av-b" style="width:60px;height:60px;font-size:22px;margin:0 auto 8px">${p.nombre.split(' ').slice(0,2).map(w=>w[0]).join('')}</div>
+      <div style="font-family:'Sora';font-size:17px;font-weight:700">${p.nombre}</div>
+      <div style="font-size:12px;color:var(--g500)">${p.cedula}</div>
+    </div>
+    <div class="metrics m2" style="margin-bottom:12px">
+      <div class="metric"><div class="ml">Afiliación</div><div style="font-size:16px;font-weight:700;color:var(--prm);font-family:Sora">${p.afiliacion||'Ninguna'}</div></div>
+      <div class="metric"><div class="ml">Clasificación</div><div style="font-size:15px;font-weight:700;font-family:Sora">${p.clasificacion||'—'}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Ubicación electoral</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--g700)">
+        <div><b>Recinto:</b> ${p.recinto_nombre||'—'} ${p.recinto_codigo?'('+p.recinto_codigo+')':''}</div>
+        <div><b>Colegio:</b> ${p.colegio_numero||'—'}</div>
+        <div><b>Zona:</b> ${p.zona||'—'}</div>
+        <div><b>Municipio:</b> ${p.municipio||'—'}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Contacto</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--g700)">
+        <div><b>Celular:</b> ${p.celular||'—'}</div>
+        <div><b>Teléfono:</b> ${p.telefono||'—'}</div>
+        <div><b>Dirección:</b> ${p.direccion||'—'}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Historial de votación</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${hist.length?hist.map(h=>`<span class="pill pg">${h}</span>`).join(''):'<span style="color:var(--g400);font-size:12px">Sin historial registrado</span>'}
+      </div>
+    </div>`;
+  openModal('m-elector');
+}
+// ═══════════ MÓDULO 2: RECINTOS ELECTORALES ═══════════
+async function loadRecintos(){
+  const c=document.getElementById('mod-content');
+  const {data:recintos}=await db.from('recintos_prm').select('*').order('codigo');
+  if(!recintos||!recintos.length){
+    c.innerHTML='<div class="empty"><div class="empty-icon">🏫</div>No hay recintos cargados.<br>Procesa los PDFs del padrón PRM.</div>';
+    return;
+  }
+  c.innerHTML=`
+    <div class="metrics m2">
+      <div class="metric ac"><div class="ml">Recintos</div><div class="mv">${recintos.length}</div></div>
+      <div class="metric" style="border-left:3px solid var(--green)"><div class="ml">Ganados PRM 2020</div><div class="mv" style="color:var(--green);font-size:19px">${recintos.filter(r=>r.ganado_2020_por==='PRM').length}</div></div>
+    </div>
+    <input class="search-fi" type="text" placeholder="Buscar recinto..." oninput="filtrarRecintos(this.value)">
+    <div id="rec-lista"></div>`;
+  window._recintos=recintos;
+  renderRecintos(recintos);
+}
+function filtrarRecintos(q){
+  const f=window._recintos.filter(r=>r.nombre.toLowerCase().includes(q.toLowerCase())||r.codigo.includes(q));
+  renderRecintos(f);
+}
+function renderRecintos(recintos){
+  document.getElementById('rec-lista').innerHTML=recintos.map(r=>`
+    <div class="card" onclick="verRecinto('${r.id}')" style="cursor:pointer">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="lname">🏫 ${r.nombre}</div>
+        ${r.ganado_2020_por?`<span class="pill ${r.ganado_2020_por==='PRM'?'pg':'pr'}">${r.ganado_2020_por} 2020</span>`:''}
+      </div>
+      <div class="lsub">Código ${r.codigo} · ${r.zona||''} · ${r.municipio||''}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--prm);font-family:Sora">${r.total_electores||0}</div><div style="font-size:9px;color:var(--g500)">Electores</div></div>
+        <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--green);font-family:Sora">${r.total_meta||0}</div><div style="font-size:9px;color:var(--g500)">Meta PRM</div></div>
+        <div style="flex:1;background:var(--g50);border-radius:8px;padding:8px;text-align:center"><div style="font-size:15px;font-weight:700;color:var(--amber);font-family:Sora">${r.total_colegios||0}</div><div style="font-size:9px;color:var(--g500)">Colegios</div></div>
+      </div>
+    </div>`).join('');
+}
+async function verRecinto(id){
+  const {data:r}=await db.from('recintos_prm').select('*').eq('id',id).single();
+  const {data:colegios}=await db.from('colegios_prm').select('*').eq('recinto_id',id).order('numero');
+  let totPRM=0,totPLD=0,totFP=0,totM=0,totH=0;
+  (colegios||[]).forEach(c=>{totPRM+=c.prm_count||0;totPLD+=c.pld_count||0;totFP+=c.fp_count||0;totM+=c.mujeres||0;totH+=c.hombres||0;});
+  const totAfil=totPRM+totPLD+totFP||1;
+  document.getElementById('m-recinto-body').innerHTML=`
+    <div style="font-family:Sora;font-size:16px;font-weight:700;margin-bottom:2px">${r.nombre}</div>
+    <div style="font-size:12px;color:var(--g500);margin-bottom:14px">Código ${r.codigo} · ${r.zona||''}</div>
+    <div class="card">
+      <div class="card-title">Mercado electoral por afiliación</div>
+      ${[['PRM',totPRM,'var(--green)'],['PLD',totPLD,'var(--prm)'],['FP',totFP,'var(--purple)']].map(([l,v,col])=>`
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600">${l}</span><span style="font-weight:700;color:${col}">${v} (${Math.round(v/totAfil*100)}%)</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/totAfil*100)}%;background:${col}"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">Por sexo</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;background:var(--prm-l);border-radius:8px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--prm);font-family:Sora">${totH}</div><div style="font-size:10px;color:var(--g500)">Hombres</div></div>
+        <div style="flex:1;background:var(--pink-l);border-radius:8px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--pink);font-family:Sora">${totM}</div><div style="font-size:10px;color:var(--g500)">Mujeres</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Colegios (${colegios?.length||0})</div>
+      ${(colegios||[]).map(c=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--g100)">
+          <div><div class="lname" style="font-size:12px">Colegio ${c.numero}</div><div class="lsub">${c.cantidad_electores} electores · Meta ${c.meta_prm}</div></div>
+          <div style="text-align:right"><span class="pill pg">${c.prm_count||0} PRM</span></div>
+        </div>`).join('')||'<div class="empty">Sin colegios</div>'}
+    </div>`;
+  openModal('m-recinto');
+}
+
+// ═══════════ MÓDULO 3: ORGANIZACIÓN TERRITORIAL (con mapa) ═══════════
+let mapZonas=null;
+async function loadTerritorial(){
+  const c=document.getElementById('mod-content');
+  c.innerHTML=`
+    <div class="metrics m2">
+      <div class="metric ac"><div class="ml">Zonas activas</div><div class="mv" id="terr-zonas">—</div></div>
+      <div class="metric" style="border-left:3px solid var(--green)"><div class="ml">Cobertura</div><div class="mv" id="terr-cob" style="color:var(--green);font-size:19px">—</div></div>
+    </div>
+    <div id="map-zonas"></div>
+    <div class="card">
+      <div class="card-title">Zonas por cobertura</div>
+      <div id="terr-lista"><div class="spinner"></div></div>
+    </div>`;
+  setTimeout(initMapaZonas,200);
+  setTimeout(()=>{if(mapZonas)mapZonas.invalidateSize();},500);
+  loadZonasData();
+}
+function initMapaZonas(){
+  if(mapZonas){mapZonas.remove();mapZonas=null;}
+  // San Pedro de Macorís coords
+  mapZonas=L.map('map-zonas').setView([18.4539,-69.3086],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapZonas);
+  // Markers de municipios
+  const municipios=[
+    {n:'San Pedro de Macorís',lat:18.4539,lng:-69.3086,e:73177},
+    {n:'Consuelo',lat:18.5167,lng:-69.2667,e:13936},
+    {n:'Quisqueya',lat:18.5500,lng:-69.3500,e:9352},
+    {n:'Los Llanos',lat:18.6167,lng:-69.4500,e:6424},
+    {n:'Guayacanes',lat:18.4000,lng:-69.4167,e:5163},
+    {n:'Ramón Santana',lat:18.5333,lng:-69.1833,e:4458}
+  ];
+  municipios.forEach(m=>{
+    const size=Math.max(10,Math.sqrt(m.e)/12);
+    L.circleMarker([m.lat,m.lng],{radius:size,fillColor:'#0047AB',fillOpacity:.6,color:'#fff',weight:2})
+      .addTo(mapZonas).bindPopup(`<b>${m.n}</b><br>${m.e.toLocaleString()} electores`);
+  });
+}
+async function loadZonasData(){
+  const {data}=await db.from('padron_prm').select('zona,municipio').limit(5000);
+  const zonas={};
+  (data||[]).forEach(p=>{const z=p.zona||p.municipio||'Sin zona';zonas[z]=(zonas[z]||0)+1;});
+  document.getElementById('terr-zonas').textContent=Object.keys(zonas).length;
+  const div=document.getElementById('terr-lista');
+  if(!Object.keys(zonas).length){div.innerHTML='<div class="empty">Sin datos de zonas aún</div>';return;}
+  const max=Math.max(...Object.values(zonas));
+  div.innerHTML=Object.entries(zonas).sort((a,b)=>b[1]-a[1]).slice(0,15).map(([z,c])=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+      <div style="font-size:11px;width:130px;flex-shrink:0;color:var(--g700)">${z}</div>
+      <div style="flex:1" class="bar-track"><div class="bar-fill" style="width:${Math.round(c/max*100)}%;background:var(--teal)"></div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--teal);width:45px;text-align:right">${c}</div>
+    </div>`).join('');
+}
+// ═══════════ MÓDULO 4: AFILIADOS, 5: DIRIGENCIAL, 6: ASPIRACIONES ═══════════
+async function loadAfiliados(){
+  const c=document.getElementById('mod-content');
+  const {count:total}=await db.from('afiliados').select('*',{count:'exact',head:true});
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--g500)">${total||0} afiliados registrados</span>
+      <button class="btn btn-prm btn-sm" onclick="openModal('m-afiliado')">+ Afiliado</button>
+    </div>
+    <input class="search-fi" type="text" placeholder="Buscar afiliado..." oninput="buscarAfiliados(this.value)">
+    <div id="afil-lista"><div class="spinner"></div></div>`;
+  buscarAfiliados('');
+}
+async function buscarAfiliados(q){
+  let query=db.from('afiliados').select('*').order('created_at',{ascending:false}).limit(50);
+  if(q) query=query.or(`nombre.ilike.%${q}%,cedula.ilike.%${q}%`);
+  const {data}=await query;
+  const div=document.getElementById('afil-lista');
+  if(!data||!data.length){div.innerHTML='<div class="empty"><div class="empty-icon">🪪</div>No hay afiliados registrados</div>';return;}
+  div.innerHTML='<div class="card" style="padding:0">'+data.map((a,i)=>`
+    <div class="lrow" style="padding:11px 14px${i===data.length-1?';border-bottom:none':''}">
+      <div class="lav av-b">${a.nombre.split(' ').slice(0,2).map(w=>w[0]).join('')}</div>
+      <div style="flex:1"><div class="lname">${a.nombre}</div><div class="lsub">${a.cedula} · ${a.sector||a.municipio||''}</div></div>
+      ${a.estatus?`<span class="pill pg">${a.estatus}</span>`:''}
+    </div>`).join('')+'</div>';
+}
+async function guardarAfiliado(){
+  const nom=document.getElementById('af-nom').value.trim();
+  const ced=document.getElementById('af-ced').value.trim();
+  if(!nom||!ced){alert('Nombre y cédula obligatorios');return;}
+  const {error}=await db.from('afiliados').insert({
+    nombre:nom,cedula:ced,telefono:document.getElementById('af-tel').value,
+    municipio:document.getElementById('af-mun').value,sector:document.getElementById('af-sec').value,
+    estatus:'Activo'
+  });
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-afiliado');
+  ['af-nom','af-ced','af-tel','af-sec'].forEach(id=>document.getElementById(id).value='');
+  toast('ok','Afiliado registrado');
+  loadAfiliados();
+}
+
+async function loadDirigencial(){
+  const c=document.getElementById('mod-content');
+  const {data}=await db.from('resumen_dirigentes').select('*').order('total_votantes',{ascending:false});
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--g500)">${data?.length||0} dirigentes</span>
+      <button class="btn btn-prm btn-sm" onclick="openModal('m-dirigente')">+ Dirigente</button>
+    </div>
+    <div id="dir-lista"></div>`;
+  const div=document.getElementById('dir-lista');
+  if(!data||!data.length){div.innerHTML='<div class="empty"><div class="empty-icon">👥</div>No hay dirigentes registrados</div>';return;}
+  div.innerHTML=data.map(d=>{
+    const pct=d.meta?Math.round((d.total_votantes||0)/d.meta*100):0;
+    return`<div class="card">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+        <div class="lav av-b">${d.nombre.split(' ').slice(0,2).map(w=>w[0]).join('')}</div>
+        <div style="flex:1"><div class="lname">${d.nombre}</div><div class="lsub">${d.sector||''} · ${d.municipio||''}</div></div>
+        <div style="text-align:right"><div style="font-size:17px;font-weight:700;color:var(--prm);font-family:Sora">${d.total_votantes||0}</div><div style="font-size:10px;color:var(--g500)">+${d.votantes_hoy||0} hoy</div></div>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <div style="flex:1" class="bar-track"><div class="bar-fill" style="width:${Math.min(pct,100)}%;background:var(--prm)"></div></div>
+        <span style="font-size:10px;font-weight:700;color:var(--prm)">${pct}%</span>
+        <button class="btn btn-gray btn-sm" onclick="verQRDir('${d.id}','${d.nombre}','${d.qr_token}')">QR</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadAspiraciones(){
+  const c=document.getElementById('mod-content');
+  const {data}=await db.from('candidatos').select('*,votantes(count)').order('cargo');
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--g500)">${data?.length||0} aspirantes</span>
+      <button class="btn btn-prm btn-sm" onclick="openModal('m-aspirante')">+ Aspirante</button>
+    </div>
+    <div id="asp-lista"></div>`;
+  const div=document.getElementById('asp-lista');
+  if(!data||!data.length){div.innerHTML='<div class="empty"><div class="empty-icon">🏛️</div>No hay aspirantes registrados</div>';return;}
+  const POS_C={'Senador':'#0047AB','Diputado':'#0a7c4a','Alcalde':'#b45309','Síndico':'#6d28d9','Regidor':'#c0392b','Vocal':'#64748b'};
+  const POS_I={'Senador':'🏛️','Diputado':'📜','Alcalde':'🏙️','Síndico':'🏘️','Regidor':'📋','Vocal':'🗣️'};
+  const byPos={};data.forEach(c=>{if(!byPos[c.cargo])byPos[c.cargo]=[];byPos[c.cargo].push(c);});
+  div.innerHTML=Object.entries(byPos).map(([pos,asps])=>`
+    <div class="section-label" style="margin-top:8px">${POS_I[pos]||'🏛️'} ${pos} (${asps.length})</div>
+    ${asps.map(a=>{
+      const vots=a.votantes?.[0]?.count||0;
+      const pct=a.meta_total?Math.round(vots/a.meta_total*100):0;
+      return`<div class="card" style="border-left:4px solid ${POS_C[pos]||'var(--prm)'}">
+        <div class="lname">${a.nombre}</div>
+        <div class="lsub">${a.municipio||''}</div>
+        <div style="display:flex;gap:7px;align-items:center;margin-top:9px">
+          <div style="flex:1" class="bar-track"><div class="bar-fill" style="width:${Math.min(pct,100)}%;background:${POS_C[pos]||'var(--prm)'}"></div></div>
+          <span style="font-size:11px;font-weight:700;color:${POS_C[pos]||'var(--prm)'}">${vots.toLocaleString()} / ${(a.meta_total||0).toLocaleString()}</span>
+        </div>
+      </div>`;
+    }).join('')}`).join('');
+}
+async function guardarAspirante(){
+  const nom=document.getElementById('asp-nom').value.trim();
+  const pos=document.getElementById('asp-pos').value;
+  const mun=document.getElementById('asp-mun').value;
+  if(!nom||!pos||!mun){alert('Completa nombre, posición y municipio');return;}
+  const {error}=await db.from('candidatos').insert({nombre:nom,cargo:pos,municipio:mun,email:document.getElementById('asp-email').value||(nom.toLowerCase().replace(/ /g,'.')+'@prm.do'),meta_total:parseInt(document.getElementById('asp-meta').value)||5000,partido:'PRM',activo:true});
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-aspirante');
+  ['asp-nom','asp-email','asp-meta'].forEach(id=>document.getElementById(id).value='');
+  toast('ok',nom+' registrado como aspirante');
+  loadAspiraciones();
+}
+// ═══════════ MÓDULOS 7-12: placeholders funcionales ═══════════
+async function loadNomina(){
+  const c=document.getElementById('mod-content');
+  const {data}=await db.from('nomina_publica').select('*').order('institucion');
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--g500)">${data?.length||0} en nómina</span>
+      <button class="btn btn-prm btn-sm" onclick="openModal('m-nomina')">+ Registrar</button>
+    </div>
+    <div id="nom-lista"></div>`;
+  const div=document.getElementById('nom-lista');
+  if(!data||!data.length){div.innerHTML='<div class="empty"><div class="empty-icon">🏢</div>No hay dirigentes en nómina pública registrados</div>';return;}
+  div.innerHTML='<div class="card" style="padding:0">'+data.map((n,i)=>`
+    <div class="lrow" style="padding:11px 14px${i===data.length-1?';border-bottom:none':''}">
+      <div class="lav av-a">${n.nombre.split(' ').slice(0,2).map(w=>w[0]).join('')}</div>
+      <div style="flex:1"><div class="lname">${n.nombre}</div><div class="lsub">${n.cargo||''} · ${n.institucion||''}</div></div>
+      ${n.salario?`<div style="font-size:11px;font-weight:700;color:var(--green)">RD$${parseFloat(n.salario).toLocaleString()}</div>`:''}
+    </div>`).join('')+'</div>';
+}
+async function guardarNomina(){
+  const nom=document.getElementById('nm-nom').value.trim();
+  if(!nom){alert('Nombre obligatorio');return;}
+  const {error}=await db.from('nomina_publica').insert({nombre:nom,cargo:document.getElementById('nm-cargo').value,institucion:document.getElementById('nm-inst').value,salario:parseFloat(document.getElementById('nm-salario').value)||null,cedula:document.getElementById('nm-ced').value});
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-nomina');
+  ['nm-nom','nm-cargo','nm-inst','nm-salario','nm-ced'].forEach(id=>document.getElementById(id).value='');
+  toast('ok','Registrado en nómina');
+  loadNomina();
+}
+
+async function loadEncuestasMod(){
+  const c=document.getElementById('mod-content');
+  const {data}=await db.from('encuestas').select('*,encuesta_respuestas(count),candidatos(nombre)').order('created_at',{ascending:false});
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--g500)">${data?.length||0} encuestas</span>
+      <button class="btn btn-prm btn-sm" onclick="openModal('m-encuesta')">+ Encuesta</button>
+    </div>
+    <div id="enc-lista"></div>`;
+  const div=document.getElementById('enc-lista');
+  if(!data||!data.length){div.innerHTML='<div class="empty"><div class="empty-icon">📊</div>No hay encuestas creadas</div>';return;}
+  const tipos={reconocimiento:'🎯',simpatia:'❤️',intencion:'🗳️',general:'📋'};
+  div.innerHTML=data.map(e=>{
+    const cnt=e.encuesta_respuestas?.[0]?.count||0;
+    const pct=e.meta_respuestas?Math.round(cnt/e.meta_respuestas*100):0;
+    return`<div class="card" style="border-left:4px solid var(--purple)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="lname">${tipos[e.tipo]||'📋'} ${e.titulo}</div>
+        <span class="pill ${e.activa?'pg':'pgr'}">${e.activa?'Activa':'Cerrada'}</span>
+      </div>
+      <div class="bar-track" style="margin-bottom:4px"><div class="bar-fill" style="width:${Math.min(pct,100)}%;background:var(--purple)"></div></div>
+      <div style="font-size:11px;color:var(--g500)">${cnt} de ${e.meta_respuestas||0} respuestas</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadLogisticaMod(){
+  const c=document.getElementById('mod-content');
+  const {data:gas}=await db.from('gastos').select('monto,categoria');
+  const {data:ing}=await db.from('ingresos').select('monto');
+  const tg=(gas||[]).reduce((s,g)=>s+parseFloat(g.monto||0),0);
+  const ti=(ing||[]).reduce((s,i)=>s+parseFloat(i.monto||0),0);
+  const fmt=n=>'RD$'+parseFloat(n||0).toLocaleString('es-DO');
+  const cats={};(gas||[]).forEach(g=>{cats[g.categoria]=(cats[g.categoria]||0)+parseFloat(g.monto||0);});
+  c.innerHTML=`
+    <div class="metrics m3">
+      <div class="metric ac"><div class="ml">Balance</div><div class="mv" style="font-size:16px">${fmt(ti-tg)}</div></div>
+      <div class="metric" style="border-left:3px solid var(--green)"><div class="ml">Ingresos</div><div class="mv" style="font-size:15px;color:var(--green)">${fmt(ti)}</div></div>
+      <div class="metric" style="border-left:3px solid var(--red)"><div class="ml">Gastos</div><div class="mv" style="font-size:15px;color:var(--red)">${fmt(tg)}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Gastos por categoría</div>
+      ${Object.keys(cats).length?Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,m])=>{
+        const mx=Math.max(...Object.values(cats));
+        return`<div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="font-size:11px;width:110px;flex-shrink:0;color:var(--g700)">${cat}</div><div style="flex:1" class="bar-track"><div class="bar-fill" style="width:${Math.round(m/mx*100)}%;background:var(--red)"></div></div><div style="font-size:11px;font-weight:700;color:var(--red);width:75px;text-align:right">${fmt(m)}</div></div>`;
+      }).join(''):'<div class="empty">Sin gastos registrados</div>'}
+    </div>`;
+}
+
+async function loadMontaje(){
+  const c=document.getElementById('mod-content');
+  const {data:del}=await db.from('delegados').select('*').order('recinto');
+  c.innerHTML=`
+    <div class="metrics m2">
+      <div class="metric ac"><div class="ml">Delegados</div><div class="mv">${del?.length||0}</div></div>
+      <div class="metric" style="border-left:3px solid var(--green)"><div class="ml">Pagados</div><div class="mv" style="color:var(--green);font-size:19px">${(del||[]).filter(d=>d.pagado).length}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Delegados por recinto</div>
+      ${del&&del.length?'<div style="padding:0">'+del.map((d,i)=>`<div class="lrow" style="padding:10px 0${i===del.length-1?';border-bottom:none':''}"><div style="flex:1"><div class="lname">${d.nombre}</div><div class="lsub">${d.recinto||''} ${d.mesa?'· Mesa '+d.mesa:''}</div></div><span class="pill ${d.pagado?'pg':'pa'}">${d.pagado?'Pagado':'Pendiente'}</span></div>`).join('')+'</div>':'<div class="empty">Sin delegados registrados</div>'}
+    </div>`;
+}
+
+async function loadSeguimiento(){
+  const c=document.getElementById('mod-content');
+  c.innerHTML=`
+    <div class="card" style="background:linear-gradient(135deg,#003380,#0047AB);color:#fff">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Día de Elecciones</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;text-align:center"><div style="font-size:24px;font-weight:700;font-family:Sora" id="seg-votaron">0</div><div style="font-size:10px;opacity:.7">Ya votaron</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:24px;font-weight:700;font-family:Sora" id="seg-pct">0%</div><div style="font-size:10px;opacity:.7">Participación</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:24px;font-weight:700;font-family:Sora" id="seg-meta">0</div><div style="font-size:10px;opacity:.7">Meta PRM</div></div>
+      </div>
+    </div>
+    <div class="empty"><div class="empty-icon">📡</div>El seguimiento se activa el día de las elecciones.<br>Los dirigentes reportan desde su app quién ya votó.</div>`;
+}
+
+async function loadConteo(){
+  const c=document.getElementById('mod-content');
+  const {data:proc}=await db.from('procesos_internos').select('*,actas_internas(count)').order('created_at',{ascending:false});
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--g500)">${proc?.length||0} procesos de conteo</span>
+      <button class="btn btn-prm btn-sm" onclick="openModal('m-proceso')">+ Proceso</button>
+    </div>
+    <div id="cont-lista"></div>`;
+  const div=document.getElementById('cont-lista');
+  if(!proc||!proc.length){div.innerHTML='<div class="empty"><div class="empty-icon">🗳️</div>No hay procesos de conteo.<br>Crea uno para internas o elección general.</div>';return;}
+  const est={preparacion:{l:'Preparación',c:'pa'},en_curso:{l:'En curso',c:'pg'},cerrado:{l:'Cerrado',c:'pgr'}};
+  div.innerHTML=proc.map(p=>{
+    const e=est[p.estado]||est.preparacion;
+    return`<div class="card" onclick="verConteoResultados('${p.id}','${p.nombre}')" style="cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="lname">🗳️ ${p.nombre}</div><span class="pill ${e.c}">${e.l}</span>
+      </div>
+      <div class="lsub">${p.posicion||''} · ${p.actas_internas?.[0]?.count||0} actas</div>
+    </div>`;
+  }).join('');
+}
+async function verConteoResultados(procId,nombre){
+  const {data:actas}=await db.from('actas_internas').select('*,votos_acta(*)').eq('proceso_id',procId);
+  const candVotos={};let tv=0,tn=0,tb=0;
+  (actas||[]).forEach(a=>{tv+=a.votos_validos||0;tn+=a.votos_nulos||0;tb+=a.votos_blancos||0;(a.votos_acta||[]).forEach(v=>{candVotos[v.precandidato_nombre]=(candVotos[v.precandidato_nombre]||0)+(v.votos||0);});});
+  const ranking=Object.entries(candVotos).sort((a,b)=>b[1]-a[1]);
+  const cols=['#0047AB','#0a7c4a','#b45309','#6d28d9','#c0392b'];
+  document.getElementById('m-conteo-body').innerHTML=`
+    <div style="font-family:Sora;font-size:16px;font-weight:700;margin-bottom:12px">${nombre}</div>
+    <div class="metrics m3" style="margin-bottom:12px">
+      <div class="metric ac"><div class="ml">Actas</div><div class="mv" style="font-size:18px">${actas?.length||0}</div></div>
+      <div class="metric"><div class="ml">Válidos</div><div class="mv" style="font-size:16px;color:var(--green)">${tv}</div></div>
+      <div class="metric"><div class="ml">Nulos+Bl.</div><div class="mv" style="font-size:16px;color:var(--amber)">${tn+tb}</div></div>
+    </div>
+    ${ranking.length?`<div class="card"><div class="card-title">Resultados</div>${ranking.map(([n,v],i)=>{const pct=tv?Math.round(v/tv*100):0;return`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600">${i+1}. ${n}</span><span style="font-weight:700;color:${cols[i%5]}">${v} (${pct}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${cols[i%5]}"></div></div></div>`;}).join('')}</div>`:'<div class="empty">Sin votos contados aún</div>'}`;
+  openModal('m-conteo');
+}
+
+function verQRDir(id,nom,token){
+  document.getElementById('qr-nom').textContent=nom;
+  document.getElementById('qr-sub').textContent='Dirigente · PRM SPM';
+  const cont=document.getElementById('qr-div');cont.innerHTML='';
+  new QRCode(cont,{text:'https://sektor06.github.io/votapp/app.html?token='+token,width:180,height:180,colorDark:'#0f172a',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
+  openModal('m-qr');
+}
+// ═══ HELPERS PARA MODALES SIMPLES ═══
+async function guardarDirigente(){
+  const nom=document.getElementById('di-nom').value.trim();
+  const ced=document.getElementById('di-ced').value.trim();
+  const tel=document.getElementById('di-tel').value.trim();
+  if(!nom||!ced||!tel){alert('Completa todos los campos');return;}
+  const token=Array.from(crypto.getRandomValues(new Uint8Array(20))).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const {data,error}=await db.from('dirigentes').insert({nombre:nom,cedula:ced,telefono:tel,qr_token:token,meta:500,activo:true}).select().single();
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-dirigente');
+  ['di-nom','di-ced','di-tel'].forEach(id=>document.getElementById(id).value='');
+  toast('ok','Dirigente creado');
+  verQRDir(data.id,nom,token);
+  loadDirigencial();
+}
+async function guardarEncuesta(){
+  const t=document.getElementById('en-titulo').value.trim();
+  if(!t){alert('Título obligatorio');return;}
+  const {data:cands}=await db.from('candidatos').select('id').limit(1);
+  const {error}=await db.from('encuestas').insert({titulo:t,tipo:document.getElementById('en-tipo').value,meta_respuestas:parseInt(document.getElementById('en-meta').value)||100,candidato_id:cands?.[0]?.id||null,activa:true});
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-encuesta');document.getElementById('en-titulo').value='';
+  toast('ok','Encuesta creada');loadEncuestasMod();
+}
+async function guardarProceso(){
+  const n=document.getElementById('pr-nom').value.trim();
+  if(!n){alert('Nombre obligatorio');return;}
+  const {error}=await db.from('procesos_internos').insert({nombre:n,posicion:document.getElementById('pr-pos').value||null,estado:'preparacion'});
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-proceso');document.getElementById('pr-nom').value='';
+  toast('ok','Proceso creado');loadConteo();
+}
+
+initSaved();
+</script>
+</body>
+</html>
