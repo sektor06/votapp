@@ -1,0 +1,3061 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0047AB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#001a4d" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light">
+<title>Panel PRM SPM · Centro de mando</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --prm: #0047AB;
+  --prm-deep: #002766;
+  --prm-soft: #e6efff;
+  --prm-edge: #b8d0ff;
+
+  --seguro: #047857;
+  --seguro-bg: #d1fae5;
+  --probable: #b45309;
+  --probable-bg: #fef3c7;
+  --dudoso: #b91c1c;
+  --dudoso-bg: #fee2e2;
+
+  --cat-data: #0047AB;
+  --cat-data-bg: #e6efff;
+  --cat-estructura: #047857;
+  --cat-estructura-bg: #d1fae5;
+  --cat-campaña: #b45309;
+  --cat-campaña-bg: #fef3c7;
+
+  --ink: #09090b;
+  --ink-2: #18181b;
+  --mute: #71717a;
+  --mute-2: #a1a1aa;
+  --line: #e4e4e7;
+  --line-2: #f4f4f5;
+  --canvas: #fafaf9;
+  --paper: #ffffff;
+  --sidebar: #18181b;
+  --sidebar-2: #27272a;
+
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(9,9,11,.04), 0 1px 3px rgba(9,9,11,.06);
+  --shadow-2: 0 4px 6px rgba(9,9,11,.05), 0 10px 25px rgba(9,9,11,.08);
+  --shadow-3: 0 25px 50px -12px rgba(9,9,11,.15);
+
+  --sidebar-w: 260px;
+  --topbar-h: 60px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+* { touch-action: manipulation; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+
+:focus { outline: none; }
+:focus-visible {
+  outline: 2.5px solid var(--prm);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tab-nums { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes spin { to { transform: rotate(360deg) } }
+@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═══════════════ LOGIN ═══════════════ */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(170deg, #001a4d 0%, #003380 50%, #0047AB 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 1000;
+}
+
+.login-screen.hidden { display: none; }
+
+.login-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(96,165,250,0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(99,102,241,0.1) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.login-card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--r-xl);
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-3);
+}
+
+.login-mark {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff, #e0e7ff);
+  color: var(--prm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+
+.login-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  color: white;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+.login-title em { font-style: normal; color: #93c5fd; }
+
+.login-sub {
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.login-field {
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.login-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  padding-left: 2px;
+}
+
+.login-input {
+  width: 100%;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 13px 16px;
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color .15s, background-color .15s;
+}
+.login-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.15);
+}
+.login-input::placeholder { color: rgba(255,255,255,0.4); }
+
+.login-btn {
+  width: 100%;
+  background: white;
+  color: var(--prm);
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform .1s, box-shadow .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+}
+.login-btn:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.login-btn:active { transform: scale(0.98); }
+.login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.login-btn svg { width: 18px; height: 18px; }
+
+.login-err {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  display: none;
+  text-align: left;
+}
+.login-err.show { display: block; }
+
+/* ═══════════════ APP LAYOUT ═══════════════ */
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar);
+  color: white;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 30;
+  transition: transform .25s ease;
+}
+
+.sb-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sb-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--prm), #1a56db);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -0.3px;
+  box-shadow: 0 4px 12px rgba(0,71,171,0.4);
+  flex-shrink: 0;
+}
+
+.sb-brand {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+.sb-brand-sub {
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.sb-close {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  margin-left: auto;
+  color: white;
+  align-items: center;
+  justify-content: center;
+}
+.sb-close svg { width: 18px; height: 18px; }
+
+.sb-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.sb-nav::-webkit-scrollbar { width: 6px; }
+.sb-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+.sb-section {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 14px 10px 6px;
+}
+
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.7);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .12s, color .12s;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  min-height: 38px;
+}
+
+.sb-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: white;
+}
+
+.sb-item.active {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-weight: 600;
+}
+
+.sb-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.sb-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.sb-item.active svg { opacity: 1; }
+
+.sb-count {
+  margin-left: auto;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sb-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--prm), #1a56db);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.sb-userinfo { flex: 1; min-width: 0; }
+.sb-username {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sb-userrole {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+}
+
+.sb-logout {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color .15s;
+}
+.sb-logout:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+.sb-logout svg { width: 16px; height: 16px; }
+
+/* ═══════════════ MAIN ═══════════════ */
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  min-width: 0;
+  background: var(--canvas);
+}
+
+.topbar {
+  height: var(--topbar-h);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding-top: env(safe-area-inset-top);
+  height: calc(var(--topbar-h) + env(safe-area-inset-top));
+}
+
+.topbar-menu {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--line-2);
+  color: var(--ink);
+  align-items: center;
+  justify-content: center;
+}
+.topbar-menu svg { width: 22px; height: 22px; }
+
+.topbar-search {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+}
+
+.topbar-search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--mute);
+  pointer-events: none;
+}
+
+.topbar-search input {
+  width: 100%;
+  background: var(--line-2);
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  padding: 9px 14px 9px 40px;
+  font-size: 13.5px;
+  color: var(--ink);
+  transition: border-color .15s, background-color .15s;
+}
+
+.topbar-search input:focus {
+  outline: none;
+  border-color: var(--prm);
+  background: var(--paper);
+}
+
+.topbar-search input::placeholder { color: var(--mute); }
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--line-2);
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color .15s;
+}
+.topbar-btn:hover { background: var(--line); }
+.topbar-btn svg { width: 15px; height: 15px; }
+
+.topbar-btn.prm {
+  background: var(--prm);
+  color: white;
+}
+.topbar-btn.prm:hover { background: #003a8c; }
+
+/* ═══════════════ CONTENT ═══════════════ */
+.content {
+  padding: 24px 28px 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.content-h {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.content-h-l { min-width: 0; }
+
+.content-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.content-sub {
+  font-size: 14px;
+  color: var(--mute);
+}
+
+.content-h-r { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ═══════════════ KPI CARDS ═══════════════ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.kpi {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--kpi-color, var(--prm));
+}
+
+.kpi[data-tone="prm"] { --kpi-color: var(--prm); }
+.kpi[data-tone="good"] { --kpi-color: var(--seguro); }
+.kpi[data-tone="warn"] { --kpi-color: var(--probable); }
+.kpi[data-tone="alert"] { --kpi-color: var(--dudoso); }
+
+.kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpi-l {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--kpi-color);
+  opacity: 0.12;
+  position: relative;
+}
+.kpi-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--kpi-color);
+  opacity: 1;
+  border-radius: 8px;
+  mask: var(--kpi-icon-url);
+  -webkit-mask: var(--kpi-icon-url);
+}
+
+.kpi-v {
+  font-family: 'Sora', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.kpi-delta {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mute);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kpi-delta.up { color: var(--seguro); }
+.kpi-delta.down { color: var(--dudoso); }
+.kpi-delta svg { width: 14px; height: 14px; }
+
+/* ═══════════════ PANELS ═══════════════ */
+.panel-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 1024px) {
+  .panel-grid { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.panel-h {
+  padding: 18px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.panel-t {
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+
+.panel-sub {
+  font-size: 12.5px;
+  color: var(--mute);
+  margin-top: 2px;
+}
+
+.panel-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--prm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.panel-link:hover { text-decoration: underline; }
+.panel-link svg { width: 13px; height: 13px; }
+
+.panel-b { padding: 16px 20px 20px; }
+.panel-b.tight { padding: 0; }
+
+/* ═══════════════ DATA TABLE ═══════════════ */
+.dt {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dt thead th {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  padding: 10px 20px;
+  background: var(--line-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.dt tbody tr {
+  border-bottom: 1px solid var(--line-2);
+  transition: background-color .1s;
+}
+
+.dt tbody tr:hover { background: var(--line-2); }
+.dt tbody tr:last-child { border-bottom: none; }
+
+.dt td {
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+
+.dt td.num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.dt td.bold {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ═══════════════ ZONA ITEMS ═══════════════ */
+.zona-list { display: flex; flex-direction: column; }
+
+.zona-item {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.zona-item:last-child { border-bottom: none; }
+
+.zona-letter {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--prm-soft);
+  color: var(--prm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+  border: 1px solid var(--prm-edge);
+}
+
+.zona-info { flex: 1; min-width: 0; }
+.zona-name { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.zona-meta {
+  font-size: 11.5px;
+  color: var(--mute);
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.zona-bar {
+  height: 6px;
+  background: var(--line-2);
+  border-radius: 3px;
+  overflow: hidden;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.zona-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--prm), #1a56db);
+  border-radius: 3px;
+  transition: width .3s;
+}
+
+.zona-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  flex-shrink: 0;
+  text-align: right;
+  width: 44px;
+}
+
+/* ═══════════════ ACTIVITY LIST ═══════════════ */
+.act-list { display: flex; flex-direction: column; }
+
+.act-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--line-2);
+}
+.act-item:last-child { border-bottom: none; }
+
+.act-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--seguro);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.act-dot.warn { background: var(--probable); }
+.act-dot.info { background: var(--prm); }
+
+.act-c { flex: 1; min-width: 0; }
+.act-t {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.act-t b { color: var(--ink); font-weight: 700; }
+.act-time {
+  font-size: 11px;
+  color: var(--mute);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════ PILLS ═══════════════ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.pill-good { background: var(--seguro-bg); color: var(--seguro); border-color: rgba(4,120,87,0.2); }
+.pill-warn { background: var(--probable-bg); color: var(--probable); border-color: rgba(180,83,9,0.2); }
+.pill-info { background: #eff6ff; color: #1d4ed8; border-color: rgba(29,78,216,0.2); }
+.pill-alert { background: var(--dudoso-bg); color: var(--dudoso); border-color: rgba(185,28,28,0.2); }
+.pill-prm { background: var(--prm-soft); color: var(--prm); border-color: var(--prm-edge); }
+.pill-mute { background: var(--line-2); color: var(--mute); border-color: var(--line); }
+
+/* ═══════════════ EMPTY STATE ═══════════════ */
+.empty {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.empty-ic {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--line-2);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-ic svg { width: 24px; height: 24px; stroke: var(--mute-2); }
+
+.empty-t {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.empty-d {
+  font-size: 12.5px;
+  color: var(--mute);
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* ═══════════════ MODULE PAGE GENERIC ═══════════════ */
+.mod-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.search-field {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 420px;
+}
+
+.search-field svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--mute);
+  pointer-events: none;
+}
+
+.search-field input {
+  width: 100%;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px 10px 38px;
+  font-size: 13.5px;
+  transition: border-color .15s;
+}
+.search-field input:focus { outline: none; border-color: var(--prm); }
+
+.filter-chip {
+  height: 38px;
+  padding: 0 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.filter-chip:hover { border-color: var(--mute-2); }
+
+.filter-chip.active {
+  background: var(--prm);
+  color: white;
+  border-color: var(--prm);
+}
+
+.filter-chip svg { width: 14px; height: 14px; }
+
+/* ═══════════════ ELECTOR ROW ═══════════════ */
+.elector-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: border-color .15s, transform .1s;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.elector-row:hover { border-color: var(--prm-edge); }
+.elector-row:active { transform: scale(0.998); }
+
+.elector-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--prm-soft);
+  color: var(--prm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  border: 1px solid var(--prm-edge);
+}
+
+.elector-avatar.committed {
+  background: var(--seguro-bg);
+  color: var(--seguro);
+  border-color: rgba(4,120,87,0.3);
+}
+
+.elector-info { flex: 1; min-width: 0; }
+
+.elector-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.1px;
+}
+
+.elector-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--mute);
+  margin-top: 1px;
+  font-weight: 500;
+}
+
+.elector-tags {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 320px;
+}
+
+.elector-arrow {
+  color: var(--mute-2);
+  font-size: 18px;
+  margin-left: 4px;
+}
+
+/* ═══════════════ MODAL ═══════════════ */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(9,9,11,0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn .15s;
+}
+
+.modal-bg.show { display: flex; }
+
+.modal {
+  background: var(--paper);
+  border-radius: var(--r-xl);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-3);
+  animation: slideUp .2s ease;
+}
+
+.modal-h {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 2;
+}
+
+.modal-t {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mute);
+  transition: background-color .15s;
+}
+.modal-close:hover { background: var(--line); color: var(--ink); }
+.modal-close svg { width: 18px; height: 18px; }
+
+.modal-b { padding: 20px 24px 24px; }
+
+/* ═══════════════ FICHA ELECTOR ═══════════════ */
+.ficha-hero {
+  margin: -20px -24px 20px;
+  padding: 24px;
+  background: linear-gradient(135deg, var(--prm-deep), var(--prm));
+  color: white;
+  text-align: center;
+}
+
+.ficha-hero[data-afil="PRM"] { background: linear-gradient(135deg, #047857, #059669); }
+.ficha-hero[data-afil="PLD"] { background: linear-gradient(135deg, #5b21b6, #7c3aed); }
+.ficha-hero[data-afil="FP"] { background: linear-gradient(135deg, #155e75, #0891b2); }
+
+.ficha-av {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  border: 2px solid rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  margin: 0 auto 10px;
+}
+
+.ficha-name {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  margin-bottom: 2px;
+}
+
+.ficha-ced {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.ficha-section {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-2);
+}
+.ficha-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.ficha-section-t {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 14px;
+}
+
+.ficha-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 3px 0;
+}
+
+.ficha-row-l { color: var(--mute); }
+.ficha-row-v { color: var(--ink-2); font-weight: 500; }
+
+.ficha-commit {
+  background: linear-gradient(135deg, var(--seguro), #059669);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ficha-commit[data-n="probable"] { background: linear-gradient(135deg, var(--probable), #d97706); }
+.ficha-commit[data-n="dudoso"] { background: linear-gradient(135deg, var(--dudoso), #dc2626); }
+
+.ficha-commit-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ficha-commit-ic svg { width: 18px; height: 18px; stroke: white; }
+
+.ficha-commit-c { flex: 1; }
+.ficha-commit-l {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+.ficha-commit-v {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* ═══════════════ TOAST ═══════════════ */
+.toast-region {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 200;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--seguro);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-2);
+  margin-bottom: 8px;
+  pointer-events: auto;
+  min-width: 280px;
+}
+
+.toast.show { display: flex; animation: slideUp .2s; }
+
+.toast.err { border-left-color: var(--dudoso); }
+.toast svg { width: 18px; height: 18px; flex-shrink: 0; }
+.toast.ok svg { color: var(--seguro); }
+.toast.err svg { color: var(--dudoso); }
+
+/* ═══════════════ SPINNER ═══════════════ */
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--prm);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 40px auto;
+  display: block;
+}
+
+.loading-row {
+  padding: 40px;
+  text-align: center;
+  color: var(--mute);
+  font-size: 13px;
+}
+
+/* ═══════════════ MOBILE ═══════════════ */
+.sb-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 29;
+}
+.sb-backdrop.show { display: block; }
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sb-close { display: flex; }
+  .main { margin-left: 0; }
+  .topbar-menu { display: flex; }
+  .topbar { padding: 0 16px; gap: 10px; }
+  .content { padding: 18px 16px 60px; }
+  .content-title { font-size: 22px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-v { font-size: 24px; }
+  .topbar-search { display: none; }
+  .topbar-actions .topbar-btn span { display: none; }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi { padding: 14px 16px; }
+  .kpi-v { font-size: 22px; }
+  .content-h { margin-bottom: 18px; }
+}
+
+/* ─── MAP ─── */
+.leaflet-popup-content-wrapper { border-radius: 12px; }
+.leaflet-popup-content { font-family: 'Geist', system-ui, sans-serif; margin: 12px 14px; }
+.map-legend { background: #fff; padding: 10px 14px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,.15); font-family: 'Geist', sans-serif; font-size: 11px; line-height: 1.6; }
+.map-legend-t { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 12px; margin-bottom: 6px; color: #0f172a; }
+.map-legend-row { display: flex; align-items: center; gap: 6px; }
+.map-legend-dot { width: 10px; height: 10px; border-radius: 99px; flex-shrink: 0; }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+/* ─── MODAL DIRIGENTE / QR ─── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; align-items:flex-end; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal-sheet { background:#fff; border-radius:20px 20px 0 0; padding:20px; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; }
+.modal-handle { width:40px; height:4px; background:#e2e8f0; border-radius:99px; margin:0 auto 16px; }
+.modal-title { font-family:'Sora',sans-serif; font-size:16px; font-weight:700; color:var(--text); margin-bottom:18px; }
+.mf-group { margin-bottom:12px; }
+.mf-label { font-size:11px; font-weight:700; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:4px; }
+.mf-input { width:100%; background:var(--bg); border:1.5px solid var(--line); border-radius:8px; padding:10px 13px; font-size:14px; color:var(--text); font-family:inherit; outline:none; transition:border-color .15s; }
+.mf-input:focus { border-color:var(--prm); background:#fff; }
+.mf-row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.btn-modal-cancel { background:var(--bg); color:var(--text-2); border:none; border-radius:8px; padding:11px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-modal-ok { background:var(--prm); color:#fff; border:none; border-radius:8px; padding:11px 22px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; flex:1; }
+.btn-modal-ok:hover { filter:brightness(1.08); }
+.qr-center { text-align:center; padding:8px 0; }
+.qr-name { font-family:'Sora',sans-serif; font-weight:700; font-size:15px; color:var(--text); margin-bottom:3px; }
+.qr-sub-t { font-size:12px; color:var(--mute); margin-bottom:14px; }
+.qr-canvas-wrap { background:#fff; border-radius:12px; padding:18px; display:inline-block; box-shadow:0 4px 16px rgba(0,0,0,.12); margin-bottom:14px; }
+.qr-url { font-size:10px; color:var(--mute); word-break:break-all; max-width:280px; margin:0 auto 16px; }
+/* Botón QR en tabla */
+.btn-qr { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:4px 10px; font-size:11px; font-weight:600; color:var(--text-2); cursor:pointer; font-family:inherit; white-space:nowrap; }
+.btn-qr:hover { border-color:var(--prm); color:var(--prm); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <div class="login-mark">PRM</div>
+    <h1 class="login-title">Panel <em>PRM SPM</em></h1>
+    <p class="login-sub">Centro de mando electoral</p>
+
+    <div class="login-err" id="login-err"></div>
+
+    <form id="login-form" onsubmit="doLogin(event)">
+      <div class="login-field">
+        <label class="login-label" for="login-email">Correo</label>
+        <input class="login-input" type="email" id="login-email" placeholder="correo@prmspm.do" required autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label class="login-label" for="login-pass">Contraseña</label>
+        <input class="login-input" type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="login-btn" id="login-btn">
+        Entrar al panel
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST REGION ═══════════════ -->
+<div class="toast-region" aria-live="polite" aria-atomic="true">
+  <div class="toast ok" id="toast-ok" role="status">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toast-ok-msg"></span>
+  </div>
+  <div class="toast err" id="toast-err" role="alert">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="toast-err-msg"></span>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div class="app" id="app" style="display:none">
+
+  <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegación principal">
+    <div class="sb-header">
+      <div class="sb-mark">PRM</div>
+      <div>
+        <div class="sb-brand">PRM SPM</div>
+        <div class="sb-brand-sub">Panel del Partido</div>
+      </div>
+      <button type="button" class="sb-close" onclick="toggleSidebar(false)" aria-label="Cerrar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <nav class="sb-nav">
+      <button type="button" class="sb-item active" data-view="dashboard" onclick="navTo('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+
+      <div class="sb-section">Datos electorales</div>
+      <button type="button" class="sb-item" data-view="padron" onclick="navTo('padron')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"/><polyline points="9 7 15 7"/><polyline points="9 11 15 11"/><polyline points="9 15 13 15"/></svg>
+        Padrón Electoral
+      </button>
+      <button type="button" class="sb-item" data-view="recintos" onclick="navTo('recintos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+        Recintos
+      </button>
+      <button type="button" class="sb-item" data-view="territorial" onclick="navTo('territorial')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Mapa Territorial
+      </button>
+      <button type="button" class="sb-item" data-view="afiliados" onclick="navTo('afiliados')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2"/><path d="M15 12h2"/><path d="M7 16h10"/></svg>
+        Afiliados
+      </button>
+
+      <div class="sb-section">Estructura</div>
+      <button type="button" class="sb-item" data-view="dirigencial" onclick="navTo('dirigencial')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Dirigentes
+      </button>
+      <button type="button" class="sb-item" data-view="aspiraciones" onclick="navTo('aspiraciones')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        Aspiraciones
+      </button>
+      <button type="button" class="sb-item" data-view="nomina" onclick="navTo('nomina')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7h14v14"/><path d="M9 21v-4h6v4"/><line x1="9" y1="9" x2="9" y2="9.01"/><line x1="15" y1="9" x2="15" y2="9.01"/><line x1="9" y1="13" x2="9" y2="13.01"/><line x1="15" y1="13" x2="15" y2="13.01"/></svg>
+        Nómina Pública
+      </button>
+      <button type="button" class="sb-item" data-view="encuestas" onclick="navTo('encuestas')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Encuestas
+      </button>
+
+      <div class="sb-section">Campaña</div>
+      <button type="button" class="sb-item" data-view="logistica" onclick="navTo('logistica')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Presupuesto
+      </button>
+      <button type="button" class="sb-item" data-view="montaje" onclick="navTo('montaje')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        Montaje Electoral
+      </button>
+      <button type="button" class="sb-item" data-view="seguimiento" onclick="navTo('seguimiento')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        Seguimiento
+      </button>
+      <button type="button" class="sb-item" data-view="conteo" onclick="navTo('conteo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Conteo Final
+      </button>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-avatar" id="sb-avatar">D</div>
+      <div class="sb-userinfo">
+        <div class="sb-username" id="sb-username">Usuario</div>
+        <div class="sb-userrole">Administrador</div>
+      </div>
+      <button type="button" class="sb-logout" onclick="doLogout()" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <header class="topbar" role="banner">
+      <button type="button" class="topbar-menu" onclick="toggleSidebar(true)" aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <div class="topbar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="global-search" placeholder="Buscar cédula, nombre o dirigente..." aria-label="Búsqueda global">
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="topbar-btn" onclick="navTo('padron')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Nuevo</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ─── DASHBOARD ─── -->
+    <main class="content" id="view-dashboard" data-view-content>
+      <div class="content-h">
+        <div class="content-h-l">
+          <h1 class="content-title" id="dash-greet">Buenas tardes</h1>
+          <p class="content-sub">Resumen general · <span id="dash-date">—</span></p>
+        </div>
+        <div class="content-h-r">
+          <button type="button" class="topbar-btn" onclick="loadDashboard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi" data-tone="prm">
+          <div class="kpi-head">
+            <div class="kpi-l">Electores en padrón</div>
+          </div>
+          <div class="kpi-v tab-nums" id="kpi-padron">—</div>
+          <div class="kpi-delta">San Pedro de Macorís · 9 zonas</div>
+        </div>
+        <div class="kpi" data-tone="good">
+          <div class="kpi-head">
+            <div class="kpi-l">Comprometidos</div>
+          </div>
+          <div class="kpi-v tab-nums" id="kpi-comp">—</div>
+          <div class="kpi-delta up" id="kpi-comp-delta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            <span>—</span>
+          </div>
+        </div>
+        <div class="kpi" data-tone="warn">
+          <div class="kpi-head">
+            <div class="kpi-l">Dirigentes activos</div>
+          </div>
+          <div class="kpi-v tab-nums" id="kpi-dir">—</div>
+          <div class="kpi-delta" id="kpi-dir-meta">— en campo</div>
+        </div>
+        <div class="kpi" data-tone="prm">
+          <div class="kpi-head">
+            <div class="kpi-l">Afiliados PRM</div>
+          </div>
+          <div class="kpi-v tab-nums" id="kpi-afil">—</div>
+          <div class="kpi-delta" id="kpi-afil-meta">— del padrón</div>
+        </div>
+      </div>
+
+      <!-- Panel grid -->
+      <div class="panel-grid">
+        <!-- Zonas -->
+        <div class="panel">
+          <div class="panel-h">
+            <div>
+              <div class="panel-t">Avance por zona</div>
+              <div class="panel-sub">Comprometidos vs total de electores</div>
+            </div>
+            <button type="button" class="panel-link" onclick="navTo('territorial')">
+              Ver mapa
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+          <div class="panel-b tight">
+            <div class="zona-list" id="zona-list">
+              <div class="loading-row">Cargando zonas…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actividad -->
+        <div class="panel">
+          <div class="panel-h">
+            <div>
+              <div class="panel-t">Actividad reciente</div>
+              <div class="panel-sub">Últimos compromisos</div>
+            </div>
+          </div>
+          <div class="panel-b tight">
+            <div class="act-list" id="act-list">
+              <div class="loading-row">Cargando…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top dirigentes -->
+      <div class="panel">
+        <div class="panel-h">
+          <div>
+            <div class="panel-t">Top dirigentes</div>
+            <div class="panel-sub">Ranking por compromisos registrados</div>
+          </div>
+          <button type="button" class="panel-link" onclick="navTo('dirigencial')">
+            Ver todos
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+        <div class="panel-b tight">
+          <table class="dt">
+            <thead>
+              <tr>
+                <th>Dirigente</th>
+                <th>Zona</th>
+                <th class="num">Comprometidos</th>
+                <th class="num">Seguros</th>
+                <th class="num">Probables</th>
+                <th class="num">Dudosos</th>
+              </tr>
+            </thead>
+            <tbody id="top-dir-tb">
+              <tr><td colspan="6" class="loading-row">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- ─── PADRÓN ─── -->
+    <main class="content" id="view-padron" data-view-content style="display:none">
+      <div class="content-h">
+        <div class="content-h-l">
+          <h1 class="content-title">Padrón Electoral</h1>
+          <p class="content-sub" id="padron-sub">Cargando…</p>
+        </div>
+        <div class="content-h-r">
+          <button type="button" class="topbar-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Exportar</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mod-toolbar">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="padron-search" placeholder="Buscar por nombre o cédula" oninput="searchPadron(this.value)">
+        </div>
+        <button type="button" class="filter-chip active" data-f="todos" onclick="filterPadron('todos', this)">Todos</button>
+        <button type="button" class="filter-chip" data-f="prm" onclick="filterPadron('prm', this)">PRM</button>
+        <button type="button" class="filter-chip" data-f="comp" onclick="filterPadron('comp', this)">✓ Comprometidos</button>
+        <button type="button" class="filter-chip" data-f="duros" onclick="filterPadron('duros', this)">Voto Duro</button>
+      </div>
+
+      <div id="padron-list">
+        <div class="empty">
+          <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <div class="empty-t">Busca un elector</div>
+          <p class="empty-d">Escribe al menos 3 letras del nombre o los primeros dígitos de la cédula.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ─── DIRIGENCIAL ─── -->
+    <main class="content" id="view-dirigencial" data-view-content style="display:none">
+      <div class="content-h">
+        <div class="content-h-l">
+          <h1 class="content-title">Estructura Dirigencial</h1>
+          <p class="content-sub" id="dir-sub">Cargando dirigentes…</p>
+        </div>
+        <div class="content-h-r">
+          <button class="btn-primary" onclick="abrirModalNuevoDirigente()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:13px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Nuevo dirigente
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-b tight">
+          <table class="dt">
+            <thead>
+              <tr>
+                <th>Dirigente</th>
+                <th>Cargo</th>
+                <th>Zona</th>
+                <th class="num">Comprometidos</th>
+                <th class="num">Seguros</th>
+                <th class="num">Probables</th>
+                <th class="num">Dudosos</th>
+                <th>Estado</th>
+                <th>QR</th>
+              </tr>
+            </thead>
+            <tbody id="dir-tb">
+              <tr><td colspan="9" class="loading-row">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- ═══ MODAL NUEVO DIRIGENTE ═══ -->
+    <div class="modal-overlay" id="modal-dirigente">
+      <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Nuevo dirigente</div>
+        <div class="mf-group">
+          <label class="mf-label">Nombre completo *</label>
+          <input class="mf-input" id="nd-nombre" placeholder="Ej. Pedro Almonte García">
+        </div>
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Cédula *</label>
+            <input class="mf-input" id="nd-cedula" placeholder="023-0000000-0">
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Teléfono</label>
+            <input class="mf-input" id="nd-telefono" placeholder="809-000-0000">
+          </div>
+        </div>
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Cargo</label>
+            <input class="mf-input" id="nd-cargo" placeholder="Coordinador de zona">
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Zona</label>
+            <select class="mf-input" id="nd-zona">
+              <option value="">Selecciona zona</option>
+              <option>A</option><option>B</option><option>C</option>
+              <option>D</option><option>E</option><option>F</option>
+              <option>G</option><option>H</option><option>I</option>
+            </select>
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Meta de compromisos</label>
+          <input class="mf-input" id="nd-meta" type="number" placeholder="500">
+        </div>
+        <div id="nd-error" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:12px;display:none;"></div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-modal-cancel" onclick="cerrarModalDirigente()">Cancelar</button>
+          <button class="btn-modal-ok" id="nd-btn" onclick="crearDirigente()">Crear y ver QR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MODAL VER QR ═══ -->
+    <div class="modal-overlay" id="modal-qr">
+      <div class="modal-sheet" style="max-width:400px;">
+        <div class="modal-handle"></div>
+        <div class="qr-center">
+          <div class="qr-name" id="qr-nombre"></div>
+          <div class="qr-sub-t" id="qr-subtitulo"></div>
+          <div class="qr-canvas-wrap">
+            <div id="qr-canvas"></div>
+          </div>
+          <div class="qr-url" id="qr-url-texto"></div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <button class="btn-modal-cancel" onclick="cerrarModalQR()">Cerrar</button>
+            <button class="btn-modal-ok" style="flex:none;padding:11px 22px;" onclick="compartirQR()">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="margin-right:5px;"><path d="M7 1v8M4 4l3-3 3 3M2 11v2h10v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Compartir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── RECINTOS ─── -->
+    <main class="content" id="view-recintos" data-view-content style="display:none">
+      <div class="content-h">
+        <div class="content-h-l">
+          <h1 class="content-title">Recintos Electorales</h1>
+          <p class="content-sub" id="rec-sub">Cargando recintos…</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-b tight">
+          <table class="dt">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Zona</th>
+                <th class="num">Electores</th>
+                <th class="num">Colegios</th>
+                <th>Ganado 2020</th>
+              </tr>
+            </thead>
+            <tbody id="rec-tb">
+              <tr><td colspan="6" class="loading-row">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- ─── TERRITORIAL ─── -->
+    <main class="content" id="view-territorial" data-view-content style="display:none">
+      <div class="content-h">
+        <div class="content-h-l">
+          <h1 class="content-title">Mapa Territorial</h1>
+          <p class="content-sub">Distribución geográfica de recintos por zona</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-b" style="padding: 0;">
+          <div id="map-zonas" style="height: 600px; border-radius: 0 0 var(--r-lg) var(--r-lg); overflow: hidden;"></div>
+        </div>
+      </div>
+
+      <!-- Leyenda de zonas (debajo del mapa) -->
+      <div class="panel" style="margin-top: 14px;">
+        <div class="panel-b">
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: var(--text);">
+            <div style="font-family: Sora; font-weight: 700; font-size: 12px; color: var(--mute); text-transform: uppercase; letter-spacing: .04em;">Zonas:</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #0047AB;"></div>A</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #0a7c4a;"></div>B</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #b45309;"></div>C</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #6d28d9;"></div>D</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #c0392b;"></div>E</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #0891b2;"></div>F</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #db2777;"></div>G</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #0d9488;"></div>H</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #7c3aed;"></div>I</div>
+            <div style="margin-left: auto; font-size: 11px; color: var(--mute);">Borde verde = PRM ganó 2020 · Morado = PLD · Naranja = FP</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ─── OTROS MÓDULOS (placeholder) ─── -->
+    <main class="content" id="view-afiliados" data-view-content style="display:none">
+      <!-- HEADER -->
+      <div class="content-h">
+        <div class="content-h-l">
+          <h1 class="content-title">Afiliados</h1>
+          <p class="content-sub" id="afil-sub">Cargando…</p>
+        </div>
+        <div class="content-h-r" style="display:flex;gap:8px;">
+          <button class="btn-secondary" onclick="exportarAfiliados()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11v2h10v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Exportar CSV
+          </button>
+          <button class="btn-primary" onclick="abrirModalAfiliado()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Nuevo afiliado
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row" id="afil-kpis" style="margin-bottom:16px;">
+        <div class="kpi-card"><div class="kpi-n" id="ak-total">—</div><div class="kpi-l">Total afiliados</div></div>
+        <div class="kpi-card"><div class="kpi-n" id="ak-padron">—</div><div class="kpi-l">Del padrón</div></div>
+        <div class="kpi-card"><div class="kpi-n" id="ak-nuevos">—</div><div class="kpi-l">Registros directos</div></div>
+        <div class="kpi-card"><div class="kpi-n" id="ak-hoy">—</div><div class="kpi-l">Afiliados hoy</div></div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-b" style="padding:12px 16px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <input class="mf-input" id="afil-search" placeholder="Buscar por nombre o cédula…" oninput="filtrarAfiliados()" style="flex:1;min-width:200px;max-width:320px;">
+            <select class="mf-input" id="afil-f-tipo" onchange="filtrarAfiliados()" style="width:160px;">
+              <option value="">Todos los tipos</option>
+              <option value="simpatizante">Simpatizante</option>
+              <option value="militante">Militante</option>
+              <option value="dirigente">Dirigente</option>
+              <option value="coordinador">Coordinador</option>
+            </select>
+            <select class="mf-input" id="afil-f-zona" onchange="filtrarAfiliados()" style="width:120px;">
+              <option value="">Todas las zonas</option>
+              <option>A</option><option>B</option><option>C</option><option>D</option>
+              <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
+            </select>
+            <select class="mf-input" id="afil-f-fuente" onchange="filtrarAfiliados()" style="width:150px;">
+              <option value="">Todas las fuentes</option>
+              <option value="padron">Del padrón</option>
+              <option value="directo">Registro directo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA -->
+      <div class="panel">
+        <div class="panel-b tight">
+          <table class="dt">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Cédula</th>
+                <th>Tipo</th>
+                <th>Zona</th>
+                <th>Teléfono</th>
+                <th>Fuente</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="afil-tb">
+              <tr><td colspan="8" class="loading-row">Cargando afiliados…</td></tr>
+            </tbody>
+          </table>
+          <div style="padding:10px 16px;font-size:12px;color:var(--mute);" id="afil-pagination"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ═══ MODAL NUEVO/EDITAR AFILIADO ═══ -->
+    <div class="modal-overlay" id="modal-afiliado">
+      <div class="modal-sheet" style="max-width:580px;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="afil-modal-title">Nuevo afiliado</div>
+        <input type="hidden" id="afil-edit-id">
+        <input type="hidden" id="afil-edit-fuente">
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Nombre completo *</label>
+            <input class="mf-input" id="afil-nombre" placeholder="Pedro Almonte García">
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Cédula *</label>
+            <input class="mf-input" id="afil-cedula" placeholder="023-0000000-0">
+          </div>
+        </div>
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Teléfono</label>
+            <input class="mf-input" id="afil-telefono" placeholder="809-000-0000">
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Correo electrónico</label>
+            <input class="mf-input" id="afil-email" placeholder="correo@gmail.com" type="email">
+          </div>
+        </div>
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Tipo de miembro *</label>
+            <select class="mf-input" id="afil-tipo">
+              <option value="">Selecciona tipo</option>
+              <option value="simpatizante">Simpatizante</option>
+              <option value="militante">Militante</option>
+              <option value="dirigente">Dirigente</option>
+              <option value="coordinador">Coordinador</option>
+            </select>
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Zona</label>
+            <select class="mf-input" id="afil-zona">
+              <option value="">Selecciona zona</option>
+              <option>A</option><option>B</option><option>C</option><option>D</option>
+              <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
+            </select>
+          </div>
+        </div>
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Sector / Barrio</label>
+            <input class="mf-input" id="afil-sector" placeholder="Barrio Lindo, Villa Progreso…">
+          </div>
+          <div class="mf-group">
+            <label class="mf-label">Cargo / Posición</label>
+            <input class="mf-input" id="afil-cargo" placeholder="Presidente de bloque…">
+          </div>
+        </div>
+        <div class="mf-group">
+          <label class="mf-label">Notas</label>
+          <textarea class="mf-input" id="afil-notas" rows="2" placeholder="Observaciones adicionales…" style="resize:vertical;"></textarea>
+        </div>
+        <div id="afil-error" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:12px;display:none;"></div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-modal-cancel" onclick="cerrarModalAfiliado()">Cancelar</button>
+          <button class="btn-modal-ok" id="afil-btn" onclick="guardarAfiliado()">Guardar afiliado</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="content" id="view-aspiraciones" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Aspiraciones</h1><p class="content-sub">Aspirantes a posiciones electivas</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/></svg></div><div class="empty-t">Módulo en preparación</div><p class="empty-d">Gestión de aspirantes con procesos internos estará disponible pronto.</p></div></div></div>
+    </main>
+
+    <main class="content" id="view-nomina" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Nómina Pública</h1><p class="content-sub">Dirigentes en cargos del gobierno</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7h14v14"/></svg></div><div class="empty-t">Módulo en preparación</div><p class="empty-d">Registro de dirigentes en nómina pública estará disponible pronto.</p></div></div></div>
+    </main>
+
+    <main class="content" id="view-encuestas" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Encuestas</h1><p class="content-sub">Reconocimiento, simpatía e intención de voto</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/></svg></div><div class="empty-t">Módulo en preparación</div><p class="empty-d">Análisis de encuestas estará disponible pronto.</p></div></div></div>
+    </main>
+
+    <main class="content" id="view-logistica" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Logística y Presupuesto</h1><p class="content-sub">Caravanas, gastos y recursos</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/></svg></div><div class="empty-t">Módulo en preparación</div><p class="empty-d">Control de presupuesto y caravanas estará disponible pronto.</p></div></div></div>
+    </main>
+
+    <main class="content" id="view-montaje" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Montaje Electoral</h1><p class="content-sub">Delegados por recinto y mesa</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg></div><div class="empty-t">Módulo en preparación</div><p class="empty-d">Asignación de delegados por mesa estará disponible pronto.</p></div></div></div>
+    </main>
+
+    <main class="content" id="view-seguimiento" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Seguimiento de Votación</h1><p class="content-sub">Asistencia el día de elecciones</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/></svg></div><div class="empty-t">Activo solo el día de las elecciones</div><p class="empty-d">Monitoreo en vivo de la asistencia al voto.</p></div></div></div>
+    </main>
+
+    <main class="content" id="view-conteo" data-view-content style="display:none">
+      <div class="content-h"><div class="content-h-l"><h1 class="content-title">Conteo y Reporte Final</h1><p class="content-sub">Resultados y actas finales</p></div></div>
+      <div class="panel"><div class="panel-b"><div class="empty"><div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-t">Activo el día de las elecciones</div><p class="empty-d">Conteo en vivo y reporte final por colegio.</p></div></div></div>
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL FICHA ═══════════════ -->
+<div class="modal-bg" id="modal-ficha" onclick="if(event.target===this)closeModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-h">
+      <div class="modal-t" id="modal-title">Ficha del elector</div>
+      <button type="button" class="modal-close" onclick="closeModal()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-b" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const SB_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
+const SB_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
+const db = supabase.createClient(SB_URL, SB_KEY);
+
+let currentUser = null;
+let searchTimer = null;
+let currentFilter = 'todos';
+
+// ═══ UTILS ═══
+function toast(type, msg) {
+  const el = document.getElementById('toast-' + type);
+  document.getElementById('toast-' + type + '-msg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function ini(nombre) {
+  if (!nombre) return '?';
+  return nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+}
+
+function fmtNum(n) {
+  if (n === null || n === undefined) return '—';
+  return n.toLocaleString('es-DO');
+}
+
+function fmtPct(n, d) {
+  if (!d) return '0%';
+  return ((n / d) * 100).toFixed(1) + '%';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const date = new Date(d);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'hace un momento';
+  if (diff < 3600) return `hace ${Math.floor(diff/60)} min`;
+  if (diff < 86400) return `hace ${Math.floor(diff/3600)} h`;
+  if (diff < 604800) return `hace ${Math.floor(diff/86400)} días`;
+  return date.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' });
+}
+
+// ═══ AUTH ═══
+async function checkAuth() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    showApp();
+  } else {
+    document.getElementById('login-screen').classList.remove('hidden');
+  }
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-err');
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  err.classList.remove('show');
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+
+  btn.disabled = false;
+  btn.innerHTML = `Entrar al panel <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+
+  if (error) {
+    err.textContent = 'Credenciales inválidas. Verifica tu correo y contraseña.';
+    err.classList.add('show');
+    return;
+  }
+
+  currentUser = data.user;
+  showApp();
+}
+
+async function doLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await db.auth.signOut();
+  location.reload();
+}
+
+function showApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').style.display = 'flex';
+
+  const userName = currentUser?.email?.split('@')[0] || 'Usuario';
+  document.getElementById('sb-username').textContent = userName.length > 18 ? userName.slice(0, 18) + '…' : userName;
+  document.getElementById('sb-avatar').textContent = userName[0].toUpperCase();
+
+  const h = new Date().getHours();
+  document.getElementById('dash-greet').textContent =
+    (h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches');
+  document.getElementById('dash-date').textContent =
+    new Date().toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  loadDashboard();
+}
+
+// ═══ NAV ═══
+function navTo(view) {
+  document.querySelectorAll('[data-view-content]').forEach(v => v.style.display = 'none');
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+
+  const target = document.getElementById('view-' + view);
+  if (target) target.style.display = 'block';
+
+  const sbItem = document.querySelector(`.sb-item[data-view="${view}"]`);
+  if (sbItem) sbItem.classList.add('active');
+
+  toggleSidebar(false);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  // Lazy load
+  if (view === 'padron') {/* await search */}
+  if (view === 'afiliados') loadAfiliados();
+  if (view === 'dirigencial') loadDirigentes();
+  if (view === 'recintos') loadRecintos();
+  if (view === 'territorial') initMapaZonas();
+}
+
+// ═══ MAPA TERRITORIAL ═══
+let mapZonas = null;
+async function initMapaZonas() {
+  // Esperar a que el contenedor sea visible
+  await new Promise(r => setTimeout(r, 100));
+
+  if (mapZonas) {
+    mapZonas.invalidateSize();
+    return;
+  }
+
+  const COLOR_ZONA = {
+    'A': '#0047AB', 'B': '#0a7c4a', 'C': '#b45309', 'D': '#6d28d9',
+    'E': '#c0392b', 'F': '#0891b2', 'G': '#db2777', 'H': '#0d9488', 'I': '#7c3aed'
+  };
+
+  mapZonas = L.map('map-zonas', { zoomControl: true }).setView([18.4539, -69.3086], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(mapZonas);
+
+  // Cargar recintos con coordenadas
+  const { data: recintos, error } = await db.from('recintos_prm')
+    .select('*')
+    .not('lat', 'is', null);
+
+  if (error) {
+    console.error('Error cargando recintos:', error);
+    return;
+  }
+
+  if (!recintos || recintos.length === 0) {
+    L.popup()
+      .setLatLng([18.4539, -69.3086])
+      .setContent('<b>Sin coordenadas cargadas</b><br>Ejecuta <code>zonas_todas_coordenadas.sql</code> en Supabase')
+      .openOn(mapZonas);
+    return;
+  }
+
+  const allBounds = [];
+  recintos.forEach(r => {
+    const color = COLOR_ZONA[r.zona] || '#0047AB';
+    const electores = r.total_electores || 0;
+    const radius = Math.max(8, Math.min(28, Math.sqrt(electores) / 4));
+
+    const ganador = r.ganado_2020_por;
+    const ganadorColor = ganador === 'PRM' ? '#0a7c4a'
+                       : ganador === 'PLD' ? '#6d28d9'
+                       : ganador === 'FP'  ? '#b45309'
+                       : '#94a3b8';
+    const ganadorTexto = ganador || 'N/D';
+
+    const marker = L.circleMarker([r.lat, r.lng], {
+      radius: radius,
+      fillColor: color,
+      fillOpacity: 0.7,
+      color: ganadorColor,
+      weight: 3
+    }).addTo(mapZonas);
+
+    const meta = r.total_meta || 0;
+    const colegios = r.total_colegios || 0;
+
+    marker.bindPopup(`
+      <div style="min-width: 220px;">
+        <div style="font-family: Sora, sans-serif; font-weight: 700; font-size: 13px; color: ${color}; margin-bottom: 4px;">
+          Zona ${r.zona} · Recinto ${r.codigo}
+        </div>
+        <div style="font-size: 12.5px; font-weight: 600; margin-bottom: 8px; color: #0f172a; line-height: 1.35;">
+          ${r.nombre || 'Sin nombre'}
+        </div>
+        <div style="font-size: 11.5px; color: #475569; line-height: 1.7;">
+          <div><b style="color: #0f172a;">${electores.toLocaleString()}</b> electores</div>
+          <div>Meta PRM: <b style="color: #0f172a;">${meta.toLocaleString()}</b></div>
+          <div>${colegios} colegios</div>
+          <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #e2e8f0;">
+            Ganado 2020: <b style="color: ${ganadorColor};">${ganadorTexto}</b>
+          </div>
+        </div>
+      </div>
+    `);
+
+    allBounds.push([r.lat, r.lng]);
+  });
+
+  if (allBounds.length > 0) {
+    mapZonas.fitBounds(allBounds, { padding: [50, 50], maxZoom: 15 });
+  }
+
+  // Leyenda flotante con ganador 2020
+  const leyenda = L.control({ position: 'bottomright' });
+  leyenda.onAdd = function () {
+    const div = L.DomUtil.create('div', 'map-legend');
+    div.innerHTML = `
+      <div class="map-legend-t">Ganado en 2020</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:#0a7c4a"></div>PRM</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:#6d28d9"></div>PLD</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:#b45309"></div>FP</div>
+    `;
+    return div;
+  };
+  leyenda.addTo(mapZonas);
+}
+
+function toggleSidebar(open) {
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sb-backdrop');
+  if (open) { sb.classList.add('open'); bd.classList.add('show'); }
+  else { sb.classList.remove('open'); bd.classList.remove('show'); }
+}
+
+// ═══ DASHBOARD ═══
+async function loadDashboard() {
+  const [padronRes, compRes, dirRes, afilRes] = await Promise.all([
+    db.from('padron_prm').select('*', { count: 'exact', head: true }),
+    db.from('padron_prm').select('*', { count: 'exact', head: true }).eq('comprometido', true),
+    db.from('dirigentes').select('*', { count: 'exact', head: true }).eq('activo', true),
+    db.from('padron_prm').select('*', { count: 'exact', head: true }).eq('afiliacion', 'PRM')
+  ]);
+
+  const totalPadron = padronRes.count || 0;
+  const totalComp = compRes.count || 0;
+  const totalDir = dirRes.count || 0;
+  const totalAfil = afilRes.count || 0;
+
+  document.getElementById('kpi-padron').textContent = fmtNum(totalPadron);
+  document.getElementById('kpi-comp').textContent = fmtNum(totalComp);
+  document.getElementById('kpi-comp-delta').querySelector('span').textContent =
+    fmtPct(totalComp, totalPadron) + ' del padrón';
+  document.getElementById('kpi-dir').textContent = fmtNum(totalDir);
+  document.getElementById('kpi-dir-meta').textContent = totalDir + ' en campo';
+  document.getElementById('kpi-afil').textContent = fmtNum(totalAfil);
+  document.getElementById('kpi-afil-meta').textContent = fmtPct(totalAfil, totalPadron) + ' del padrón';
+
+  loadZonas();
+  loadActividad();
+  loadTopDirigentes();
+}
+
+async function loadZonas() {
+  const list = document.getElementById('zona-list');
+
+  // Fallback directo (calcular zonas desde padron_prm — la RPC zonas_resumen no existe)
+  let zonasData = null;
+  try {
+    const { data } = await db.from('padron_prm').select('zona');
+    if (data) {
+      const counts = {};
+      data.forEach(r => { if (r.zona) counts[r.zona] = (counts[r.zona] || 0) + 1; });
+
+      const { data: compData } = await db.from('padron_prm').select('zona').eq('comprometido', true);
+      const compCounts = {};
+      (compData || []).forEach(r => { if (r.zona) compCounts[r.zona] = (compCounts[r.zona] || 0) + 1; });
+
+      zonasData = Object.keys(counts).sort().map(z => ({
+        zona: z,
+        total: counts[z],
+        comprometidos: compCounts[z] || 0
+      }));
+    }
+  } catch (e) {
+    console.error('Error cargando zonas:', e);
+  }
+
+  if (!zonasData || zonasData.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-t">Sin datos de zonas</div></div>';
+    return;
+  }
+
+  list.innerHTML = zonasData.map(z => {
+    const pct = z.total ? Math.round((z.comprometidos / z.total) * 100) : 0;
+    return `
+      <div class="zona-item">
+        <div class="zona-letter">${z.zona}</div>
+        <div class="zona-info">
+          <div class="zona-name">Zona ${z.zona}</div>
+          <div class="zona-meta">${fmtNum(z.comprometidos)} de ${fmtNum(z.total)} electores</div>
+        </div>
+        <div class="zona-bar"><div class="zona-bar-fill" style="width:${Math.min(pct, 100)}%"></div></div>
+        <div class="zona-pct tab-nums">${pct}%</div>
+      </div>`;
+  }).join('');
+}
+
+async function loadActividad() {
+  const list = document.getElementById('act-list');
+
+  const { data } = await db.from('padron_prm')
+    .select('nombre, nivel_compromiso, fecha_compromiso, dirigente_asignado')
+    .eq('comprometido', true)
+    .not('fecha_compromiso', 'is', null)
+    .order('fecha_compromiso', { ascending: false })
+    .limit(8);
+
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="empty" style="padding: 40px 20px">
+      <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="empty-t">Sin actividad reciente</div>
+      <p class="empty-d">Los compromisos aparecerán aquí cuando los dirigentes empiecen a marcarlos.</p>
+    </div>`;
+    return;
+  }
+
+  // get dirigentes names
+  const dirIds = [...new Set(data.map(d => d.dirigente_asignado).filter(Boolean))];
+  const { data: dirs } = dirIds.length ? await db.from('dirigentes').select('id, nombre').in('id', dirIds) : { data: [] };
+  const dirMap = {};
+  (dirs || []).forEach(d => dirMap[d.id] = d.nombre);
+
+  list.innerHTML = data.map(a => {
+    const niv = a.nivel_compromiso || 'comprometido';
+    const dotClass = niv === 'seguro' ? '' : niv === 'probable' ? 'warn' : niv === 'dudoso' ? 'warn' : 'info';
+    const firstName = a.nombre.split(',')[1]?.trim().split(' ').slice(0,2).join(' ') || a.nombre.split(' ')[0];
+    const dirName = dirMap[a.dirigente_asignado] || 'Dirigente';
+    const dirFirst = dirName.split(' ')[0];
+    return `
+      <div class="act-item">
+        <div class="act-dot ${dotClass}"></div>
+        <div class="act-c">
+          <div class="act-t"><b>${firstName}</b> marcado como <b>${niv}</b> por ${dirFirst}</div>
+          <div class="act-time">${fmtDate(a.fecha_compromiso)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadTopDirigentes() {
+  const tb = document.getElementById('top-dir-tb');
+
+  const { data: dirs } = await db.from('dirigentes')
+    .select('*')
+    .eq('activo', true);
+
+  if (!dirs || dirs.length === 0) {
+    tb.innerHTML = '<tr><td colspan="6" class="loading-row">Sin dirigentes registrados</td></tr>';
+    return;
+  }
+
+  // Get compromisos per dirigente
+  const dirIds = dirs.map(d => d.id);
+  const { data: comp } = await db.from('padron_prm')
+    .select('dirigente_asignado, nivel_compromiso')
+    .in('dirigente_asignado', dirIds)
+    .eq('comprometido', true);
+
+  const stats = {};
+  (comp || []).forEach(c => {
+    if (!stats[c.dirigente_asignado]) stats[c.dirigente_asignado] = { total: 0, seguro: 0, probable: 0, dudoso: 0 };
+    stats[c.dirigente_asignado].total++;
+    if (c.nivel_compromiso) stats[c.dirigente_asignado][c.nivel_compromiso] = (stats[c.dirigente_asignado][c.nivel_compromiso] || 0) + 1;
+  });
+
+  const ranked = dirs.map(d => ({
+    ...d,
+    stats: stats[d.id] || { total: 0, seguro: 0, probable: 0, dudoso: 0 }
+  })).sort((a, b) => b.stats.total - a.stats.total).slice(0, 10);
+
+  if (ranked[0].stats.total === 0) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--mute); font-size: 13px">Aún no hay compromisos registrados</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = ranked.map(d => `
+    <tr>
+      <td class="bold">${d.nombre}</td>
+      <td>${d.cargo || '—'}</td>
+      <td>${d.sectores?.nombre || d.sector || d.zona || '—'}</td>
+      <td class="num">${fmtNum(d.stats.total)}</td>
+      <td class="num" style="color: var(--seguro)">${d.stats.seguro || 0}</td>
+      <td class="num" style="color: var(--probable)">${d.stats.probable || 0}</td>
+      <td class="num" style="color: var(--dudoso)">${d.stats.dudoso || 0}</td>
+    </tr>
+  `).join('');
+}
+
+// ═══ PADRÓN ═══
+function searchPadron(q) {
+  clearTimeout(searchTimer);
+  if (q.length < 3 && q.length > 0) return;
+  searchTimer = setTimeout(() => doSearchPadron(q.trim()), 300);
+}
+
+async function doSearchPadron(q) {
+  const list = document.getElementById('padron-list');
+
+  if (!q) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="empty-t">Busca un elector</div>
+      <p class="empty-d">Escribe al menos 3 letras del nombre o los primeros dígitos de la cédula.</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '<div class="spinner"></div>';
+
+  let query = db.from('padron_prm').select('*').limit(50);
+  if (/^\d/.test(q)) {
+    query = query.ilike('cedula', `%${q}%`);
+  } else {
+    query = query.ilike('nombre', `%${q.toUpperCase()}%`);
+  }
+
+  if (currentFilter === 'prm') query = query.eq('afiliacion', 'PRM');
+  if (currentFilter === 'comp') query = query.eq('comprometido', true);
+  if (currentFilter === 'duros') query = query.eq('clasificacion', 'Voto Duro');
+
+  const { data, error } = await query;
+
+  if (error) {
+    list.innerHTML = `<div class="empty"><div class="empty-t">Error al buscar</div><p class="empty-d">${error.message}</p></div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="empty-t">Sin resultados</div>
+      <p class="empty-d">No encontramos electores que coincidan con "${q}".</p>
+    </div>`;
+    return;
+  }
+
+  const afilP = { 'PRM': 'pill-good', 'PLD': 'pill-mute', 'FP': 'pill-mute' };
+
+  list.innerHTML = data.map(e => `
+    <button type="button" class="elector-row" onclick="openFicha('${e.id}')" aria-label="Ver ficha de ${e.nombre}">
+      <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}</div>
+      <div class="elector-info">
+        <div class="elector-name">${e.nombre}</div>
+        <div class="elector-meta">${e.cedula} · ${e.zona ? 'Zona ' + e.zona : 'Sin zona'}</div>
+      </div>
+      <div class="elector-tags">
+        ${e.afiliacion ? `<span class="pill ${afilP[e.afiliacion] || 'pill-mute'}">${e.afiliacion}</span>` : ''}
+        ${e.clasificacion === 'Voto Duro' ? `<span class="pill pill-alert">Duro</span>` : ''}
+        ${e.comprometido ? `<span class="pill pill-good">✓ Comprometido</span>` : ''}
+      </div>
+      <span class="elector-arrow" aria-hidden="true">›</span>
+    </button>
+  `).join('');
+
+  document.getElementById('padron-sub').textContent = `${data.length} resultados`;
+}
+
+function filterPadron(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const q = document.getElementById('padron-search').value;
+  if (q.length >= 3) doSearchPadron(q);
+}
+
+// ═══ FICHA MODAL ═══
+async function openFicha(id) {
+  const modal = document.getElementById('modal-ficha');
+  const body = document.getElementById('modal-body');
+  body.innerHTML = '<div class="spinner"></div>';
+  modal.classList.add('show');
+
+  const { data: e } = await db.from('padron_prm').select('*').eq('id', id).single();
+  if (!e) { body.innerHTML = '<div class="empty"><div class="empty-t">Error al cargar</div></div>'; return; }
+
+  document.getElementById('modal-title').textContent = e.nombre;
+
+  let dirNombre = '';
+  if (e.dirigente_asignado) {
+    const { data: d } = await db.from('dirigentes').select('nombre').eq('id', e.dirigente_asignado).single();
+    if (d) dirNombre = d.nombre;
+  }
+
+  const hist = [];
+  if (e.voto_2010) hist.push('2010');
+  if (e.voto_2012) hist.push('2012');
+  if (e.voto_2016) hist.push('2016');
+  if (e.voto_2020m) hist.push('2020-M');
+  if (e.voto_2020p) hist.push('2020-P');
+  if (e.voto_2024m) hist.push('2024-M');
+
+  body.innerHTML = `
+    <div class="ficha-hero" data-afil="${e.afiliacion || ''}">
+      <div class="ficha-av">${ini(e.nombre)}</div>
+      <div class="ficha-name">${e.nombre}</div>
+      <div class="ficha-ced">${e.cedula}</div>
+    </div>
+
+    ${e.comprometido ? `
+      <div class="ficha-commit" data-n="${e.nivel_compromiso || 'seguro'}">
+        <div class="ficha-commit-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ficha-commit-c">
+          <div class="ficha-commit-l">Voto comprometido</div>
+          <div class="ficha-commit-v">${e.nivel_compromiso || 'comprometido'}</div>
+          ${dirNombre ? `<div style="font-size: 11px; opacity: 0.85">por ${dirNombre}</div>` : ''}
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="ficha-section">
+      <div class="ficha-section-t">Análisis político</div>
+      <div class="ficha-grid">
+        <div class="ficha-row"><span class="ficha-row-l">Afiliación</span><span class="ficha-row-v">${e.afiliacion || '—'}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Clasificación</span><span class="ficha-row-v">${e.clasificacion || '—'}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Militancia</span><span class="ficha-row-v">${e.militancia || '—'}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Ranking</span><span class="ficha-row-v">${e.ranking || '—'}</span></div>
+      </div>
+    </div>
+
+    <div class="ficha-section">
+      <div class="ficha-section-t">Ubicación electoral</div>
+      <div class="ficha-row"><span class="ficha-row-l">Recinto</span><span class="ficha-row-v">${e.recinto_nombre || '—'}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Código recinto</span><span class="ficha-row-v">${e.recinto_codigo || '—'}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Colegio</span><span class="ficha-row-v">${e.colegio_numero || '—'}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Zona</span><span class="ficha-row-v">${e.zona || '—'}</span></div>
+    </div>
+
+    ${(e.celular || e.telefono || e.direccion) ? `
+    <div class="ficha-section">
+      <div class="ficha-section-t">Contacto</div>
+      ${e.celular ? `<div class="ficha-row"><span class="ficha-row-l">Celular</span><span class="ficha-row-v mono">${e.celular}</span></div>` : ''}
+      ${e.telefono ? `<div class="ficha-row"><span class="ficha-row-l">Teléfono</span><span class="ficha-row-v mono">${e.telefono}</span></div>` : ''}
+      ${e.direccion ? `<div class="ficha-row"><span class="ficha-row-l">Dirección</span><span class="ficha-row-v">${e.direccion}</span></div>` : ''}
+    </div>` : ''}
+
+    ${hist.length ? `
+    <div class="ficha-section">
+      <div class="ficha-section-t">Historial de votación</div>
+      <div style="display: flex; gap: 5px; flex-wrap: wrap">
+        ${hist.map(h => `<span class="pill pill-prm">${h}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${e.notas ? `
+    <div class="ficha-section">
+      <div class="ficha-section-t">Notas del dirigente</div>
+      <div style="background: var(--line-2); padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5">${e.notas}</div>
+    </div>` : ''}
+  `;
+}
+
+function closeModal() {
+  document.getElementById('modal-ficha').classList.remove('show');
+}
+
+// ═══ AFILIADOS ═══
+let afiliadosData = [];      // todos los cargados
+let afiliadosFiltrados = []; // después de filtros
+let afilPage = 0;
+const AFIL_PAGE_SIZE = 50;
+
+async function loadAfiliados() {
+  const tb = document.getElementById('afil-tb');
+  tb.innerHTML = '<tr><td colspan="8" class="loading-row">Cargando afiliados…</td></tr>';
+
+  // Fuente 1: padron_prm con afiliado = true
+  const { data: delPadron } = await db.from('padron_prm')
+    .select('id, nombre, cedula, telefono, zona, recinto')
+    .eq('afiliado', true)
+    .limit(2000);
+
+  // Fuente 2: tabla afiliados propia
+  const { data: directos } = await db.from('afiliados')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(2000);
+
+  const padronList = (delPadron || []).map(p => ({
+    id: p.id,
+    nombre: p.nombre,
+    cedula: p.cedula,
+    telefono: p.telefono || '—',
+    email: '—',
+    tipo: 'militante',
+    zona: p.zona || '—',
+    sector: p.recinto || '—',
+    cargo: '—',
+    notas: '',
+    fuente: 'padron',
+    fecha: '—'
+  }));
+
+  const directosList = (directos || []).map(a => ({
+    id: a.id,
+    nombre: a.nombre,
+    cedula: a.cedula || '—',
+    telefono: a.telefono || '—',
+    email: a.email || '—',
+    tipo: a.tipo || 'simpatizante',
+    zona: a.zona || '—',
+    sector: a.sector || '—',
+    cargo: a.cargo || '—',
+    notas: a.notas || '',
+    fuente: 'directo',
+    fecha: a.created_at ? a.created_at.substring(0,10) : '—'
+  }));
+
+  // Combinar eliminando duplicados por cédula (directo tiene precedencia)
+  const cedulasDirectas = new Set(directosList.map(d => d.cedula));
+  const padronFiltrado = padronList.filter(p => !cedulasDirectas.has(p.cedula));
+  afiliadosData = [...directosList, ...padronFiltrado];
+
+  // KPIs
+  const hoy = new Date().toISOString().substring(0,10);
+  document.getElementById('ak-total').textContent = fmtNum(afiliadosData.length);
+  document.getElementById('ak-padron').textContent = fmtNum(padronFiltrado.length);
+  document.getElementById('ak-nuevos').textContent = fmtNum(directosList.length);
+  document.getElementById('ak-hoy').textContent = fmtNum(directosList.filter(d => d.fecha === hoy).length);
+  document.getElementById('afil-sub').textContent = `${fmtNum(afiliadosData.length)} afiliados registrados`;
+
+  afilPage = 0;
+  filtrarAfiliados();
+}
+
+function filtrarAfiliados() {
+  const q = (document.getElementById('afil-search').value || '').toLowerCase().trim();
+  const tipo = document.getElementById('afil-f-tipo').value;
+  const zona = document.getElementById('afil-f-zona').value;
+  const fuente = document.getElementById('afil-f-fuente').value;
+
+  afiliadosFiltrados = afiliadosData.filter(a => {
+    if (q && !a.nombre.toLowerCase().includes(q) && !a.cedula.includes(q)) return false;
+    if (tipo && a.tipo !== tipo) return false;
+    if (zona && a.zona !== zona) return false;
+    if (fuente && a.fuente !== fuente) return false;
+    return true;
+  });
+
+  afilPage = 0;
+  renderAfiliados();
+}
+
+function renderAfiliados() {
+  const tb = document.getElementById('afil-tb');
+  const pg = document.getElementById('afil-pagination');
+  const total = afiliadosFiltrados.length;
+  const start = afilPage * AFIL_PAGE_SIZE;
+  const slice = afiliadosFiltrados.slice(start, start + AFIL_PAGE_SIZE);
+
+  if (slice.length === 0) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mute)">Sin resultados para los filtros aplicados.</td></tr>';
+    pg.textContent = '';
+    return;
+  }
+
+  const tipoBadge = { simpatizante: 'pill-mute', militante: 'pill-info', dirigente: 'pill-warn', coordinador: 'pill-good' };
+  const tipoLabel = { simpatizante: 'Simpatizante', militante: 'Militante', dirigente: 'Dirigente', coordinador: 'Coordinador' };
+
+  tb.innerHTML = slice.map(a => `
+    <tr>
+      <td class="bold">${a.nombre}</td>
+      <td style="font-family:monospace;font-size:12px;">${a.cedula}</td>
+      <td><span class="pill ${tipoBadge[a.tipo] || 'pill-mute'}">${tipoLabel[a.tipo] || a.tipo}</span></td>
+      <td>${a.zona}</td>
+      <td>${a.telefono}</td>
+      <td><span class="pill ${a.fuente === 'padron' ? 'pill-info' : 'pill-good'}">${a.fuente === 'padron' ? 'Padrón' : 'Directo'}</span></td>
+      <td style="font-size:11px;color:var(--mute)">${a.fecha}</td>
+      <td>
+        ${a.fuente === 'directo' ? `<button class="btn-qr" onclick="editarAfiliado('${a.id}')">Editar</button>` : '<span style="font-size:11px;color:var(--mute)">Padrón</span>'}
+      </td>
+    </tr>
+  `).join('');
+
+  // Paginación
+  const totalPags = Math.ceil(total / AFIL_PAGE_SIZE);
+  pg.innerHTML = total > AFIL_PAGE_SIZE ? `
+    Mostrando ${start+1}–${Math.min(start+AFIL_PAGE_SIZE, total)} de ${fmtNum(total)}
+    <button class="btn-qr" onclick="afilPagina(-1)" ${afilPage===0?'disabled':''} style="margin-left:8px;">← Ant</button>
+    <button class="btn-qr" onclick="afilPagina(1)" ${afilPage>=totalPags-1?'disabled':''} style="margin-left:4px;">Sig →</button>
+  ` : `${fmtNum(total)} afiliados`;
+}
+
+function afilPagina(dir) {
+  const totalPags = Math.ceil(afiliadosFiltrados.length / AFIL_PAGE_SIZE);
+  afilPage = Math.max(0, Math.min(afilPage + dir, totalPags - 1));
+  renderAfiliados();
+}
+
+// ─── Modal nuevo/editar afiliado ───
+function abrirModalAfiliado() {
+  ['afil-nombre','afil-cedula','afil-telefono','afil-email','afil-sector','afil-cargo','afil-notas'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('afil-tipo').value = '';
+  document.getElementById('afil-zona').value = '';
+  document.getElementById('afil-edit-id').value = '';
+  document.getElementById('afil-edit-fuente').value = 'directo';
+  document.getElementById('afil-modal-title').textContent = 'Nuevo afiliado';
+  document.getElementById('afil-btn').textContent = 'Guardar afiliado';
+  document.getElementById('afil-btn').disabled = false;
+  document.getElementById('afil-error').style.display = 'none';
+  document.getElementById('modal-afiliado').classList.add('show');
+}
+
+function editarAfiliado(id) {
+  const a = afiliadosData.find(x => x.id == id);
+  if (!a) return;
+  document.getElementById('afil-nombre').value = a.nombre;
+  document.getElementById('afil-cedula').value = a.cedula !== '—' ? a.cedula : '';
+  document.getElementById('afil-telefono').value = a.telefono !== '—' ? a.telefono : '';
+  document.getElementById('afil-email').value = a.email !== '—' ? a.email : '';
+  document.getElementById('afil-tipo').value = a.tipo;
+  document.getElementById('afil-zona').value = a.zona !== '—' ? a.zona : '';
+  document.getElementById('afil-sector').value = a.sector !== '—' ? a.sector : '';
+  document.getElementById('afil-cargo').value = a.cargo !== '—' ? a.cargo : '';
+  document.getElementById('afil-notas').value = a.notas;
+  document.getElementById('afil-edit-id').value = id;
+  document.getElementById('afil-edit-fuente').value = 'directo';
+  document.getElementById('afil-modal-title').textContent = 'Editar afiliado';
+  document.getElementById('afil-btn').textContent = 'Guardar cambios';
+  document.getElementById('afil-btn').disabled = false;
+  document.getElementById('afil-error').style.display = 'none';
+  document.getElementById('modal-afiliado').classList.add('show');
+}
+
+function cerrarModalAfiliado() {
+  document.getElementById('modal-afiliado').classList.remove('show');
+}
+
+async function guardarAfiliado() {
+  const nombre   = document.getElementById('afil-nombre').value.trim();
+  const cedula   = document.getElementById('afil-cedula').value.trim();
+  const telefono = document.getElementById('afil-telefono').value.trim();
+  const email    = document.getElementById('afil-email').value.trim();
+  const tipo     = document.getElementById('afil-tipo').value;
+  const zona     = document.getElementById('afil-zona').value;
+  const sector   = document.getElementById('afil-sector').value.trim();
+  const cargo    = document.getElementById('afil-cargo').value.trim();
+  const notas    = document.getElementById('afil-notas').value.trim();
+  const editId   = document.getElementById('afil-edit-id').value;
+  const errEl    = document.getElementById('afil-error');
+  const btn      = document.getElementById('afil-btn');
+
+  if (!nombre || !tipo) {
+    errEl.textContent = 'Nombre y tipo de miembro son obligatorios.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+  errEl.style.display = 'none';
+
+  const payload = {
+    nombre, cedula: cedula || null, telefono: telefono || null,
+    email: email || null, tipo, zona: zona || null,
+    sector: sector || null, cargo: cargo || null, notas: notas || null
+  };
+
+  let error;
+  if (editId) {
+    ({ error } = await db.from('afiliados').update(payload).eq('id', editId));
+  } else {
+    ({ error } = await db.from('afiliados').insert(payload));
+  }
+
+  if (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = editId ? 'Guardar cambios' : 'Guardar afiliado';
+    return;
+  }
+
+  cerrarModalAfiliado();
+  loadAfiliados();
+}
+
+// ─── Exportar CSV ───
+function exportarAfiliados() {
+  const datos = afiliadosFiltrados.length > 0 ? afiliadosFiltrados : afiliadosData;
+  if (datos.length === 0) { alert('No hay afiliados para exportar.'); return; }
+
+  const headers = ['Nombre','Cédula','Tipo','Zona','Sector','Cargo','Teléfono','Email','Fuente','Fecha'];
+  const rows = datos.map(a => [
+    `"${a.nombre}"`, a.cedula, a.tipo, a.zona, a.sector,
+    a.cargo, a.telefono, a.email, a.fuente, a.fecha
+  ].join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.download = `afiliados_prm_spm_${new Date().toISOString().substring(0,10)}.csv`;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+}
+
+// Cerrar modal al click fuera
+document.getElementById('modal-afiliado').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalAfiliado();
+});
+
+// ═══ DIRIGENCIAL ═══
+async function loadDirigentes() {
+  const tb = document.getElementById('dir-tb');
+  tb.innerHTML = '<tr><td colspan="9" class="loading-row">Cargando…</td></tr>';
+
+  const { data: dirs } = await db.from('dirigentes')
+    .select('*')
+    .order('nombre');
+
+  if (!dirs || dirs.length === 0) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--mute)">Sin dirigentes registrados. Usa el botón <b>+ Nuevo dirigente</b> para agregar.</td></tr>';
+    document.getElementById('dir-sub').textContent = '0 dirigentes';
+    return;
+  }
+
+  const dirIds = dirs.map(d => d.id);
+  const { data: comp } = await db.from('padron_prm')
+    .select('dirigente_asignado, nivel_compromiso')
+    .in('dirigente_asignado', dirIds)
+    .eq('comprometido', true);
+
+  const stats = {};
+  (comp || []).forEach(c => {
+    if (!stats[c.dirigente_asignado]) stats[c.dirigente_asignado] = { total: 0, seguro: 0, probable: 0, dudoso: 0 };
+    stats[c.dirigente_asignado].total++;
+    if (c.nivel_compromiso) stats[c.dirigente_asignado][c.nivel_compromiso] = (stats[c.dirigente_asignado][c.nivel_compromiso] || 0) + 1;
+  });
+
+  const ranked = dirs.map(d => ({
+    ...d,
+    stats: stats[d.id] || { total: 0, seguro: 0, probable: 0, dudoso: 0 }
+  })).sort((a, b) => b.stats.total - a.stats.total);
+
+  tb.innerHTML = ranked.map(d => `
+    <tr>
+      <td class="bold">${d.nombre}</td>
+      <td>${d.cargo || '—'}</td>
+      <td>${d.zona || d.sector || '—'}</td>
+      <td class="num">${fmtNum(d.stats.total)}</td>
+      <td class="num" style="color: var(--seguro)">${d.stats.seguro || 0}</td>
+      <td class="num" style="color: var(--probable)">${d.stats.probable || 0}</td>
+      <td class="num" style="color: var(--dudoso)">${d.stats.dudoso || 0}</td>
+      <td>${d.activo !== false ? '<span class="pill pill-good">Activo</span>' : '<span class="pill pill-mute">Inactivo</span>'}</td>
+      <td><button class="btn-qr" onclick="verQRDirigente('${d.id}','${(d.nombre||'').replace(/'/g,"\\'")}','${d.zona||''}','${d.qr_token||''}')">Ver QR</button></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('dir-sub').textContent = `${dirs.length} dirigentes · ${dirs.filter(d => d.activo !== false).length} activos`;
+}
+
+// ─── Modal nuevo dirigente ───
+function abrirModalNuevoDirigente() {
+  ['nd-nombre','nd-cedula','nd-telefono','nd-cargo','nd-meta'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('nd-zona').value = '';
+  document.getElementById('nd-error').style.display = 'none';
+  document.getElementById('nd-btn').textContent = 'Crear y ver QR';
+  document.getElementById('nd-btn').disabled = false;
+  document.getElementById('modal-dirigente').classList.add('show');
+}
+
+function cerrarModalDirigente() {
+  document.getElementById('modal-dirigente').classList.remove('show');
+}
+
+async function crearDirigente() {
+  const nombre   = document.getElementById('nd-nombre').value.trim();
+  const cedula   = document.getElementById('nd-cedula').value.trim();
+  const telefono = document.getElementById('nd-telefono').value.trim();
+  const cargo    = document.getElementById('nd-cargo').value.trim();
+  const zona     = document.getElementById('nd-zona').value;
+  const meta     = parseInt(document.getElementById('nd-meta').value) || 500;
+  const errEl    = document.getElementById('nd-error');
+  const btn      = document.getElementById('nd-btn');
+
+  if (!nombre || !cedula) {
+    errEl.textContent = 'Nombre y cédula son obligatorios.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Creando…';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  // Generar token QR único
+  const qr_token = Array.from(crypto.getRandomValues(new Uint8Array(20)))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+
+  const { data, error } = await db.from('dirigentes').insert({
+    nombre, cedula, telefono: telefono || null,
+    cargo: cargo || null, zona: zona || null,
+    meta, qr_token, activo: true
+  }).select().single();
+
+  if (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Crear y ver QR';
+    btn.disabled = false;
+    return;
+  }
+
+  cerrarModalDirigente();
+  loadDirigentes();
+  // Mostrar QR inmediatamente
+  verQRDirigente(data.id, nombre, zona, qr_token);
+}
+
+// ─── Modal QR ───
+function verQRDirigente(id, nombre, zona, token) {
+  if (!token) {
+    alert('Este dirigente no tiene token QR. Edítalo para generarle uno.');
+    return;
+  }
+
+  const appUrl = 'https://sektor06.github.io/votapp/app.html?token=' + token;
+
+  document.getElementById('qr-nombre').textContent = nombre;
+  document.getElementById('qr-subtitulo').textContent = zona ? 'Zona ' + zona + ' · PRM SPM' : 'PRM San Pedro de Macorís';
+  document.getElementById('qr-url-texto').textContent = appUrl;
+
+  // Generar QR como imagen usando Google Charts API (no requiere JS externo)
+  const qrContainer = document.getElementById('qr-canvas');
+  const encodedUrl = encodeURIComponent(appUrl);
+  const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=0f172a&bgcolor=ffffff&margin=2`;
+  qrContainer.innerHTML = `<img src="${qrImgUrl}" width="220" height="220" style="display:block;" alt="QR Code" id="qr-img-generated">`;
+
+  document.getElementById('modal-qr').classList.add('show');
+}
+
+function cerrarModalQR() {
+  document.getElementById('modal-qr').classList.remove('show');
+}
+
+async function compartirQR() {
+  const nombre = document.getElementById('qr-nombre').textContent;
+  const img = document.getElementById('qr-img-generated');
+  if (!img) { alert('No hay QR para compartir.'); return; }
+
+  // Descargar directamente desde la URL del QR
+  const a = document.createElement('a');
+  a.download = 'qr-' + nombre + '.png';
+  a.href = img.src;
+  a.target = '_blank';
+  a.click();
+}
+
+// Cerrar modales al hacer click fuera
+document.getElementById('modal-dirigente').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalDirigente();
+});
+document.getElementById('modal-qr').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalQR();
+});
+
+// ═══ RECINTOS ═══
+async function loadRecintos() {
+  const tb = document.getElementById('rec-tb');
+  tb.innerHTML = '<tr><td colspan="6" class="loading-row">Cargando…</td></tr>';
+
+  const { data } = await db.from('recintos_prm').select('*').order('zona, codigo');
+
+  if (!data || data.length === 0) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = data.map(r => {
+    const ganador = r.ganado_2020_por || '—';
+    const pillClass = ganador === 'PRM' ? 'pill-good' : ganador === 'PLD' ? 'pill-alert' : 'pill-mute';
+    return `
+      <tr>
+        <td class="mono bold">${r.codigo}</td>
+        <td class="bold">${r.nombre}</td>
+        <td>${r.zona ? 'Zona ' + r.zona : '—'}</td>
+        <td class="num">${fmtNum(r.total_electores)}</td>
+        <td class="num">${fmtNum(r.total_colegios)}</td>
+        <td><span class="pill ${pillClass}">${ganador}</span></td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('rec-sub').textContent = `${data.length} recintos · ${data.reduce((s, r) => s + (r.total_electores || 0), 0).toLocaleString()} electores`;
+}
+
+// ═══ GLOBAL SEARCH ═══
+document.getElementById('global-search').addEventListener('input', e => {
+  const v = e.target.value;
+  if (v.length < 3) return;
+  navTo('padron');
+  document.getElementById('padron-search').value = v;
+  searchPadron(v);
+});
+
+// ═══ INIT ═══
+checkAuth();
+</script>
+
+</body>
+</html>
