@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VotApp — Panel de Administración</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --dark:#0a0e1a;--dark2:#111827;--dark3:#1a2235;--dark4:#252f45;
+  --accent:#3b82f6;--accent2:#60a5fa;--accent-d:#2563eb;
+  --green:#10b981;--green-l:#064e3b;
+  --red:#ef4444;--red-l:#7f1d1d;
+  --amber:#f59e0b;--amber-l:#78350f;
+  --purple:#8b5cf6;--cyan:#06b6d4;
+  --txt:#e5e7eb;--txt2:#9ca3af;--txt3:#6b7280;
+  --bd:#2d3748;
+  --r:14px;--rs:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--txt);overflow-x:hidden}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.page{display:none;animation:fadeIn .25s ease}
+.page.active{display:block}
+
+/* LOGIN */
+#pg-login{min-height:100vh;display:none;align-items:center;justify-content:center;padding:1.5rem;background:radial-gradient(ellipse at top,#1a2235 0%,#0a0e1a 60%)}
+#pg-login.active{display:flex}
+.login-card{background:var(--dark2);border:1px solid var(--bd);border-radius:20px;padding:2rem;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.5);animation:slideUp .3s}
+.lc-mark{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Sora';font-weight:800;font-size:24px;color:#fff}
+.lc-title{font-family:'Sora';font-size:20px;font-weight:700;text-align:center;color:#fff}
+.lc-sub{font-size:12px;color:var(--txt2);text-align:center;margin-top:4px;margin-bottom:1.5rem}
+.fl{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px}
+.fi{width:100%;background:var(--dark3);border:1.5px solid var(--bd);border-radius:var(--rs);padding:12px 14px;font-size:14px;color:var(--txt);font-family:inherit;outline:none;transition:all .15s;margin-bottom:14px}
+.fi:focus{border-color:var(--accent);background:var(--dark4)}
+.login-err{background:var(--red-l);color:#fca5a5;border-radius:var(--rs);padding:10px 13px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+.btn-login{width:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:var(--rs);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-login:active{transform:scale(.98)}
+
+/* APP LAYOUT */
+#pg-app{display:none;min-height:100vh}
+#pg-app.active{display:flex}
+.sidebar{width:240px;background:var(--dark2);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100;transition:transform .25s}
+.sb-brand{padding:20px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:11px}
+.sb-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-family:'Sora';font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+.sb-title{font-family:'Sora';font-size:14px;font-weight:700;color:#fff;line-height:1.2}
+.sb-sub{font-size:10px;color:var(--txt3);margin-top:1px}
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;cursor:pointer;color:var(--txt2);font-size:13px;font-weight:500;margin-bottom:3px;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.sb-item:hover{background:var(--dark3);color:var(--txt)}
+.sb-item.on{background:var(--accent);color:#fff}
+.sb-item-ic{font-size:17px;width:20px;text-align:center}
+.sb-foot{padding:14px;border-top:1px solid var(--bd)}
+.sb-user{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sb-av{width:34px;height:34px;border-radius:99px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;font-family:Sora}
+.sb-logout{width:100%;background:var(--dark3);border:1px solid var(--bd);color:var(--txt2);border-radius:9px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.sb-logout:hover{background:var(--red-l);color:#fca5a5;border-color:var(--red)}
+
+.main{flex:1;margin-left:240px;min-height:100vh}
+.topbar{background:var(--dark2);border-bottom:1px solid var(--bd);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.tb-title{font-family:'Sora';font-size:18px;font-weight:700;color:#fff}
+.tb-sub{font-size:12px;color:var(--txt2);margin-top:2px}
+.menu-btn{display:none;background:var(--dark3);border:1px solid var(--bd);color:var(--txt);width:38px;height:38px;border-radius:9px;cursor:pointer;font-size:18px}
+.content{padding:28px}
+
+/* COMPONENTS */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.stat-card{background:var(--dark2);border:1px solid var(--bd);border-radius:var(--r);padding:18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--c,var(--accent))}
+.stat-ic{width:42px;height:42px;border-radius:11px;background:var(--cl,rgba(59,130,246,.15));display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.stat-v{font-family:'Sora';font-size:28px;font-weight:700;color:#fff;line-height:1}
+.stat-l{font-size:12px;color:var(--txt2);margin-top:5px}
+.stat-d{font-size:11px;margin-top:8px;color:var(--txt3)}
+
+.card{background:var(--dark2);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-family:'Sora';font-size:15px;font-weight:700;color:#fff}
+
+.btn{border:none;border-radius:var(--rs);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.97)}
+.btn-pri{background:var(--accent);color:#fff}
+.btn-pri:hover{background:var(--accent-d)}
+.btn-gh{background:var(--dark3);color:var(--txt);border:1px solid var(--bd)}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red-l);color:#fca5a5}
+.btn-sm{padding:7px 12px;font-size:12px}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--bd)}
+.tbl td{padding:13px 12px;border-bottom:1px solid var(--bd);font-size:13px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--dark3)}
+
+.pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600}
+.p-green{background:var(--green-l);color:#6ee7b7}
+.p-red{background:var(--red-l);color:#fca5a5}
+.p-amber{background:var(--amber-l);color:#fcd34d}
+.p-blue{background:rgba(59,130,246,.2);color:#93c5fd}
+.p-gray{background:var(--dark4);color:var(--txt2)}
+
+.bar-track{height:8px;background:var(--dark4);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex;animation:fadeIn .2s}
+.modal{background:var(--dark2);border:1px solid var(--bd);border-radius:18px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp .3s}
+.mtitle{font-family:'Sora';font-size:18px;font-weight:700;color:#fff;margin-bottom:18px}
+.fg{margin-bottom:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+select.fi{appearance:none;-webkit-appearance:none}
+.mactions{display:flex;gap:10px;margin-top:18px}
+
+.spinner{width:30px;height:30px;border:3px solid var(--dark4);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:2rem auto}
+.empty{text-align:center;padding:3rem 1rem;color:var(--txt3);font-size:14px}
+.empty-ic{font-size:40px;margin-bottom:12px;opacity:.4}
+.toast-wrap{position:fixed;top:20px;right:20px;z-index:99999;max-width:360px}
+.toast{background:var(--dark2);border:1px solid var(--bd);border-left:4px solid var(--green);border-radius:var(--rs);padding:14px 18px;font-size:13px;font-weight:600;color:var(--txt);display:none;align-items:center;gap:10px;box-shadow:0 12px 32px rgba(0,0,0,.4);margin-bottom:10px}
+.toast.show{display:flex;animation:slideUp .25s}
+.toast.err{border-left-color:var(--red)}
+.health-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bd)}
+.health-row:last-child{border-bottom:none}
+.health-dot{width:9px;height:9px;border-radius:99px;flex-shrink:0}
+
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:flex;align-items:center;justify-content:center}
+  .g4{grid-template-columns:1fr 1fr}.g3,.g2{grid-template-columns:1fr}
+  .content{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="toast-wrap"><div class="toast" id="toast"></div></div>
+<!-- LOGIN -->
+<div class="page" id="pg-login">
+  <div class="login-card">
+    <div class="lc-mark">VA</div>
+    <div class="lc-title">Panel de Administración</div>
+    <div class="lc-sub">VotApp · Acceso técnico</div>
+    <div class="login-err" id="login-err"></div>
+    <label class="fl">Correo de administrador</label>
+    <input class="fi" id="login-email" type="email" placeholder="admin@votapp.do" autocomplete="email">
+    <label class="fl">Contraseña</label>
+    <input class="fi" id="login-pass" type="password" placeholder="••••••••">
+    <button class="btn-login" onclick="doLogin()" id="login-btn">Acceder al sistema</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="page" id="pg-app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-mark">VA</div>
+      <div><div class="sb-title">VotApp Admin</div><div class="sb-sub">Panel técnico</div></div>
+    </div>
+    <nav class="sb-nav">
+      <button class="sb-item on" onclick="nav('dashboard',this)"><span class="sb-item-ic">📊</span> Dashboard</button>
+      <div style="padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;">Sistema</div>
+      <button class="sb-item" onclick="nav('partidos',this)"><span class="sb-item-ic">🏛️</span> Clientes / Partidos</button>
+      <button class="sb-item" onclick="nav('usuarios',this)"><span class="sb-item-ic">👤</span> Usuarios y accesos</button>
+      <button class="sb-item" onclick="nav('sistema',this)"><span class="sb-item-ic">💾</span> Estado del sistema</button>
+      <div style="padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;">Datos PRM</div>
+      <button class="sb-item" onclick="nav('padron',this)"><span class="sb-item-ic">📋</span> Gestión del padrón</button>
+      <button class="sb-item" onclick="nav('dirigentes',this)"><span class="sb-item-ic">👥</span> Dirigentes</button>
+      <button class="sb-item" onclick="nav('afiliados',this)"><span class="sb-item-ic">🪪</span> Afiliados</button>
+      <button class="sb-item" onclick="nav('aspirantes',this)"><span class="sb-item-ic">🏆</span> Aspirantes</button>
+      <button class="sb-item" onclick="nav('recintos',this)"><span class="sb-item-ic">🗺️</span> Recintos y coords</button>
+      <div style="padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;">Admin</div>
+      <button class="sb-item" onclick="nav('herramientas',this)"><span class="sb-item-ic">🔧</span> Herramientas</button>
+      <button class="sb-item" onclick="nav('actividad',this)"><span class="sb-item-ic">📜</span> Registro de actividad</button>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-av" id="sb-av">A</div>
+        <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sb-name">Admin</div><div style="font-size:10px;color:var(--txt3)">Administrador</div></div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div><div class="tb-title" id="page-title">Dashboard</div><div class="tb-sub" id="page-sub">Vista general del sistema</div></div>
+      </div>
+      <button class="btn btn-pri btn-sm" onclick="location.reload()">🔄 Actualizar</button>
+    </div>
+    <div class="content" id="content"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- MODAL PARTIDO -->
+<div class="modal-bg" id="m-partido"><div class="modal">
+  <div class="mtitle">Nuevo cliente / partido</div>
+  <div class="row2">
+    <div class="fg"><label class="fl">Nombre del partido *</label><input class="fi" id="pt-nom" placeholder="Partido..."></div>
+    <div class="fg"><label class="fl">Siglas *</label><input class="fi" id="pt-sig" placeholder="PRM"></div>
+  </div>
+  <div class="row2">
+    <div class="fg"><label class="fl">Municipio</label><input class="fi" id="pt-mun"></div>
+    <div class="fg"><label class="fl">Provincia</label><input class="fi" id="pt-prov"></div>
+  </div>
+  <div class="row2">
+    <div class="fg"><label class="fl">Plan</label><select class="fi" id="pt-plan"><option value="regidor">Regidor ($10k)</option><option value="diputado">Diputado ($15k)</option><option value="senador">Senador ($20k)</option><option value="completo" selected>Completo ($100k+)</option></select></div>
+    <div class="fg"><label class="fl">Estado</label><select class="fi" id="pt-estado"><option value="activo">Activo</option><option value="prueba">Prueba</option><option value="suspendido">Suspendido</option></select></div>
+  </div>
+  <div class="fg"><label class="fl">Monto del contrato (USD)</label><input class="fi" id="pt-monto" type="number" placeholder="100000"></div>
+  <div class="mactions"><button class="btn btn-gh" style="flex:1" onclick="closeModal('m-partido')">Cancelar</button><button class="btn btn-pri" style="flex:2" onclick="guardarPartido()">Crear partido</button></div>
+</div></div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-bg" id="m-usuario"><div class="modal">
+  <div class="mtitle">Nuevo usuario del partido</div>
+  <div style="background:var(--amber-l);color:#fcd34d;border-radius:10px;padding:11px 14px;font-size:12px;margin-bottom:16px;line-height:1.5">⚠️ Primero crea el usuario en Supabase → Authentication, luego regístralo aquí con el mismo correo.</div>
+  <div class="fg"><label class="fl">Partido *</label><select class="fi" id="us-partido"><option value="">Selecciona partido</option></select></div>
+  <div class="fg"><label class="fl">Nombre completo *</label><input class="fi" id="us-nom" placeholder="Nombre del usuario"></div>
+  <div class="fg"><label class="fl">Correo (mismo de Supabase Auth) *</label><input class="fi" id="us-email" type="email" placeholder="usuario@partido.do"></div>
+  <div class="mactions"><button class="btn btn-gh" style="flex:1" onclick="closeModal('m-usuario')">Cancelar</button><button class="btn btn-pri" style="flex:2" onclick="guardarUsuario()">Registrar acceso</button></div>
+</div></div>
+<script>
+const SB_URL='https://izyqrakicqqdzgdlmxfb.supabase.co';
+const SB_KEY='sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
+const db=supabase.createClient(SB_URL,SB_KEY);
+let currentAdmin=null;
+
+function goPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.classList.remove('show'),3000);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+
+// AUTH
+function initSaved(){
+  const s=localStorage.getItem('votapp_admin');
+  if(s){try{const d=JSON.parse(s);entrarConSesion(d.id);}catch(e){goPage('pg-login');}}
+  else goPage('pg-login');
+}
+async function entrarConSesion(id){
+  const {data}=await db.from('admins_tecnicos').select('*').eq('id',id).single();
+  if(!data){localStorage.removeItem('votapp_admin');goPage('pg-login');return;}
+  setupApp(data);
+}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');const btn=document.getElementById('login-btn');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='Ingresa correo y contraseña';err.style.display='block';return;}
+  btn.textContent='Verificando...';btn.disabled=true;
+  const {data,error}=await db.auth.signInWithPassword({email,password:pass});
+  btn.textContent='Acceder al sistema';btn.disabled=false;
+  if(error){err.textContent='Credenciales incorrectas';err.style.display='block';return;}
+  const {data:admin}=await db.from('admins_tecnicos').select('*').eq('email',email).single();
+  if(!admin){err.textContent='No tienes permisos de administrador técnico';err.style.display='block';await db.auth.signOut();return;}
+  localStorage.setItem('votapp_admin',JSON.stringify({id:admin.id}));
+  setupApp(admin);
+}
+function setupApp(admin){
+  currentAdmin=admin;
+  document.getElementById('sb-name').textContent=admin.nombre;
+  document.getElementById('sb-av').textContent=admin.nombre[0].toUpperCase();
+  goPage('pg-app');
+  nav('dashboard',document.querySelector('.sb-item'));
+}
+function doLogout(){db.auth.signOut();localStorage.removeItem('votapp_admin');currentAdmin=null;goPage('pg-login');}
+
+// NAV
+const PAGES={
+  dashboard:{t:'Dashboard',s:'Vista general del sistema',load:loadDashboard},
+  partidos:{t:'Clientes / Partidos',s:'Gestión de partidos contratados',load:loadPartidos},
+  usuarios:{t:'Usuarios y accesos',s:'Cuentas de acceso al sistema',load:loadUsuarios},
+  sistema:{t:'Estado del sistema',s:'Salud de la base de datos',load:loadSistema},
+  padron:{t:'Gestión del padrón',s:'Carga y mantenimiento de datos',load:loadPadronAdmin},
+  dirigentes:{t:'Dirigentes',s:'Estructura dirigencial PRM SPM',load:loadDirigentesAdmin},
+  afiliados:{t:'Afiliados',s:'Base de miembros del partido',load:loadAfiliadosAdmin},
+  aspirantes:{t:'Aspirantes',s:'Aspiraciones a posiciones electivas',load:loadAspirantesAdmin},
+  recintos:{t:'Recintos y coordenadas',s:'Infraestructura electoral con GPS',load:loadRecintosAdmin},
+  herramientas:{t:'Herramientas',s:'Utilidades técnicas',load:loadHerramientas},
+  actividad:{t:'Registro de actividad',s:'Auditoría del sistema',load:loadActividad}
+};
+function nav(key,el){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('on'));
+  if(el) el.classList.add('on');
+  const p=PAGES[key];
+  document.getElementById('page-title').textContent=p.t;
+  document.getElementById('page-sub').textContent=p.s;
+  document.getElementById('content').innerHTML='<div class="spinner"></div>';
+  document.getElementById('sidebar').classList.remove('open');
+  if(p.load)p.load();
+}
+
+// ═══ DASHBOARD ═══
+async function loadDashboard(){
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="spinner"></div>';
+  const [
+    {count:padronNew},{count:dirigentes},{count:afiliados},
+    {count:aspirantes},{count:recintos},{count:colegios},{count:usuarios}
+  ] = await Promise.all([
+    db.from('padron_prm').select('*',{count:'exact',head:true}),
+    db.from('dirigentes').select('*',{count:'exact',head:true}).eq('activo',true),
+    db.from('afiliados').select('*',{count:'exact',head:true}),
+    db.from('aspirantes').select('*',{count:'exact',head:true}),
+    db.from('recintos_prm').select('*',{count:'exact',head:true}),
+    db.from('colegios_prm').select('*',{count:'exact',head:true}),
+    db.from('superadmins').select('*',{count:'exact',head:true}),
+  ]);
+  const {count:comprometidos}=await db.from('padron_prm').select('*',{count:'exact',head:true}).eq('comprometido',true);
+  const pct=padronNew?Math.round((comprometidos||0)*100/padronNew):0;
+  c.innerHTML=`
+    <div class="grid g4" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#3b82f6;--cl:rgba(59,130,246,.15)"><div class="stat-ic">📋</div><div class="stat-v">${(padronNew||0).toLocaleString()}</div><div class="stat-l">Electores en padrón</div></div>
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">✅</div><div class="stat-v">${(comprometidos||0).toLocaleString()} <span style="font-size:14px;opacity:.7">(${pct}%)</span></div><div class="stat-l">Comprometidos</div></div>
+      <div class="stat-card" style="--c:#8b5cf6;--cl:rgba(139,92,246,.15)"><div class="stat-ic">👥</div><div class="stat-v">${dirigentes||0}</div><div class="stat-l">Dirigentes activos</div></div>
+      <div class="stat-card" style="--c:#f59e0b;--cl:rgba(245,158,11,.15)"><div class="stat-ic">🪪</div><div class="stat-v">${(afiliados||0).toLocaleString()}</div><div class="stat-l">Afiliados directos</div></div>
+    </div>
+    <div class="grid g3" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#ec4899;--cl:rgba(236,72,153,.15)"><div class="stat-ic">🏆</div><div class="stat-v">${aspirantes||0}</div><div class="stat-l">Aspirantes registrados</div></div>
+      <div class="stat-card" style="--c:#06b6d4;--cl:rgba(6,182,212,.15)"><div class="stat-ic">🏫</div><div class="stat-v">${recintos||0} recintos · ${colegios||0} colegios</div><div class="stat-l">Infraestructura electoral</div></div>
+      <div class="stat-card" style="--c:#64748b;--cl:rgba(100,116,139,.15)"><div class="stat-ic">👤</div><div class="stat-v">${usuarios||0}</div><div class="stat-l">Usuarios del sistema</div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-h"><div class="card-title">📊 Estado del sistema</div></div>
+        <div class="health-row"><span style="color:var(--txt2);font-size:13px">Padrón PRM</span><b style="color:#fff">${(padronNew||0).toLocaleString()} electores</b></div>
+        <div class="health-row"><span style="color:var(--txt2);font-size:13px">Compromisos</span><b style="color:#10b981">${(comprometidos||0).toLocaleString()} (${pct}%)</b></div>
+        <div class="health-row"><span style="color:var(--txt2);font-size:13px">Dirigentes activos</span><b style="color:#fff">${dirigentes||0}</b></div>
+        <div class="health-row"><span style="color:var(--txt2);font-size:13px">Afiliados registrados</span><b style="color:#fff">${(afiliados||0).toLocaleString()}</b></div>
+        <div class="health-row"><span style="color:var(--txt2);font-size:13px">Aspirantes</span><b style="color:#fff">${aspirantes||0}</b></div>
+        <div class="health-row"><span style="color:var(--txt2);font-size:13px">Recintos / Colegios</span><b style="color:#fff">${recintos||0} / ${colegios||0}</b></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">⚡ Accesos rápidos</div></div>
+        <a href="https://sektor06.github.io/votapp/" target="_blank" class="btn btn-pri" style="width:100%;justify-content:flex-start;margin-bottom:8px;text-decoration:none">🏛️ Panel del partido</a>
+        <a href="https://sektor06.github.io/votapp/app.html" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;margin-bottom:8px;text-decoration:none">📱 App del dirigente</a>
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/editor" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;margin-bottom:8px;text-decoration:none">📝 Supabase SQL Editor</a>
+        <a href="https://github.com/sektor06/votapp" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;text-decoration:none">💻 GitHub repositorio</a>
+      </div>
+    </div>`;
+}
+// ═══ PARTIDOS ═══
+async function loadPartidos(){
+  const c=document.getElementById('content');
+  const {data}=await db.from('partidos').select('*').order('created_at',{ascending:false});
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-h">
+        <div class="card-title">Partidos contratados (${data?.length||0})</div>
+        <button class="btn btn-pri btn-sm" onclick="openModal('m-partido')">+ Nuevo partido</button>
+      </div>
+      ${!data||!data.length?'<div class="empty"><div class="empty-ic">🏛️</div>No hay partidos registrados</div>':`
+      <table class="tbl"><thead><tr><th>Partido</th><th>Municipio</th><th>Plan</th><th>Estado</th><th>Contrato</th></tr></thead><tbody>
+      ${data.map(p=>`<tr>
+        <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:8px;background:${p.color_primario||'#3b82f6'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;font-family:Sora">${p.siglas||'?'}</div><div><div style="font-weight:600;color:#fff">${p.siglas}</div><div style="font-size:11px;color:var(--txt3)">${p.nombre}</div></div></div></td>
+        <td style="color:var(--txt2)">${p.municipio||'—'}</td>
+        <td><span class="pill p-blue">${p.plan||'—'}</span></td>
+        <td><span class="pill ${p.estado==='activo'?'p-green':p.estado==='prueba'?'p-amber':'p-red'}">${p.estado}</span></td>
+        <td style="color:var(--txt2)">${p.monto_contrato?'$'+parseFloat(p.monto_contrato).toLocaleString():'—'}</td>
+      </tr>`).join('')}
+      </tbody></table>`}
+    </div>`;
+}
+async function guardarPartido(){
+  const nom=document.getElementById('pt-nom').value.trim();
+  const sig=document.getElementById('pt-sig').value.trim();
+  if(!nom||!sig){alert('Nombre y siglas obligatorios');return;}
+  const {error}=await db.from('partidos').insert({
+    nombre:nom,siglas:sig,municipio:document.getElementById('pt-mun').value,
+    provincia:document.getElementById('pt-prov').value,plan:document.getElementById('pt-plan').value,
+    estado:document.getElementById('pt-estado').value,monto_contrato:parseFloat(document.getElementById('pt-monto').value)||null
+  });
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-partido');
+  ['pt-nom','pt-sig','pt-mun','pt-prov','pt-monto'].forEach(id=>document.getElementById(id).value='');
+  toast('Partido creado correctamente');
+  loadPartidos();
+}
+
+// ═══ USUARIOS ═══
+async function loadUsuarios(){
+  const c=document.getElementById('content');
+  const {data}=await db.from('superadmins').select('*,partidos(siglas,nombre)').order('created_at',{ascending:false});
+  const {data:admins}=await db.from('admins_tecnicos').select('*');
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-h"><div class="card-title">Administradores técnicos (${admins?.length||0})</div></div>
+      ${(admins||[]).map(a=>`<div class="health-row"><div style="display:flex;align-items:center;gap:10px"><div class="sb-av" style="width:32px;height:32px;font-size:12px">${a.nombre[0]}</div><div><div style="color:#fff;font-weight:600;font-size:13px">${a.nombre}</div><div style="font-size:11px;color:var(--txt3)">${a.email}</div></div></div><span class="pill p-blue">${a.rol}</span></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-title">Usuarios del partido (${data?.length||0})</div>
+        <button class="btn btn-pri btn-sm" onclick="cargarPartidosSelect();openModal('m-usuario')">+ Nuevo usuario</button>
+      </div>
+      ${!data||!data.length?'<div class="empty"><div class="empty-ic">👤</div>No hay usuarios de partido</div>':`
+      <table class="tbl"><thead><tr><th>Usuario</th><th>Correo</th><th>Partido</th><th>Estado</th></tr></thead><tbody>
+      ${data.map(u=>`<tr>
+        <td style="color:#fff;font-weight:600">${u.nombre}</td>
+        <td style="color:var(--txt2)">${u.email}</td>
+        <td>${u.partidos?`<span class="pill p-blue">${u.partidos.siglas}</span>`:'<span class="pill p-gray">Sin asignar</span>'}</td>
+        <td><span class="pill ${u.activo!==false?'p-green':'p-red'}">${u.activo!==false?'Activo':'Inactivo'}</span></td>
+      </tr>`).join('')}
+      </tbody></table>`}
+    </div>`;
+}
+async function cargarPartidosSelect(){
+  const {data}=await db.from('partidos').select('id,siglas,nombre');
+  const sel=document.getElementById('us-partido');
+  sel.innerHTML='<option value="">Selecciona partido</option>'+(data||[]).map(p=>`<option value="${p.id}">${p.siglas} — ${p.nombre}</option>`).join('');
+}
+async function guardarUsuario(){
+  const partido=document.getElementById('us-partido').value;
+  const nom=document.getElementById('us-nom').value.trim();
+  const email=document.getElementById('us-email').value.trim();
+  if(!partido||!nom||!email){alert('Completa todos los campos');return;}
+  const {error}=await db.from('superadmins').insert({nombre:nom,email,partido_id:partido,rol:'partido',activo:true});
+  if(error){alert('Error: '+error.message);return;}
+  closeModal('m-usuario');
+  ['us-nom','us-email'].forEach(id=>document.getElementById(id).value='');
+  toast('Usuario registrado. Recuerda crearlo también en Supabase Auth.');
+  loadUsuarios();
+}
+
+// ═══ DIRIGENTES ADMIN ═══
+async function loadDirigentesAdmin(){
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="spinner"></div>';
+  const {data}=await db.from('dirigentes').select('*').order('nombre');
+  const activos=(data||[]).filter(d=>d.activo!==false);
+  c.innerHTML=`
+    <div class="grid g3" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#8b5cf6;--cl:rgba(139,92,246,.15)"><div class="stat-ic">👥</div><div class="stat-v">${(data||[]).length}</div><div class="stat-l">Total dirigentes</div></div>
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">✅</div><div class="stat-v">${activos.length}</div><div class="stat-l">Activos</div></div>
+      <div class="stat-card" style="--c:#f59e0b;--cl:rgba(245,158,11,.15)"><div class="stat-ic">🔑</div><div class="stat-v">${(data||[]).filter(d=>d.qr_token).length}</div><div class="stat-l">Con QR generado</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">Dirigentes registrados</div>
+        <a href="https://sektor06.github.io/votapp/" target="_blank" class="btn btn-sm btn-gh" style="text-decoration:none">Gestionar en Panel →</a>
+      </div>
+      ${!data||!data.length?'<div class="empty">Sin dirigentes registrados</div>':`
+      <table class="tbl"><thead><tr><th>Nombre</th><th>Cédula</th><th>Zona</th><th>Cargo</th><th>QR</th><th>Estado</th></tr></thead><tbody>
+      ${data.map(d=>`<tr>
+        <td style="font-weight:600;color:#fff">${d.nombre}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--txt2)">${d.cedula||'—'}</td>
+        <td><span class="pill p-blue">${d.zona||'—'}</span></td>
+        <td style="color:var(--txt2)">${d.cargo||'—'}</td>
+        <td>${d.qr_token?'<span class="pill p-green">✓ Sí</span>':'<span class="pill p-red">Sin QR</span>'}</td>
+        <td>${d.activo!==false?'<span class="pill p-green">Activo</span>':'<span class="pill">Inactivo</span>'}</td>
+      </tr>`).join('')}</tbody></table>`}
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-h"><div class="card-title">🔑 Generar QR faltantes</div></div>
+      <p style="color:var(--txt2);font-size:13px;margin-bottom:10px">Ejecuta en Supabase SQL Editor:</p>
+      <code style="background:var(--dark3);padding:12px;border-radius:8px;font-size:12px;color:#a3e635;display:block">UPDATE dirigentes SET qr_token = encode(gen_random_bytes(20), 'hex') WHERE qr_token IS NULL;</code>
+    </div>`;
+}
+
+// ═══ AFILIADOS ADMIN ═══
+async function loadAfiliadosAdmin(){
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="spinner"></div>';
+  const [{count:delPadron},{count:directos}]=await Promise.all([
+    db.from('padron_prm').select('*',{count:'exact',head:true}).eq('afiliado',true),
+    db.from('afiliados').select('*',{count:'exact',head:true}),
+  ]);
+  const {data}=await db.from('afiliados').select('*').order('created_at',{ascending:false}).limit(100);
+  const hoy=new Date().toISOString().substring(0,10);
+  const hoyCount=(data||[]).filter(a=>a.created_at&&a.created_at.startsWith(hoy)).length;
+  c.innerHTML=`
+    <div class="grid g4" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#3b82f6;--cl:rgba(59,130,246,.15)"><div class="stat-ic">🪪</div><div class="stat-v">${((delPadron||0)+(directos||0)).toLocaleString()}</div><div class="stat-l">Total afiliados</div></div>
+      <div class="stat-card" style="--c:#8b5cf6;--cl:rgba(139,92,246,.15)"><div class="stat-ic">📋</div><div class="stat-v">${(delPadron||0).toLocaleString()}</div><div class="stat-l">Del padrón</div></div>
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">✍️</div><div class="stat-v">${(directos||0).toLocaleString()}</div><div class="stat-l">Registros directos</div></div>
+      <div class="stat-card" style="--c:#f59e0b;--cl:rgba(245,158,11,.15)"><div class="stat-ic">🆕</div><div class="stat-v">${hoyCount}</div><div class="stat-l">Afiliados hoy</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">Últimos 100 registros directos</div>
+        <a href="https://sektor06.github.io/votapp/" target="_blank" class="btn btn-sm btn-gh" style="text-decoration:none">Gestionar en Panel →</a>
+      </div>
+      ${!data||!data.length?'<div class="empty">Sin afiliados registrados directamente aún</div>':`
+      <table class="tbl"><thead><tr><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Zona</th><th>Fecha</th></tr></thead><tbody>
+      ${data.map(a=>`<tr>
+        <td style="font-weight:600;color:#fff">${a.nombre}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--txt2)">${a.cedula||'—'}</td>
+        <td><span class="pill p-blue">${a.tipo||'—'}</span></td>
+        <td>${a.zona||'—'}</td>
+        <td style="font-size:12px;color:var(--txt3)">${a.created_at?a.created_at.substring(0,10):'—'}</td>
+      </tr>`).join('')}</tbody></table>`}
+    </div>`;
+}
+
+// ═══ ASPIRANTES ADMIN ═══
+async function loadAspirantesAdmin(){
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="spinner"></div>';
+  const {data}=await db.from('aspirantes').select('*').order('posicion');
+  const candidatos=(data||[]).filter(a=>a.estado==='candidato').length;
+  const precandidatos=(data||[]).filter(a=>a.estado==='precandidato').length;
+  const posiciones=new Set((data||[]).map(a=>a.posicion)).size;
+  const PL={sindico:'Síndico',vicesindico:'Vicesíndico',regidor:'Regidor/a',diputado:'Diputado/a',senador:'Senador/a',coordinador_zona:'Coord. Zona',delegado:'Delegado/a',presidente_comite:'Pte. Comité',otro_partido:'Otro partido'};
+  const EC={interesado:'p-amber',evaluado:'p-blue',precandidato:'p-amber',candidato:'p-green',retirado:'p-red'};
+  c.innerHTML=`
+    <div class="grid g4" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#ec4899;--cl:rgba(236,72,153,.15)"><div class="stat-ic">🏆</div><div class="stat-v">${(data||[]).length}</div><div class="stat-l">Total aspirantes</div></div>
+      <div class="stat-card" style="--c:#f59e0b;--cl:rgba(245,158,11,.15)"><div class="stat-ic">🎯</div><div class="stat-v">${precandidatos}</div><div class="stat-l">Precandidatos</div></div>
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">✅</div><div class="stat-v">${candidatos}</div><div class="stat-l">Candidatos oficiales</div></div>
+      <div class="stat-card" style="--c:#3b82f6;--cl:rgba(59,130,246,.15)"><div class="stat-ic">📌</div><div class="stat-v">${posiciones}</div><div class="stat-l">Posiciones en disputa</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">Todos los aspirantes</div>
+        <a href="https://sektor06.github.io/votapp/" target="_blank" class="btn btn-sm btn-gh" style="text-decoration:none">Gestionar en Panel →</a>
+      </div>
+      ${!data||!data.length?'<div class="empty">Sin aspirantes registrados</div>':`
+      <table class="tbl"><thead><tr><th>Nombre</th><th>Posición</th><th>Estado</th><th>Zona</th><th>Apoyo est.</th><th>Partido</th></tr></thead><tbody>
+      ${data.map(a=>`<tr>
+        <td style="font-weight:600;color:#fff">${a.nombre}</td>
+        <td style="color:var(--txt2)">${PL[a.posicion]||a.posicion||'—'}</td>
+        <td><span class="pill ${EC[a.estado]||''}">${a.estado||'—'}</span></td>
+        <td>${a.zona||'—'}</td>
+        <td style="color:var(--txt2)">${a.apoyo_estimado?a.apoyo_estimado.toLocaleString():'—'}</td>
+        <td><span class="pill p-blue">${a.partido||'PRM'}</span></td>
+      </tr>`).join('')}</tbody></table>`}
+    </div>`;
+}
+
+// ═══ RECINTOS ADMIN ═══
+async function loadRecintosAdmin(){
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="spinner"></div>';
+  const {data}=await db.from('recintos_prm').select('*').order('zona').order('codigo');
+  const sinCoords=(data||[]).filter(r=>!r.lat||!r.lng).length;
+  c.innerHTML=`
+    <div class="grid g3" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#06b6d4;--cl:rgba(6,182,212,.15)"><div class="stat-ic">🏫</div><div class="stat-v">${(data||[]).length}</div><div class="stat-l">Total recintos</div></div>
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">📍</div><div class="stat-v">${(data||[]).length-sinCoords}</div><div class="stat-l">Con coordenadas</div></div>
+      <div class="stat-card" style="--c:${sinCoords>0?'#ef4444':'#10b981'};--cl:${sinCoords>0?'rgba(239,68,68,.15)':'rgba(16,185,129,.15)'}"><div class="stat-ic">${sinCoords>0?'⚠️':'✅'}</div><div class="stat-v">${sinCoords}</div><div class="stat-l">Sin coordenadas</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">Recintos electorales (${(data||[]).length})</div>
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/editor" target="_blank" class="btn btn-sm btn-gh" style="text-decoration:none">Editar en Supabase →</a>
+      </div>
+      ${!data||!data.length?'<div class="empty">Sin recintos cargados</div>':`
+      <table class="tbl"><thead><tr><th>Código</th><th>Zona</th><th>Nombre</th><th>Electores</th><th>Colegios</th><th>Coords</th></tr></thead><tbody>
+      ${data.map(r=>`<tr>
+        <td style="font-family:monospace;font-weight:600;color:#fff">${r.codigo}</td>
+        <td><span class="pill p-blue">Zona ${r.zona||'?'}</span></td>
+        <td style="color:var(--txt2);font-size:12px">${(r.nombre||'').substring(0,35)}</td>
+        <td style="color:var(--txt2)">${r.electores?r.electores.toLocaleString():'—'}</td>
+        <td style="color:var(--txt2)">${r.colegios||'—'}</td>
+        <td>${r.lat&&r.lng?'<span class="pill p-green" style="font-size:10px">✓ GPS</span>':'<span class="pill p-red" style="font-size:10px">Sin GPS</span>'}</td>
+      </tr>`).join('')}</tbody></table>`}
+    </div>`;
+}
+
+// ═══ ESTADO DEL SISTEMA ═══
+async function loadSistema(){
+  const c=document.getElementById('content');
+  c.innerHTML='<div class="spinner"></div>';
+  const tablas=['padron_prm','recintos_prm','colegios_prm','dirigentes','afiliados','aspirantes','nomina_publica','encuestas','encuesta_respuestas','actividades','gastos','ingresos','partidos','superadmins','candidatos','votantes','padron'];
+  const counts={};
+  for(const t of tablas){
+    try{const {count}=await db.from(t).select('*',{count:'exact',head:true});counts[t]=count||0;}
+    catch(e){counts[t]=-1;}
+  }
+  const totalReg=Object.values(counts).filter(v=>v>0).reduce((a,b)=>a+b,0);
+  c.innerHTML=`
+    <div class="grid g3" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">✅</div><div class="stat-v">Activo</div><div class="stat-l">Estado de Supabase</div></div>
+      <div class="stat-card" style="--c:#3b82f6;--cl:rgba(59,130,246,.15)"><div class="stat-ic">📦</div><div class="stat-v">${tablas.length}</div><div class="stat-l">Tablas monitoreadas</div></div>
+      <div class="stat-card" style="--c:#f59e0b;--cl:rgba(245,158,11,.15)"><div class="stat-ic">🗃️</div><div class="stat-v">${totalReg.toLocaleString()}</div><div class="stat-l">Registros totales</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">Registros por tabla</div></div>
+      ${tablas.map(t=>{
+        const v=counts[t];
+        return `<div class="health-row">
+          <div style="display:flex;align-items:center;gap:10px"><div class="health-dot" style="background:${v<0?'var(--red)':v>0?'var(--green)':'var(--txt3)'}"></div><span style="color:var(--txt);font-size:13px;font-family:monospace">${t}</span></div>
+          <b style="color:${v<0?'#fca5a5':'#fff'}">${v<0?'Error':v.toLocaleString()}</b>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ═══ GESTIÓN DEL PADRÓN ═══
+async function loadPadronAdmin(){
+  const c=document.getElementById('content');
+  const {count:old}=await db.from('padron').select('*',{count:'exact',head:true});
+  const {count:nuevo}=await db.from('padron_prm').select('*',{count:'exact',head:true});
+  const {count:recintos}=await db.from('recintos_prm').select('*',{count:'exact',head:true});
+  const {count:colegios}=await db.from('colegios_prm').select('*',{count:'exact',head:true});
+  c.innerHTML=`
+    <div class="grid g4" style="margin-bottom:20px">
+      <div class="stat-card" style="--c:#f59e0b;--cl:rgba(245,158,11,.15)"><div class="stat-ic">📋</div><div class="stat-v">${(old||0).toLocaleString()}</div><div class="stat-l">Padrón antiguo</div></div>
+      <div class="stat-card" style="--c:#3b82f6;--cl:rgba(59,130,246,.15)"><div class="stat-ic">📊</div><div class="stat-v">${(nuevo||0).toLocaleString()}</div><div class="stat-l">Padrón PRM nuevo</div></div>
+      <div class="stat-card" style="--c:#10b981;--cl:rgba(16,185,129,.15)"><div class="stat-ic">🏫</div><div class="stat-v">${recintos||0}</div><div class="stat-l">Recintos</div></div>
+      <div class="stat-card" style="--c:#8b5cf6;--cl:rgba(139,92,246,.15)"><div class="stat-ic">🏛️</div><div class="stat-v">${colegios||0}</div><div class="stat-l">Colegios</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">Carga del padrón</div></div>
+      <p style="color:var(--txt2);font-size:13px;line-height:1.6;margin-bottom:16px">El padrón nuevo del PRM se carga procesando los PDFs por recinto. Cada recinto contiene colegios con su mercado electoral y electores clasificados políticamente.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/editor" target="_blank" class="btn btn-pri" style="text-decoration:none">⚡ Abrir editor SQL</a>
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/storage/buckets" target="_blank" class="btn btn-gh" style="text-decoration:none">📁 Ver almacenamiento</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-title">⚠️ Zona de peligro</div></div>
+      <p style="color:var(--txt2);font-size:13px;margin-bottom:14px">Acciones irreversibles. Úsalas con cuidado.</p>
+      <button class="btn btn-red" onclick="alert('Por seguridad, las eliminaciones masivas se hacen desde Supabase SQL Editor directamente.')">🗑️ Limpiar datos de prueba</button>
+    </div>`;
+}
+
+// ═══ HERRAMIENTAS ═══
+async function loadHerramientas(){
+  const c=document.getElementById('content');
+  c.innerHTML=`
+    <div class="grid g2">
+      <div class="card"><div class="card-h"><div class="card-title">🔗 Enlaces del sistema</div></div>
+        <a href="https://sektor06.github.io/votapp/" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;margin-bottom:10px;text-decoration:none">🏛️ Panel del partido</a>
+        <a href="https://sektor06.github.io/votapp/app.html" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;margin-bottom:10px;text-decoration:none">📱 App del dirigente</a>
+        <a href="https://github.com/sektor06/votapp" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;text-decoration:none">💻 Repositorio GitHub</a>
+      </div>
+      <div class="card"><div class="card-h"><div class="card-title">⚡ Supabase</div></div>
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/editor" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;margin-bottom:10px;text-decoration:none">📝 SQL Editor</a>
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/auth/users" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;margin-bottom:10px;text-decoration:none">👤 Authentication</a>
+        <a href="https://supabase.com/dashboard/project/izyqrakicqqdzgdlmxfb/database/tables" target="_blank" class="btn btn-gh" style="width:100%;justify-content:flex-start;text-decoration:none">🗃️ Tablas</a>
+      </div>
+    </div>
+    <div class="card"><div class="card-h"><div class="card-title">📲 Generar QR de acceso</div></div>
+      <p style="color:var(--txt2);font-size:13px;margin-bottom:14px">Los QR de dirigentes se generan desde el panel del partido en el módulo de Estructura Dirigencial.</p>
+    </div>`;
+}
+
+// ═══ ACTIVIDAD ═══
+async function loadActividad(){
+  const c=document.getElementById('content');
+  const {data}=await db.from('system_log').select('*').order('created_at',{ascending:false}).limit(50);
+  c.innerHTML=`
+    <div class="card">
+      <div class="card-h"><div class="card-title">Registro de actividad reciente</div></div>
+      ${!data||!data.length?'<div class="empty"><div class="empty-ic">📜</div>No hay actividad registrada aún</div>':`
+      <table class="tbl"><thead><tr><th>Tipo</th><th>Descripción</th><th>Usuario</th><th>Fecha</th></tr></thead><tbody>
+      ${data.map(l=>`<tr><td><span class="pill p-blue">${l.tipo}</span></td><td style="color:var(--txt2)">${l.descripcion||'—'}</td><td style="color:var(--txt2)">${l.usuario||'—'}</td><td style="color:var(--txt3);font-size:12px">${new Date(l.created_at).toLocaleString('es-DO')}</td></tr>`).join('')}
+      </tbody></table>`}
+    </div>`;
+}
+
+initSaved();
+</script>
+</body>
+</html>
