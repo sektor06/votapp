@@ -1367,7 +1367,7 @@ button { background: none; border: none; cursor: pointer; }
 <!-- ═══ MANTENIMIENTO ═══ -->
 <!-- Para reactivar el sistema: cambia MANTENIMIENTO_ACTIVO a false -->
 <script>
-  const MANTENIMIENTO_ACTIVO = false;
+  const MANTENIMIENTO_ACTIVO = true;
   if (MANTENIMIENTO_ACTIVO) {
     document.addEventListener('DOMContentLoaded', function() {
       document.body.innerHTML = `
@@ -4194,10 +4194,12 @@ function fmtSeguimientoCed(input) {
 }
 
 async function buscarElectorSeg() {
-  const cedula = document.getElementById('seg-ced-input').value;
+  const raw    = document.getElementById('seg-ced-input').value;
+  const digits = raw.replace(/\D/g,'');
   const res    = document.getElementById('seg-elector-result');
-  if (cedula.replace(/\D/g,'').length < 11) return;
+  if (digits.length < 11) return;
 
+  const cedula = digits.slice(0,3)+'-'+digits.slice(3,10)+'-'+digits.slice(10);
   res.innerHTML = '<div style="color:var(--mute);font-size:13px;">Buscando…</div>';
 
   const { data } = await db.from('padron_prm').select('*').eq('cedula', cedula).maybeSingle();
