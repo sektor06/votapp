@@ -1367,7 +1367,7 @@ button { background: none; border: none; cursor: pointer; }
 <!-- ═══ MANTENIMIENTO ═══ -->
 <!-- Para reactivar el sistema: cambia MANTENIMIENTO_ACTIVO a false -->
 <script>
-  const MANTENIMIENTO_ACTIVO = false;
+  const MANTENIMIENTO_ACTIVO = true;
   if (MANTENIMIENTO_ACTIVO) {
     document.addEventListener('DOMContentLoaded', function() {
       document.body.innerHTML = `
@@ -5732,6 +5732,39 @@ document.getElementById('modal-dirigente').addEventListener('click', function(e)
 document.getElementById('modal-qr').addEventListener('click', function(e) {
   if (e.target === this) cerrarModalQR();
 });
+
+// ─── QR Dirigente ───
+function verQRDirigente(id, nombre, zona, token) {
+  if (!token) {
+    alert('Este dirigente no tiene token QR. Edítalo para generarle uno, o ejecuta en Supabase:\nUPDATE dirigentes SET qr_token = encode(gen_random_bytes(20),\'hex\') WHERE qr_token IS NULL;');
+    return;
+  }
+  const appUrl = 'https://sektor06.github.io/votapp/app.html?token=' + token;
+  document.getElementById('qr-nombre').textContent    = nombre;
+  document.getElementById('qr-subtitulo').textContent = zona ? 'Zona ' + zona + ' · PRM SPM' : 'PRM San Pedro de Macorís';
+  document.getElementById('qr-url-texto').textContent = appUrl;
+
+  // Generar QR como imagen via api.qrserver.com
+  const qrContainer = document.getElementById('qr-canvas');
+  qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(appUrl)}&color=0f172a&bgcolor=ffffff&margin=2" width="220" height="220" style="display:block;" alt="QR Code" id="qr-img-generated">`;
+
+  document.getElementById('modal-qr').classList.add('show');
+}
+
+function cerrarModalQR() {
+  document.getElementById('modal-qr').classList.remove('show');
+}
+
+async function compartirQR() {
+  const nombre = document.getElementById('qr-nombre').textContent;
+  const img    = document.getElementById('qr-img-generated');
+  if (!img) { alert('No hay QR para compartir.'); return; }
+  const a = document.createElement('a');
+  a.download = 'qr-' + nombre + '.png';
+  a.href = img.src;
+  a.target = '_blank';
+  a.click();
+}
 
 // ═══ RECINTOS ═══
 async function loadRecintos() {
