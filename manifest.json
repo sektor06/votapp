@@ -1,0 +1,23 @@
+{
+  "name": "ATENAS · Inteligencia para liderar",
+  "short_name": "ATENAS",
+  "description": "App de Campo — ATENAS Sistema Electoral",
+  "start_url": "/votapp/app.html",
+  "display": "standalone",
+  "background_color": "#01173A",
+  "theme_color": "#01173A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%2301173A'/%3E%3Cpath d='M96 34 L136 106 L120 106 L96 64 L72 106 L56 106 Z' fill='%23FFFFFF'/%3E%3Cpath d='M96 78 L110 104 L82 104 Z' fill='%2381CD35'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='85' fill='%2301173A'/%3E%3Cpath d='M256 90 L362 282 L320 282 L256 170 L192 282 L150 282 Z' fill='%23FFFFFF'/%3E%3Cpath d='M256 208 L292 277 L220 277 Z' fill='%2381CD35'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
