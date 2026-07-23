@@ -3593,6 +3593,17 @@ function ini(nombre) {
   return nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
 }
 
+// Escapa texto para insertarlo de forma segura en HTML (previene XSS almacenado)
+function esc(val) {
+  if (val === null || val === undefined) return '';
+  return String(val)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function fmtNum(n) {
   if (n === null || n === undefined) return '—';
   return n.toLocaleString('es-DO');
@@ -3732,7 +3743,7 @@ async function initMapaZonas() {
     style: { color: '#000000', weight: 1.2, fillColor: '#94a3b8', fillOpacity: 0.15, dashArray: '4,3' },
     onEachFeature: (feature, layer) => {
       layer.bindTooltip(feature.properties.nombre, { permanent: false, direction: 'center', className: 'barrio-tooltip' });
-      layer.bindPopup(`<b>${feature.properties.nombre}</b>`);
+      layer.bindPopup(`<b>${esc(feature.properties.nombre)}</b>`);
     }
   }).addTo(mapZonas);
 
@@ -3744,7 +3755,7 @@ async function initMapaZonas() {
     L.marker([b.lat, b.lon], {
       icon: L.divIcon({
         className: 'barrio-label-icon',
-        html: `<span style="font-size:10px;font-weight:600;color:#334155;background:rgba(255,255,255,.72);padding:1px 4px;border-radius:3px;white-space:nowrap;">${b.nombre}</span>`,
+        html: `<span style="font-size:10px;font-weight:600;color:#334155;background:rgba(255,255,255,.72);padding:1px 4px;border-radius:3px;white-space:nowrap;">${esc(b.nombre)}</span>`,
         iconSize: [0,0]
       }),
       interactive: false
@@ -4039,7 +4050,7 @@ async function loadTopDirigentes() {
 
   tb.innerHTML = ranked.map(d => `
     <tr>
-      <td class="bold">${d.nombre}</td>
+      <td class="bold">${esc(d.nombre)}</td>
       <td>${d.cargo || '—'}</td>
       <td>${d.sectores?.nombre || d.sector || d.zona || '—'}</td>
       <td class="num">${fmtNum(d.stats.total)}</td>
@@ -4101,10 +4112,10 @@ async function doSearchPadron(q) {
   const afilP = { 'PRM': 'pill-good', 'PLD': 'pill-mute', 'FP': 'pill-mute' };
 
   list.innerHTML = data.map(e => `
-    <button type="button" class="elector-row" onclick="openFicha('${e.id}')" aria-label="Ver ficha de ${e.nombre}">
+    <button type="button" class="elector-row" onclick="openFicha('${e.id}')" aria-label="Ver ficha de ${esc(e.nombre)}">
       <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}</div>
       <div class="elector-info">
-        <div class="elector-name">${e.nombre}</div>
+        <div class="elector-name">${esc(e.nombre)}</div>
         <div class="elector-meta">${e.cedula} · ${e.zona ? 'Zona ' + e.zona : 'Sin zona'}</div>
       </div>
       <div class="elector-tags">
@@ -4156,7 +4167,7 @@ async function openFicha(id) {
   body.innerHTML = `
     <div class="ficha-hero" data-afil="${e.afiliacion || ''}">
       <div class="ficha-av">${ini(e.nombre)}</div>
-      <div class="ficha-name">${e.nombre}</div>
+      <div class="ficha-name">${esc(e.nombre)}</div>
       <div class="ficha-ced">${e.cedula}</div>
     </div>
 
@@ -4196,7 +4207,7 @@ async function openFicha(id) {
       <div class="ficha-section-t">Contacto</div>
       ${e.celular ? `<div class="ficha-row"><span class="ficha-row-l">Celular</span><span class="ficha-row-v mono">${e.celular}</span></div>` : ''}
       ${e.telefono ? `<div class="ficha-row"><span class="ficha-row-l">Teléfono</span><span class="ficha-row-v mono">${e.telefono}</span></div>` : ''}
-      ${e.direccion ? `<div class="ficha-row"><span class="ficha-row-l">Dirección</span><span class="ficha-row-v">${e.direccion}</span></div>` : ''}
+      ${e.direccion ? `<div class="ficha-row"><span class="ficha-row-l">Dirección</span><span class="ficha-row-v">${esc(e.direccion)}</span></div>` : ''}
     </div>` : ''}
 
     ${hist.length ? `
@@ -4210,7 +4221,7 @@ async function openFicha(id) {
     ${e.notas ? `
     <div class="ficha-section">
       <div class="ficha-section-t">Notas del dirigente</div>
-      <div style="background: var(--line-2); padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5">${e.notas}</div>
+      <div style="background: var(--line-2); padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5">${esc(e.notas)}</div>
     </div>` : ''}
   `;
 }
@@ -4285,7 +4296,7 @@ async function loadEncuestas() {
     return `
     <div style="background:var(--bg);border:1.5px solid ${e.estado==='activa'?'var(--prm)':'var(--line)'};border-radius:10px;padding:12px 14px;min-width:220px;flex:1;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);cursor:pointer;" onclick="seleccionarEncuesta('${e.id}')">${e.nombre}</span>
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);cursor:pointer;" onclick="seleccionarEncuesta('${e.id}')">${esc(e.nombre)}</span>
         <span class="pill ${ESTADO_PILL[e.estado]||'pill-mute'}" style="font-size:10px;">${ESTADO_LABEL[e.estado]||e.estado}</span>
       </div>
       <div style="font-size:12px;color:var(--mute);">${e.tipo||''} · Muestra ${fmtNum(e.muestra_objetivo||0)}</div>
@@ -4303,7 +4314,7 @@ async function loadEncuestas() {
 
   const sel = document.getElementById('enc-selector');
   sel.innerHTML = '<option value="">Selecciona una encuesta…</option>' +
-    encuestasData.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
+    encuestasData.map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('');
 
   document.getElementById('enc-detalle-wrap').style.display = 'block';
   if (encuestasData.length) seleccionarEncuesta(encuestasData[0].id);
@@ -4327,7 +4338,7 @@ async function cargarResultados() {
   if (asps.length) {
     aspVincEl.style.display = 'block';
     aspVincEl.innerHTML = `<span style="font-size:11px;color:var(--mute);margin-right:6px;">Evaluando a:</span>` +
-      asps.map(a => `<span class="pill pill-info" style="font-size:11px;margin-right:4px;">👤 ${a.nombre} — ${a.posicion||''}${a.zona?' (Zona '+a.zona+')':''}</span>`).join('');
+      asps.map(a => `<span class="pill pill-info" style="font-size:11px;margin-right:4px;">👤 ${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Zona '+a.zona+')':''}</span>`).join('');
   } else {
     aspVincEl.style.display = 'none';
   }
@@ -4411,7 +4422,7 @@ async function renderResultadosPorPregunta(encuestaId, respuestaIds, pesos) {
     <div class="panel">
       <div class="panel-b" style="padding:14px 16px;">
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:12px;">
-          ${i+1}. ${p.texto}
+          ${i+1}. ${esc(p.texto)}
         </div>
         <div id="preg-chart-${p.id}"></div>
       </div>
@@ -4489,7 +4500,7 @@ async function toggleAlcanceDetalle() {
     sel.innerHTML = '<option disabled>Cargando…</option>';
     const { data } = await db.from('recintos_prm').select('codigo, nombre, zona').order('zona').order('codigo');
     sel.innerHTML = (data||[])
-      .map(r => `<option value="${r.codigo}">${r.zona} · ${r.nombre}</option>`).join('');
+      .map(r => `<option value="${r.codigo}">${r.zona} · ${esc(r.nombre)}</option>`).join('');
   }
   document.getElementById('enc-poblacion').value = '';
 }
@@ -4525,7 +4536,7 @@ async function abrirModalEncuesta() {
   const { data: aspirantes } = await db.from('aspirantes').select('id, nombre, posicion, zona').order('nombre');
   const selAsp = document.getElementById('enc-aspirantes');
   selAsp.innerHTML = (aspirantes||[]).map(a =>
-    `<option value="${a.id}">${a.nombre} — ${a.posicion||''}${a.zona?' (Zona '+a.zona+')':''}</option>`
+    `<option value="${a.id}">${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Zona '+a.zona+')':''}</option>`
   ).join('') || '<option disabled>No hay aspirantes registrados</option>';
 }
 
@@ -4596,7 +4607,7 @@ async function crearEncuesta() {
 async function abrirModalPreguntas(encuestaId) {
   encuestaActiva = encuestaId;
   const enc = encuestasData.find(e=>e.id===encuestaId);
-  document.getElementById('preg-titulo').textContent = enc ? `Preguntas — ${enc.nombre}` : 'Preguntas de la encuesta';
+  document.getElementById('preg-titulo').textContent = enc ? `Preguntas — ${esc(enc.nombre)}` : 'Preguntas de la encuesta';
   document.getElementById('preg-texto').value = '';
   document.getElementById('preg-opciones').value = '';
   document.getElementById('preg-tipo').value = 'opcion_unica';
@@ -4652,7 +4663,7 @@ function renderPreguntasLista() {
   cont.innerHTML = preguntasTmp.map((p,i) => `
     <div style="background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
       <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${i+1}. ${p.texto}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${i+1}. ${esc(p.texto)}</div>
         <div style="font-size:11px;color:var(--mute);margin-top:2px;">${TIPO_LABEL[p.tipo]||p.tipo} ${p.obligatoria?'· Obligatoria':'· Opcional'}${p.opciones?.length?' · '+p.opciones.join(', '):''}${p.tipo_especial?' · '+ESPECIAL_LABEL[p.tipo_especial]:''}${p.opcion_trampa?' · 🪤 Trampa: '+p.opcion_trampa:''}${p.es_sensible?' · 🔒 Sensible':''}</div>
       </div>
       <button class="btn-qr" onclick="eliminarPregunta('${p.id}')" style="padding:6px 10px;">Quitar</button>
@@ -4683,7 +4694,7 @@ function togglePregSensible() {
       sel.innerHTML = '<option value="">No hay otras preguntas agregadas todavía</option>';
     } else {
       sel.innerHTML = '<option value="">Seleccioná la pregunta inocua…</option>' +
-        preguntasTmp.map(p => `<option value="${p.id}">${p.texto}</option>`).join('');
+        preguntasTmp.map(p => `<option value="${p.id}">${esc(p.texto)}</option>`).join('');
     }
   }
 }
@@ -4779,7 +4790,7 @@ let dirigentesTmp = [];
 async function abrirModalEncuestadores(encuestaId) {
   encuestaActiva = encuestaId;
   const enc = encuestasData.find(e=>e.id===encuestaId);
-  document.getElementById('asig-titulo').textContent = enc ? `Encuestadores — ${enc.nombre}` : 'Encuestadores asignados';
+  document.getElementById('asig-titulo').textContent = enc ? `Encuestadores — ${esc(enc.nombre)}` : 'Encuestadores asignados';
   document.getElementById('asig-meta').value = '';
   document.getElementById('asig-error').style.display = 'none';
 
@@ -4787,7 +4798,7 @@ async function abrirModalEncuestadores(encuestaId) {
   dirigentesTmp = dirigentes || [];
   const sel = document.getElementById('asig-persona');
   sel.innerHTML = dirigentesTmp.map(d =>
-    `<option value="${d.id}" data-zona="${d.zona||''}">${d.nombre} — ${d.nivel==='activista'?'Activista':'Dirigente'} (Zona ${d.zona||'—'})</option>`
+    `<option value="${d.id}" data-zona="${d.zona||''}">${esc(d.nombre)} — ${d.nivel==='activista'?'Activista':'Dirigente'} (Zona ${d.zona||'—'})</option>`
   ).join('');
   autocompletarZonaAsignada();
 
@@ -4882,7 +4893,7 @@ let pesosPonderacionCache = null;
 async function abrirModalPonderacion() {
   const enc = encuestasData.find(e=>e.id===encuestaActiva);
   if (!enc) { alert('Seleccioná una encuesta primero.'); return; }
-  document.getElementById('pond-titulo').textContent = `Ponderación — ${enc.nombre}`;
+  document.getElementById('pond-titulo').textContent = `Ponderación — ${esc(enc.nombre)}`;
   document.getElementById('pond-error').style.display = 'none';
 
   // 1. Calcular proporciones reales de sexo y zona segun el alcance de la encuesta
@@ -5063,13 +5074,13 @@ async function generarReporte() {
   let narrativaPreguntas = '';
   (preguntas||[]).forEach((p,i) => {
     const filas = (detalles||[]).filter(d=>d.pregunta_id===p.id);
-    narrativaPreguntas += `<p style="margin:14px 0 4px;"><b>${i+1}. ${p.texto}</b></p>`;
+    narrativaPreguntas += `<p style="margin:14px 0 4px;"><b>${i+1}. ${esc(p.texto)}</b></p>`;
     if (!filas.length) {
       narrativaPreguntas += `<p style="color:var(--mute);">Sin respuestas registradas para esta pregunta.</p>`;
       return;
     }
     if (p.tipo === 'abierta') {
-      narrativaPreguntas += `<p>Se recibieron ${filas.length} respuestas abiertas. Ejemplos: ${filas.slice(0,3).map(d=>`"${d.valor_respuesta}"`).join('; ')}${filas.length>3?', entre otras.':'.'}</p>`;
+      narrativaPreguntas += `<p>Se recibieron ${filas.length} respuestas abiertas. Ejemplos: ${filas.slice(0,3).map(d=>`"${esc(d.valor_respuesta)}"`).join('; ')}${filas.length>3?', entre otras.':'.'}</p>`;
     } else if (p.tipo === 'escala') {
       const nums = filas.map(d=>({n:Number(d.valor_respuesta), w:pesoDe(d.respuesta_id)})).filter(x=>!isNaN(x.n));
       const sumaW = nums.reduce((a,x)=>a+x.w,0);
@@ -5097,7 +5108,7 @@ async function generarReporte() {
   const html = `
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:11px;letter-spacing:.1em;color:var(--prm);text-transform:uppercase;">PRM San Pedro de Macorís</div>
-      <h1 style="font-family:'Sora',sans-serif;font-size:22px;margin:8px 0 4px;">${enc.nombre}</h1>
+      <h1 style="font-family:'Sora',sans-serif;font-size:22px;margin:8px 0 4px;">${esc(enc.nombre)}</h1>
       <div style="font-size:12px;color:var(--mute);">Reporte generado el ${new Date().toLocaleDateString('es-DO',{year:'numeric',month:'long',day:'numeric'})}</div>
     </div>
 
@@ -5249,7 +5260,7 @@ async function exportarEncuestaExcel(evt) {
     (preguntas || []).forEach((p, idx) => {
       const filasPregunta = (detalles || []).filter(d => d.pregunta_id === p.id);
 
-      wsRes.getCell(`A${filaActual}`).value = `${idx+1}. ${p.texto}`;
+      wsRes.getCell(`A${filaActual}`).value = `${idx+1}. ${esc(p.texto)}`;
       wsRes.getCell(`A${filaActual}`).font = { bold: true, size: 12 };
       filaActual += 1;
 
@@ -5398,10 +5409,10 @@ function renderNomina() {
   }
   tb.innerHTML = nominaFiltrada.map(n => `
     <tr>
-      <td class="bold">${n.nombre}</td>
+      <td class="bold">${esc(n.nombre)}</td>
       <td style="font-family:monospace;font-size:12px;">${n.cedula||'—'}</td>
       <td style="font-size:12px;">${n.institucion||'—'}</td>
-      <td style="font-size:12px;color:var(--mute)">${n.cargo||'—'}</td>
+      <td style="font-size:12px;color:var(--mute)">${esc(n.cargo||'—')}</td>
       <td><span class="pill pill-mute" style="font-size:11px;">${NOM_NIVEL_LABEL[n.nivel]||n.nivel||'—'}</span></td>
       <td>${n.zona||'—'}</td>
       <td><span class="pill ${LEALTAD_PILL[n.lealtad]||'pill-mute'}">${LEALTAD_LABEL[n.lealtad]||n.lealtad||'—'}</span></td>
@@ -5505,7 +5516,7 @@ function exportarNomina() {
   if (!datos.length) { alert('No hay registros para exportar.'); return; }
   const headers = ['Nombre','Cédula','Institución','Cargo','Nivel','Zona','Lealtad','Teléfono','Salario','Notas'];
   const rows = datos.map(n => [
-    `"${n.nombre}"`, n.cedula||'', `"${n.institucion||''}"`, `"${n.cargo||''}"`,
+    `"${esc(n.nombre)}"`, n.cedula||'', `"${n.institucion||''}"`, `"${esc(n.cargo||'')}"`,
     NOM_NIVEL_LABEL[n.nivel]||n.nivel||'', n.zona||'',
     LEALTAD_LABEL[n.lealtad]||n.lealtad||'', n.telefono||'', n.salario||'', `"${(n.notas||'').replace(/"/g,"'")}"`
   ].join(','));
@@ -5687,8 +5698,8 @@ async function loadSeguimiento() {
   const [{ data: votos }, { data: reportes }, { data: recintos }, { data: comprometidos }] = await Promise.all([
     db.from('votos_dia').select('*').order('created_at', { ascending:false }),
     db.from('reportes_mesa').select('*').order('created_at', { ascending:false }),
-    db.from('recintos_prm').select('codigo, nombre, zona, colegios').order('zona').order('codigo'),
-    db.from('padron_prm').select('recinto, zona').eq('comprometido', true)
+    db.from('recintos_prm').select('codigo, nombre, zona, total_colegios').order('zona').order('codigo'),
+    db.from('padron_prm').select('recinto_codigo, zona').eq('comprometido', true)
   ]);
 
   segData = {
@@ -5770,7 +5781,7 @@ function renderRecintosTabla() {
 
   // Agrupar
   const compPorRec = {};
-  segData.comprometidos.forEach(c => { compPorRec[c.recinto] = (compPorRec[c.recinto]||0) + 1; });
+  segData.comprometidos.forEach(c => { compPorRec[c.recinto_codigo] = (compPorRec[c.recinto_codigo]||0) + 1; });
   const votosPorRec = {};
   segData.votos.forEach(v => { votosPorRec[v.recinto_codigo] = (votosPorRec[v.recinto_codigo]||0) + 1; });
   const repMap = {};
@@ -5843,7 +5854,7 @@ async function buscarElectorSeg() {
 
   res.innerHTML = `
     <div style="background:${yaVoto?'#f0fdf4':'#eff6ff'};border:1.5px solid ${yaVoto?'#86efac':'#bfdbfe'};border-radius:10px;padding:14px;">
-      <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">${data.nombre.split(',').slice(0,2).join(',').trim()}</div>
+      <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">${esc(data.nombre.split(',').slice(0,2).join(',').trim())}</div>
       <div style="font-size:12px;color:var(--mute);margin-bottom:8px;">Cédula: ${data.cedula} · Zona ${data.zona||'?'} · Recinto ${data.recinto||'?'}</div>
       <div style="font-size:12px;margin-bottom:${yaVoto?'0':'12px'};font-weight:600;color:${data.comprometido?'var(--seguro)':'var(--mute)'};">
         ${data.comprometido?'✓ Comprometido con el PRM':'Sin compromiso registrado'}
@@ -5871,7 +5882,7 @@ async function marcarVoto(cedula, zona, recinto) {
 function renderAlertas() {
   const el = document.getElementById('seg-alertas-content');
   const compPorRec = {};
-  segData.comprometidos.forEach(c => { compPorRec[c.recinto] = (compPorRec[c.recinto]||0) + 1; });
+  segData.comprometidos.forEach(c => { compPorRec[c.recinto_codigo] = (compPorRec[c.recinto_codigo]||0) + 1; });
   const votosPorRec = {};
   segData.votos.forEach(v => { votosPorRec[v.recinto_codigo] = (votosPorRec[v.recinto_codigo]||0) + 1; });
   const repRecs = new Set(segData.reportes.map(r=>r.recinto_codigo));
@@ -6043,7 +6054,7 @@ function renderRecintos() {
         <!-- Delegados de este recinto -->
         ${dels.slice(0,4).map(d=>`
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.06);">
-            <span style="color:var(--text);font-weight:500;">Mesa ${d.mesa||'?'} · ${d.nombre||'—'}</span>
+            <span style="color:var(--text);font-weight:500;">Mesa ${d.mesa||'?'} · ${esc(d.nombre||'—')}</span>
             <span style="color:${ROL_COLOR[d.rol]||'#64748b'};font-size:10px;font-weight:700;">${ROL_LABEL[d.rol]||d.rol}</span>
           </div>`).join('')}
         ${dels.length > 4 ? `<div style="font-size:11px;color:var(--mute);margin-top:4px;">+${dels.length-4} más…</div>` : ''}
@@ -6056,7 +6067,7 @@ function renderListaDelegados() {
   const tb = document.getElementById('mont-del-tb');
   if (!montajeFiltrado.length) { tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--mute)">Sin delegados registrados.</td></tr>'; return; }
   tb.innerHTML = montajeFiltrado.map(d => `<tr>
-    <td class="bold">${d.nombre||'—'}</td>
+    <td class="bold">${esc(d.nombre||'—')}</td>
     <td style="font-family:monospace;font-size:12px;">${d.cedula||'—'}</td>
     <td><span style="background:${ROL_COLOR[d.rol]||'#64748b'}20;color:${ROL_COLOR[d.rol]||'#64748b'};border:1px solid ${ROL_COLOR[d.rol]||'#64748b'}40;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;">${ROL_LABEL[d.rol]||d.rol||'—'}</span></td>
     <td style="font-size:12px;">${d.recinto_codigo||'—'} <span style="color:var(--mute);font-size:11px;">${(recintosMap[d.recinto_codigo]?.nombre||'').substring(0,20)}</span></td>
@@ -6234,6 +6245,19 @@ async function guardarDelegado() {
     errEl.style.display = 'block'; return;
   }
 
+  if (archivo) {
+    const TIPOS_PERMITIDOS = ['image/jpeg','image/png','image/webp','application/pdf'];
+    const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
+    if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+      errEl.textContent = 'El comprobante debe ser una imagen (JPG/PNG/WEBP) o PDF.';
+      errEl.style.display = 'block'; return;
+    }
+    if (archivo.size > MAX_BYTES) {
+      errEl.textContent = 'El comprobante no puede pesar más de 8 MB.';
+      errEl.style.display = 'block'; return;
+    }
+  }
+
   btn.disabled = true; btn.textContent = 'Guardando…';
   errEl.style.display = 'none';
 
@@ -6278,7 +6302,7 @@ function exportarMontaje() {
   if (!montajeData.length) { alert('Sin datos para exportar.'); return; }
   const headers = ['Nombre','Cédula','Rol','Recinto','Nombre recinto','Zona','Mesa','Estado','Teléfono','Monto pago','Moneda','Estado de pago','Fecha de pago','Notas'];
   const rows = montajeData.map(d => [
-    `"${d.nombre||''}"`, d.cedula||'', ROL_LABEL[d.rol]||d.rol||'',
+    `"${esc(d.nombre||'')}"`, d.cedula||'', ROL_LABEL[d.rol]||d.rol||'',
     d.recinto_codigo||'', `"${(recintosMap[d.recinto_codigo]?.nombre||'').replace(/"/g,"'")}"`,
     d.zona||'', d.mesa||'', EST_LMONT[d.estado]||d.estado||'',
     d.telefono||'', d.monto_pago ?? '', d.moneda||'RD$', d.estado_pago||'pendiente', d.fecha_pago||'',
@@ -6306,7 +6330,7 @@ function imprimirConstancia(id) {
     </div>
 
     <table style="width:100%;font-size:13px;margin-bottom:18px;border-collapse:collapse;">
-      <tr><td style="padding:6px 0;color:var(--mute);width:40%;">Nombre</td><td style="padding:6px 0;font-weight:700;">${d.nombre||''}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);width:40%;">Nombre</td><td style="padding:6px 0;font-weight:700;">${esc(d.nombre||'')}</td></tr>
       <tr><td style="padding:6px 0;color:var(--mute);">Cédula</td><td style="padding:6px 0;">${d.cedula||'—'}</td></tr>
       <tr><td style="padding:6px 0;color:var(--mute);">Posición</td><td style="padding:6px 0;">${ROL_LABEL[d.rol]||d.rol||'—'}</td></tr>
       <tr><td style="padding:6px 0;color:var(--mute);">Recinto</td><td style="padding:6px 0;">${d.recinto_codigo||''} — ${rec?.nombre||''}</td></tr>
@@ -6316,7 +6340,7 @@ function imprimirConstancia(id) {
     </table>
 
     <p style="font-size:12px;color:var(--text);margin-bottom:40px;">
-      Yo, <b>${d.nombre||'________________________'}</b>, portador(a) de la cédula <b>${d.cedula||'____________________'}</b>,
+      Yo, <b>${esc(d.nombre||'________________________')}</b>, portador(a) de la cédula <b>${d.cedula||'____________________'}</b>,
       certifico haber recibido el monto arriba indicado como pago por mi trabajo en la posición de
       <b>${ROL_LABEL[d.rol]||d.rol||'____________'}</b> el día de las elecciones, en el recinto <b>${d.recinto_codigo||''} ${rec?.nombre||''}</b>.
     </p>
@@ -6429,7 +6453,7 @@ function renderResumen() {
   document.getElementById('pres-ultimos').innerHTML = movs.length ? movs.map(m => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);">
       <div>
-        <div style="font-size:12px;font-weight:600;color:var(--text);">${m.descripcion||m.nombre||'—'}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${esc(m.descripcion||m.nombre||'—')}</div>
         <div style="font-size:11px;color:var(--mute);">${m.fecha||''} · ${m.categoria||m.fuente||''}</div>
       </div>
       <div style="font-size:13px;font-weight:700;color:${m._tipo==='ingreso'?'var(--seguro)':'var(--dudoso)'};">
@@ -6442,7 +6466,7 @@ function renderIngresos() {
   const tb = document.getElementById('pres-ing-tb');
   if (!presData.ingresos.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--mute)">Sin ingresos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.ingresos.map(r => `<tr>
-    <td class="bold">${r.descripcion||'—'}</td>
+    <td class="bold">${esc(r.descripcion||'—')}</td>
     <td style="font-size:12px;">${r.fuente||'—'}</td>
     <td><span class="pill pill-info" style="font-size:10px;">${r.moneda||'RD$'}</span></td>
     <td class="num" style="color:var(--seguro);font-weight:700;">${fmtMonto(r.monto,r.moneda)}</td>
@@ -6455,7 +6479,7 @@ function renderGastos() {
   const tb = document.getElementById('pres-gas-tb');
   if (!presData.gastos.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--mute)">Sin gastos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.gastos.map(r => `<tr>
-    <td class="bold">${r.descripcion||'—'}</td>
+    <td class="bold">${esc(r.descripcion||'—')}</td>
     <td style="font-size:12px;">${r.categoria||'—'}</td>
     <td style="font-size:12px;color:var(--mute);">${r.actividad||'—'}</td>
     <td><span class="pill pill-mute" style="font-size:10px;">${r.moneda||'RD$'}</span></td>
@@ -6471,7 +6495,7 @@ function renderCaravanas() {
   const ESTL = { planificado:'Planificado', en_curso:'En curso', realizado:'Realizado', cancelado:'Cancelado' };
   if (!presData.caravanas.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--mute)">Sin caravanas registradas.</td></tr>'; return; }
   tb.innerHTML = presData.caravanas.map(r => `<tr>
-    <td class="bold">${r.nombre||'—'}</td>
+    <td class="bold">${esc(r.nombre||'—')}</td>
     <td style="font-size:12px;">${r.tipo||'—'}</td>
     <td>${r.zona ? '<span class="pill pill-info">Zona '+r.zona+'</span>' : '—'}</td>
     <td style="font-size:12px;color:var(--mute);">${r.fecha||'—'}</td>
@@ -6488,7 +6512,7 @@ function renderRecursos() {
   const ESTL = { disponible:'Disponible', en_uso:'En uso', en_mantenimiento:'Mantenimiento', dado_de_baja:'Baja' };
   if (!presData.recursos.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--mute)">Sin recursos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.recursos.map(r => `<tr>
-    <td class="bold">${r.nombre||'—'}</td>
+    <td class="bold">${esc(r.nombre||'—')}</td>
     <td style="font-size:12px;">${r.tipo||'—'}</td>
     <td class="num">${r.cantidad||1}</td>
     <td class="num" style="color:var(--seguro);">${r.cantidad_disponible??r.cantidad??'—'}</td>
@@ -6767,7 +6791,7 @@ function renderComparativo() {
               ${a.nombre.split(' ').map(w=>w[0]).slice(0,2).join('')}
             </div>
             <div>
-              <div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.2;">${a.nombre.split(' ').slice(0,2).join(' ')}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.2;">${esc(a.nombre.split(' ').slice(0,2).join(' '))}</div>
               <span class="pill ${ESTADO_PILL[a.estado] || 'pill-mute'}" style="font-size:10px;padding:1px 6px;">${ESTADO_LABEL[a.estado] || a.estado}</span>
             </div>
           </div>
@@ -6803,7 +6827,7 @@ function renderAspirantes() {
   }
   tb.innerHTML = aspirantesFiltrados.map(a => `
     <tr>
-      <td class="bold">${a.nombre}</td>
+      <td class="bold">${esc(a.nombre)}</td>
       <td style="font-family:monospace;font-size:12px;">${a.cedula || '—'}</td>
       <td><span class="pill pill-mute" style="font-size:11px;">${POSICION_LABEL[a.posicion] || a.posicion || '—'}</span></td>
       <td>${a.zona || '—'}</td>
@@ -6926,7 +6950,7 @@ function exportarAspirantes() {
   if (datos.length === 0) { alert('No hay aspirantes para exportar.'); return; }
   const headers = ['Nombre','Cédula','Posición','Estado','Zona','Apoyo estimado','Teléfono','Partido','Perfil','Notas'];
   const rows = datos.map(a => [
-    `"${a.nombre}"`, a.cedula||'', POSICION_LABEL[a.posicion]||a.posicion,
+    `"${esc(a.nombre)}"`, a.cedula||'', POSICION_LABEL[a.posicion]||a.posicion,
     ESTADO_LABEL[a.estado]||a.estado, a.zona||'', a.apoyo_estimado||'',
     a.telefono||'', a.partido||'', `"${(a.perfil||'').replace(/"/g,"'")}"`, `"${(a.notas||'').replace(/"/g,"'")}"`
   ].join(','));
@@ -7047,7 +7071,7 @@ function renderAfiliados() {
 
   tb.innerHTML = slice.map(a => `
     <tr>
-      <td class="bold">${a.nombre}</td>
+      <td class="bold">${esc(a.nombre)}</td>
       <td style="font-family:monospace;font-size:12px;">${a.cedula}</td>
       <td><span class="pill ${tipoBadge[a.tipo] || 'pill-mute'}">${tipoLabel[a.tipo] || a.tipo}</span></td>
       <td>${a.zona}</td>
@@ -7172,7 +7196,7 @@ function exportarAfiliados() {
 
   const headers = ['Nombre','Cédula','Tipo','Zona','Sector','Cargo','Teléfono','Email','Fuente','Fecha'];
   const rows = datos.map(a => [
-    `"${a.nombre}"`, a.cedula, a.tipo, a.zona, a.sector,
+    `"${esc(a.nombre)}"`, a.cedula, a.tipo, a.zona, a.sector,
     a.cargo, a.telefono, a.email, a.fuente, a.fecha
   ].join(','));
 
@@ -7269,15 +7293,15 @@ async function loadRoles() {
       <div class="panel-b" style="padding:14px 16px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
           <div>
-            <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--text);">${r.nombre}</div>
+            <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--text);">${esc(r.nombre)}</div>
             <div style="font-size:11px;color:var(--mute);">Nivel ${r.nivel_jerarquico}${r.es_sistema?' · Rol base':''}</div>
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn-qr" onclick="abrirModalRol('${r.id}')" style="padding:5px 10px;">Editar</button>
-            ${!r.es_sistema ? `<button class="btn-qr" onclick="eliminarRol('${r.id}','${r.nombre.replace(/'/g,"\\'")}')" style="padding:5px 10px;">Borrar</button>` : ''}
+            ${!r.es_sistema ? `<button class="btn-qr" onclick="eliminarRol('${r.id}','${esc(r.nombre.replace(/'/g,"\\'"))}')" style="padding:5px 10px;">Borrar</button>` : ''}
           </div>
         </div>
-        ${r.descripcion ? `<div style="font-size:12px;color:var(--mute);margin-bottom:8px;">${r.descripcion}</div>` : ''}
+        ${r.descripcion ? `<div style="font-size:12px;color:var(--mute);margin-bottom:8px;">${esc(r.descripcion)}</div>` : ''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;">
           ${permisosActivos.length
             ? permisosActivos.map(p => `<span class="pill pill-info" style="font-size:10px;">${p.label}</span>`).join('')
@@ -7290,7 +7314,7 @@ async function loadRoles() {
 
 function abrirModalRol(rolId) {
   const rol = rolId ? rolesData.find(r => r.id === rolId) : null;
-  document.getElementById('rol-modal-title').textContent = rol ? `Editar rol — ${rol.nombre}` : 'Nuevo rol';
+  document.getElementById('rol-modal-title').textContent = rol ? `Editar rol — ${esc(rol.nombre)}` : 'Nuevo rol';
   document.getElementById('rol-edit-id').value = rol?.id || '';
   document.getElementById('rol-nombre').value = rol?.nombre || '';
   document.getElementById('rol-nombre').disabled = !!rol?.es_sistema; // no renombrar roles base
@@ -7390,7 +7414,7 @@ async function cargarOrganigrama() {
     return `
       <div style="display:flex;flex-direction:column;align-items:center;">
         <div style="background:var(--bg);border:2px solid ${color};border-radius:10px;padding:8px 14px;min-width:150px;text-align:center;${!nodo.activo?'opacity:0.5;':''}">
-          <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;">${nodo.nombre}</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;">${esc(nodo.nombre)}</div>
           <div style="font-size:10px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:.03em;">${rolNombre}</div>
           ${nodo.zona ? `<div style="font-size:10px;color:var(--mute);">Zona ${nodo.zona}</div>` : ''}
         </div>
@@ -7505,8 +7529,8 @@ function renderDirigentes() {
     const color = NIVEL_COLOR[nivel] || '#64748b';
     const pctMeta = d.meta ? Math.min(100, Math.round(d.stats.total / d.meta * 100)) : 0;
     return `<tr>
-      <td><div style="font-weight:700;color:var(--text);">${d.nombre}</div><div style="font-size:11px;color:var(--mute);">${d.cedula||''} ${d.telefono?'· '+d.telefono:''}</div></td>
-      <td><span style="background:${color}20;color:${color};border:1px solid ${color}40;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">${NIVEL_LABEL[nivel]||nivel}</span><div style="font-size:11px;color:var(--mute);margin-top:2px;">${d.cargo||''}</div></td>
+      <td><div style="font-weight:700;color:var(--text);">${esc(d.nombre)}</div><div style="font-size:11px;color:var(--mute);">${d.cedula||''} ${d.telefono?'· '+d.telefono:''}</div></td>
+      <td><span style="background:${color}20;color:${color};border:1px solid ${color}40;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">${NIVEL_LABEL[nivel]||nivel}</span><div style="font-size:11px;color:var(--mute);margin-top:2px;">${esc(d.cargo||'')}</div></td>
       <td>${d.zona ? '<span class="pill pill-info">Zona '+d.zona+'</span>' : '—'}</td>
       <td style="font-size:12px;color:var(--mute);">${d.territorio||'—'}</td>
       <td style="font-size:12px;color:var(--mute);">${d.superior_nombre||'—'}</td>
@@ -7528,7 +7552,7 @@ function renderDesempeno() {
     const badge = pct >= 100 ? 'pill-good' : pct >= 60 ? 'pill-warn' : 'pill-mute';
     const label = pct >= 100 ? 'Excelente' : pct >= 60 ? 'En progreso' : 'Bajo';
     return `<tr>
-      <td class="bold">${d.nombre}</td>
+      <td class="bold">${esc(d.nombre)}</td>
       <td style="font-size:12px;">${NIVEL_LABEL[d.nivel]||d.nivel||'—'}</td>
       <td>${d.zona ? '<span class="pill pill-info">Zona '+d.zona+'</span>' : '—'}</td>
       <td class="num" style="font-weight:700;">${fmtNum(d.stats.total)}</td>
@@ -7564,7 +7588,7 @@ function renderVacantes() {
         <span style="font-size:11px;font-weight:600;">${icons[status]} ${labels[status]}</span>
       </div>
       <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${zonaLabels[z]||''}</div>
-      ${dirs.length > 0 ? dirs.slice(0,3).map(d => `<div style="font-size:12px;color:var(--text);margin-bottom:3px;"><span style="color:${NIVEL_COLOR[d.nivel]||'#64748b'};font-weight:600;">•</span> ${d.nombre.split(' ').slice(0,2).join(' ')} — ${NIVEL_LABEL[d.nivel]||'Dirigente'}</div>`).join('') : '<div style="font-size:12px;color:#dc2626;font-weight:600;">⚠️ Ningún dirigente asignado</div>'}
+      ${dirs.length > 0 ? dirs.slice(0,3).map(d => `<div style="font-size:12px;color:var(--text);margin-bottom:3px;"><span style="color:${NIVEL_COLOR[d.nivel]||'#64748b'};font-weight:600;">•</span> ${esc(d.nombre.split(' ').slice(0,2).join(' '))} — ${NIVEL_LABEL[d.nivel]||'Dirigente'}</div>`).join('') : '<div style="font-size:12px;color:#dc2626;font-weight:600;">⚠️ Ningún dirigente asignado</div>'}
       ${dirs.length > 3 ? `<div style="font-size:11px;color:var(--mute);margin-top:4px;">+${dirs.length-3} más…</div>` : ''}
       ${status !== 'ok' ? `<button class="btn-qr" onclick="abrirModalNuevoDirigente('${z}')" style="margin-top:8px;width:100%;text-align:center;">+ Asignar dirigente</button>` : ''}
     </div>`;
@@ -7635,7 +7659,7 @@ function poblarSuperior(excluirId, selectedId) {
   const sel = document.getElementById('nd-superior');
   sel.innerHTML = '<option value="">Ninguno (nivel raíz)</option>' +
     dirigentesData.filter(d => d.id !== excluirId)
-      .map(d => `<option value="${d.id}" ${d.id === selectedId ? 'selected' : ''}>${d.nombre} (${NIVEL_LABEL[d.nivel]||'Dirigente'})</option>`)
+      .map(d => `<option value="${d.id}" ${d.id === selectedId ? 'selected' : ''}>${esc(d.nombre)} (${NIVEL_LABEL[d.nivel]||'Dirigente'})</option>`)
       .join('');
 }
 
@@ -7776,7 +7800,7 @@ async function loadRecintos() {
     return `
       <tr>
         <td class="mono bold">${r.codigo}</td>
-        <td class="bold">${r.nombre}</td>
+        <td class="bold">${esc(r.nombre)}</td>
         <td>${r.zona ? 'Zona ' + r.zona : '—'}</td>
         <td class="num">${fmtNum(r.total_electores)}</td>
         <td class="num">${fmtNum(r.total_colegios)}</td>
