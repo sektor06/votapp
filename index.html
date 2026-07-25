@@ -1585,7 +1585,7 @@ button { background: none; border: none; cursor: pointer; }
       </button>
       <button type="button" class="sb-item" data-view="territorial" onclick="navTo('territorial')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-        Mapa Territorial
+        Ubicación de Recintos
       </button>
       <button type="button" class="sb-item" data-view="afiliados" onclick="navTo('afiliados')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2"/><path d="M15 12h2"/><path d="M7 16h10"/></svg>
@@ -1599,7 +1599,7 @@ button { background: none; border: none; cursor: pointer; }
       </button>
       <button type="button" class="sb-item" data-view="aspiraciones" onclick="navTo('aspiraciones')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        Aspiraciones
+        Aspirantes
       </button>
       <button type="button" class="sb-item" data-view="nomina" onclick="navTo('nomina')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7h14v14"/><path d="M9 21v-4h6v4"/><line x1="9" y1="9" x2="9" y2="9.01"/><line x1="15" y1="9" x2="15" y2="9.01"/><line x1="9" y1="13" x2="9" y2="13.01"/><line x1="15" y1="13" x2="15" y2="13.01"/></svg>
@@ -2168,7 +2168,7 @@ button { background: none; border: none; cursor: pointer; }
     <main class="content" id="view-territorial" data-view-content style="display:none">
       <div class="content-h">
         <div class="content-h-l">
-          <h1 class="content-title">Mapa Territorial</h1>
+          <h1 class="content-title">Ubicación de Recintos</h1>
           <p class="content-sub">Distribución geográfica de recintos por zona</p>
         </div>
       </div>
@@ -2240,7 +2240,7 @@ button { background: none; border: none; cursor: pointer; }
               <option value="coordinador">Coordinador</option>
             </select>
             <select class="mf-input" id="afil-f-zona" onchange="filtrarAfiliados()" style="width:120px;">
-              <option value="">Todas las zonas</option>
+              <option value="">Toda la estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -2262,7 +2262,7 @@ button { background: none; border: none; cursor: pointer; }
                 <th>Nombre</th>
                 <th>Cédula</th>
                 <th>Tipo</th>
-                <th>Zona</th>
+                <th>Estructura</th>
                 <th>Teléfono</th>
                 <th>Fuente</th>
                 <th>Fecha</th>
@@ -2317,9 +2317,9 @@ button { background: none; border: none; cursor: pointer; }
             </select>
           </div>
           <div class="mf-group">
-            <label class="mf-label">Zona</label>
+            <label class="mf-label">Estructura</label>
             <select class="mf-input" id="afil-zona">
-              <option value="">Selecciona zona</option>
+              <option value="">Selecciona estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -2328,7 +2328,8 @@ button { background: none; border: none; cursor: pointer; }
         <div class="mf-row2">
           <div class="mf-group">
             <label class="mf-label">Sector / Barrio</label>
-            <input class="mf-input" id="afil-sector" placeholder="Barrio Lindo, Villa Progreso…">
+            <input class="mf-input" id="afil-sector" list="lista-barrios-spm" placeholder="Escribí para buscar un barrio…" autocomplete="off">
+            <datalist id="lista-barrios-spm"><option value="24 de Abril"><option value="30 de Mayo"><option value="Alto de Abraham"><option value="Alto de San Pedro"><option value="Bajo Manhattan"><option value="Barrio Azul"><option value="Barrio Blanco"><option value="Barrio Kilometro 3 1/2"><option value="Barrio Lindo"><option value="Barrio Lindo II"><option value="Barrio Mexico"><option value="Barrio Restauración"><option value="Brizas del Este"><option value="Buenos Aires"><option value="Cacarajicara"><option value="Campus UCE"><option value="Centro"><option value="Ciudad Codiana"><option value="El Batey Central"><option value="El Brisal"><option value="El Golfo"><option value="El Ocho"><option value="El Patio"><option value="El Retiro"><option value="El Silencio"><option value="El Toconal"><option value="Enrriquillo"><option value="Invi CEA"><option value="Jaime Brugal"><option value="Japón"><option value="Jardines del Este"><option value="José Blanche"><option value="Juan Pablo Duarte"><option value="Kennedy I"><option value="Kennedy II"><option value="La Arena"><option value="La Barca"><option value="La Belleza"><option value="La Piedra"><option value="La Puerta"><option value="La Roca"><option value="Las Caobas"><option value="Las Colinas I"><option value="Las Colinas II"><option value="Las Filipinas"><option value="Las Flores"><option value="Loma del Cochero"><option value="Los 4 Caminos"><option value="Los Bomberitos"><option value="Los Cajones"><option value="Los Guandules"><option value="Los Maestros"><option value="Los Multis"><option value="Los Profesionales"><option value="Los Transformadores"><option value="Lotificación CEA"><option value="Maranatha"><option value="Miramar"><option value="Nueva Esperanza"><option value="Palo de Azucar"><option value="Paraiso"><option value="Pedro Justo Carrión"><option value="Perez Marquez"><option value="Petropolis"><option value="Placer Bonito"><option value="Playa de Muerto"><option value="Proyecto Lotificación"><option value="Puerto Rico"><option value="Punta Pescadora"><option value="Punta de Garza"><option value="San Anton"><option value="Santa Clara"><option value="Santa Fe"><option value="Sarmiento I"><option value="Sarmiento II"><option value="Sin Nombre"><option value="Urb, Marina"><option value="Urb. Evangelina Rodriguez"><option value="Urb. Garden"><option value="Urb. Hazim"><option value="Urb. Independencia"><option value="Urb. La Bendición"><option value="Urb. Mallen"><option value="Urb. Naime"><option value="Urb. Oriental"><option value="Urb. Peréz Bernal"><option value="Urb. Vicini"><option value="Villa Azucarera"><option value="Villa Cañera"><option value="Villa Centro"><option value="Villa Cesarina"><option value="Villa Coral"><option value="Villa España"><option value="Villa Faro"><option value="Villa Magdalena"><option value="Villa Mexico"><option value="Villa Municipal"><option value="Villa Olimpica"><option value="Villa Orilla"><option value="Villa Progreso I"><option value="Villa Progreso II"><option value="Villa Providencia"><option value="Villa Providencia II"><option value="Villa Velasquez"><option value="Villa Vizan"><option value="Villla Hermosa"><option value="Vitania"></datalist>
           </div>
           <div class="mf-group">
             <label class="mf-label">Cargo / Posición</label>
@@ -2351,7 +2352,7 @@ button { background: none; border: none; cursor: pointer; }
       <!-- HEADER -->
       <div class="content-h">
         <div class="content-h-l">
-          <h1 class="content-title">Aspiraciones</h1>
+          <h1 class="content-title">Aspirantes</h1>
           <p class="content-sub" id="asp-sub">Cargando aspirantes…</p>
         </div>
         <div class="content-h-r" style="display:flex;gap:8px;">
@@ -2394,8 +2395,8 @@ button { background: none; border: none; cursor: pointer; }
             <select class="mf-input" id="asp-f-posicion" onchange="filtrarAspirantes()" style="width:200px;">
               <option value="">Todas las posiciones</option>
               <optgroup label="Electivas">
-                <option value="sindico">Síndico</option>
-                <option value="vicesindico">Vicesíndico</option>
+                <option value="sindico">Alcalde</option>
+                <option value="vicesindico">Vicealcalde</option>
                 <option value="regidor">Regidor/a</option>
                 <option value="diputado">Diputado/a</option>
                 <option value="senador">Senador/a</option>
@@ -2471,8 +2472,8 @@ button { background: none; border: none; cursor: pointer; }
             <select class="mf-input" id="asp-posicion">
               <option value="">Selecciona posición</option>
               <optgroup label="Posiciones Electivas">
-                <option value="sindico">Síndico</option>
-                <option value="vicesindico">Vicesíndico</option>
+                <option value="sindico">Alcalde</option>
+                <option value="vicesindico">Vicealcalde</option>
                 <option value="regidor">Regidor/a</option>
                 <option value="diputado">Diputado/a</option>
                 <option value="senador">Senador/a</option>
@@ -3779,7 +3780,6 @@ async function initMapaZonas() {
   }
 
   const allBounds = [];
-  const capaCodigosRecinto = L.layerGroup();
   recintos.forEach(r => {
     const color = COLOR_ZONA[r.zona] || '#0047AB';
     const electores = r.total_electores || 0;
@@ -3799,17 +3799,6 @@ async function initMapaZonas() {
       color: color,
       weight: 3
     }).addTo(mapZonas);
-
-    L.marker([r.lat, r.lng], {
-      icon: L.divIcon({
-        className: 'recinto-label-icon',
-        html: `<span style="font-family:'Sora',sans-serif;font-size:12px;font-weight:800;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 4px #fff,0 0 6px #fff;"><span style="color:${color};">${r.zona}</span> <span style="color:#0f172a;">· ${r.codigo}</span></span>`,
-        iconSize: [0,0],
-        iconAnchor: [-10,-10]
-      }),
-      interactive: false,
-      zIndexOffset: 500
-    }).addTo(capaCodigosRecinto);
 
     const meta = r.total_meta || 0;
     const colegios = r.total_colegios || 0;
@@ -3860,12 +3849,10 @@ async function initMapaZonas() {
     }).addTo(capaEtiquetasZona);
   });
   capaEtiquetasZona.addTo(mapZonas);
-  capaCodigosRecinto.addTo(mapZonas);
 
   L.control.layers(null, {
     'Nombres de barrio': capaBarrios,
-    'Letras de zona': capaEtiquetasZona,
-    'Códigos de recinto': capaCodigosRecinto
+    'Letras de zona': capaEtiquetasZona
   }, { collapsed: true, position: 'topright' }).addTo(mapZonas);
 
   if (allBounds.length > 0) {
@@ -6691,8 +6678,8 @@ let aspirantesData = [];
 let aspirantesFiltrados = [];
 
 const POSICION_LABEL = {
-  sindico: 'Síndico',
-  vicesindico: 'Vicesíndico',
+  sindico: 'Alcalde',
+  vicesindico: 'Vicealcalde',
   regidor: 'Regidor/a', diputado: 'Diputado/a', senador: 'Senador/a',
   coordinador_zona: 'Coordinador Zona', delegado: 'Delegado/a',
   presidente_comite: 'Pte. Comité', otro_partido: 'Otro (partido)'
