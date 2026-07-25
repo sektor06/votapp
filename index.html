@@ -1601,10 +1601,6 @@ button { background: none; border: none; cursor: pointer; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
         Aspirantes
       </button>
-      <button type="button" class="sb-item" data-view="nomina" onclick="navTo('nomina')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7h14v14"/><path d="M9 21v-4h6v4"/><line x1="9" y1="9" x2="9" y2="9.01"/><line x1="15" y1="9" x2="15" y2="9.01"/><line x1="9" y1="13" x2="9" y2="13.01"/><line x1="15" y1="13" x2="15" y2="13.01"/></svg>
-        Nómina Pública
-      </button>
       <button type="button" class="sb-item" data-view="encuestas" onclick="navTo('encuestas')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Encuestas
@@ -2249,6 +2245,11 @@ button { background: none; border: none; cursor: pointer; }
               <option value="padron">Del padrón</option>
               <option value="directo">Registro directo</option>
             </select>
+            <select class="mf-input" id="afil-f-sector-laboral" onchange="filtrarAfiliados()" style="width:150px;">
+              <option value="">Público y privado</option>
+              <option value="publico">Solo público</option>
+              <option value="privado">Solo privado</option>
+            </select>
           </div>
         </div>
       </div>
@@ -2263,6 +2264,7 @@ button { background: none; border: none; cursor: pointer; }
                 <th>Cédula</th>
                 <th>Tipo</th>
                 <th>Estructura</th>
+                <th>Sector</th>
                 <th>Teléfono</th>
                 <th>Fuente</th>
                 <th>Fecha</th>
@@ -2334,6 +2336,20 @@ button { background: none; border: none; cursor: pointer; }
           <div class="mf-group">
             <label class="mf-label">Cargo / Posición</label>
             <input class="mf-input" id="afil-cargo" placeholder="Presidente de bloque…">
+          </div>
+        </div>
+        <div class="mf-row2">
+          <div class="mf-group">
+            <label class="mf-label">Empleado público o privado</label>
+            <select class="mf-input" id="afil-sector-laboral" onchange="toggleAfilInstitucion()">
+              <option value="">No aplica / No indicado</option>
+              <option value="publico">Público</option>
+              <option value="privado">Privado</option>
+            </select>
+          </div>
+          <div class="mf-group" id="afil-institucion-wrap" style="display:none;">
+            <label class="mf-label">¿En qué institución pública?</label>
+            <input class="mf-input" id="afil-institucion" placeholder="Ministerio de Educación, Ayuntamiento…">
           </div>
         </div>
         <div class="mf-group">
@@ -2538,174 +2554,6 @@ button { background: none; border: none; cursor: pointer; }
         <div style="display:flex;gap:8px;margin-top:4px;">
           <button class="btn-modal-cancel" onclick="cerrarModalAspirante()">Cancelar</button>
           <button class="btn-modal-ok" id="asp-btn" onclick="guardarAspirante()">Guardar aspirante</button>
-        </div>
-      </div>
-    </div>
-
-    <main class="content" id="view-nomina" data-view-content style="display:none">
-      <!-- HEADER -->
-      <div class="content-h">
-        <div class="content-h-l">
-          <h1 class="content-title">Nómina Pública</h1>
-          <p class="content-sub" id="nom-sub">Cargando…</p>
-        </div>
-        <div class="content-h-r" style="display:flex;gap:8px;">
-          <button class="btn-secondary" onclick="exportarNomina()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11v2h10v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Exportar CSV
-          </button>
-          <button class="btn-primary" onclick="abrirModalNomina()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Nuevo registro
-          </button>
-        </div>
-      </div>
-
-      <!-- KPIs -->
-      <div class="kpi-row" style="margin-bottom:16px;">
-        <div class="kpi-card"><div class="kpi-n" id="nomk-total">—</div><div class="kpi-l">En nómina pública</div></div>
-        <div class="kpi-card"><div class="kpi-n" id="nomk-inst">—</div><div class="kpi-l">Instituciones</div></div>
-        <div class="kpi-card"><div class="kpi-n" id="nomk-leales">—</div><div class="kpi-l" style="color:var(--seguro)">Leales al partido</div></div>
-        <div class="kpi-card"><div class="kpi-n" id="nomk-riesgo">—</div><div class="kpi-l" style="color:var(--dudoso)">En seguimiento</div></div>
-      </div>
-
-      <!-- DISTRIBUCIÓN POR INSTITUCIÓN -->
-      <div class="panel" style="margin-bottom:14px;">
-        <div class="panel-b" style="padding:14px 16px;">
-          <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:12px;">Distribución por institución</div>
-          <div id="nom-chart" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-        </div>
-      </div>
-
-      <!-- FILTROS -->
-      <div class="panel" style="margin-bottom:14px;">
-        <div class="panel-b" style="padding:12px 16px;">
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <input class="mf-input" id="nom-search" placeholder="Buscar por nombre o cédula…" oninput="filtrarNomina()" style="flex:1;min-width:200px;max-width:300px;">
-            <input class="mf-input" id="nom-f-inst" placeholder="Filtrar por institución…" oninput="filtrarNomina()" style="width:200px;">
-            <select class="mf-input" id="nom-f-nivel" onchange="filtrarNomina()" style="width:160px;">
-              <option value="">Todos los niveles</option>
-              <option value="directivo">Directivo</option>
-              <option value="tecnico">Técnico</option>
-              <option value="operativo">Operativo</option>
-              <option value="contratado">Contratado</option>
-            </select>
-            <select class="mf-input" id="nom-f-lealtad" onchange="filtrarNomina()" style="width:160px;">
-              <option value="">Toda la lealtad</option>
-              <option value="leal">Leal</option>
-              <option value="neutral">Neutral</option>
-              <option value="seguimiento">En seguimiento</option>
-              <option value="riesgo">En riesgo</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- TABLA -->
-      <div class="panel">
-        <div class="panel-b tight">
-          <table class="dt">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Cédula</th>
-                <th>Institución</th>
-                <th>Cargo</th>
-                <th>Nivel</th>
-                <th>Zona</th>
-                <th>Lealtad</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="nom-tb">
-              <tr><td colspan="8" class="loading-row">Cargando nómina…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-
-    <!-- ═══ MODAL NÓMINA ═══ -->
-    <div class="modal-overlay" id="modal-nomina">
-      <div class="modal-sheet" style="max-width:600px;">
-        <div class="modal-handle"></div>
-        <div class="modal-title" id="nom-modal-title">Nuevo registro en nómina</div>
-        <input type="hidden" id="nom-edit-id">
-
-        <div class="mf-row2">
-          <div class="mf-group">
-            <label class="mf-label">Nombre completo *</label>
-            <input class="mf-input" id="nom-nombre" placeholder="Juan Pérez Martínez">
-          </div>
-          <div class="mf-group">
-            <label class="mf-label">Cédula</label>
-            <input class="mf-input" id="nom-cedula" placeholder="023-0000000-0">
-          </div>
-        </div>
-        <div class="mf-row2">
-          <div class="mf-group">
-            <label class="mf-label">Institución *</label>
-            <input class="mf-input" id="nom-institucion" placeholder="Ayuntamiento SPM, MIES, Salud…">
-          </div>
-          <div class="mf-group">
-            <label class="mf-label">Cargo / Posición *</label>
-            <input class="mf-input" id="nom-cargo" placeholder="Director, Técnico, Oficial…">
-          </div>
-        </div>
-        <div class="mf-row2">
-          <div class="mf-group">
-            <label class="mf-label">Nivel jerárquico</label>
-            <select class="mf-input" id="nom-nivel">
-              <option value="directivo">Directivo</option>
-              <option value="tecnico">Técnico</option>
-              <option value="operativo">Operativo</option>
-              <option value="contratado">Contratado</option>
-            </select>
-          </div>
-          <div class="mf-group">
-            <label class="mf-label">Zona de influencia</label>
-            <select class="mf-input" id="nom-zona">
-              <option value="">Selecciona zona</option>
-              <option>A</option><option>B</option><option>C</option><option>D</option>
-              <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
-            </select>
-          </div>
-        </div>
-        <div class="mf-row2">
-          <div class="mf-group">
-            <label class="mf-label">Teléfono</label>
-            <input class="mf-input" id="nom-telefono" placeholder="809-000-0000">
-          </div>
-          <div class="mf-group">
-            <label class="mf-label">Salario aproximado (RD$)</label>
-            <input class="mf-input" id="nom-salario" type="number" placeholder="35000">
-          </div>
-        </div>
-        <div class="mf-group">
-          <label class="mf-label">Lealtad / Seguimiento *</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);">
-              <input type="radio" name="nom-lealtad" value="leal" checked> <span style="color:#10b981;font-weight:600;">● Leal al partido</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);">
-              <input type="radio" name="nom-lealtad" value="neutral"> <span style="color:var(--mute);font-weight:600;">● Neutral</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);">
-              <input type="radio" name="nom-lealtad" value="seguimiento"> <span style="color:#f59e0b;font-weight:600;">● En seguimiento</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);">
-              <input type="radio" name="nom-lealtad" value="riesgo"> <span style="color:#ef4444;font-weight:600;">● En riesgo</span>
-            </label>
-          </div>
-        </div>
-        <div class="mf-group">
-          <label class="mf-label">Notas de seguimiento</label>
-          <textarea class="mf-input" id="nom-notas" rows="2" placeholder="Observaciones, compromisos, fecha de último contacto…" style="resize:vertical;"></textarea>
-        </div>
-        <div id="nom-error" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:12px;display:none;"></div>
-        <div style="display:flex;gap:8px;margin-top:4px;">
-          <button class="btn-modal-cancel" onclick="cerrarModalNomina()">Cancelar</button>
-          <button class="btn-modal-ok" id="nom-btn" onclick="guardarNomina()">Guardar registro</button>
         </div>
       </div>
     </div>
@@ -3702,7 +3550,6 @@ function navTo(view) {
   if (view === 'padron') {/* await search */}
   if (view === 'afiliados') loadAfiliados();
   if (view === 'aspiraciones') loadAspiraciones();
-  if (view === 'nomina') loadNomina();
   if (view === 'encuestas') loadEncuestas();
   if (view === 'logistica') loadLogistica();
   if (view === 'montaje') loadMontaje();
@@ -5323,197 +5170,6 @@ const LEALTAD_PILL  = { leal:'pill-good', neutral:'pill-mute', seguimiento:'pill
 const LEALTAD_LABEL = { leal:'Leal', neutral:'Neutral', seguimiento:'Seguimiento', riesgo:'En riesgo' };
 const NOM_NIVEL_LABEL   = { directivo:'Directivo', tecnico:'Técnico', operativo:'Operativo', contratado:'Contratado' };
 
-async function loadNomina() {
-  const tb = document.getElementById('nom-tb');
-  tb.innerHTML = '<tr><td colspan="8" class="loading-row">Cargando nómina…</td></tr>';
-
-  const { data, error } = await db.from('nomina_publica')
-    .select('*')
-    .order('institucion').order('nombre');
-
-  if (error) {
-    tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#dc2626">Error: ${error.message}</td></tr>`;
-    return;
-  }
-
-  nominaData = data || [];
-
-  // KPIs
-  const instituciones = new Set(nominaData.map(n => n.institucion)).size;
-  const leales        = nominaData.filter(n => n.lealtad === 'leal').length;
-  const riesgo        = nominaData.filter(n => n.lealtad === 'riesgo' || n.lealtad === 'seguimiento').length;
-  document.getElementById('nomk-total').textContent  = fmtNum(nominaData.length);
-  document.getElementById('nomk-inst').textContent   = instituciones;
-  document.getElementById('nomk-leales').textContent = leales;
-  document.getElementById('nomk-riesgo').textContent = riesgo;
-  document.getElementById('nom-sub').textContent     = `${fmtNum(nominaData.length)} registros en ${instituciones} institución${instituciones!==1?'es':''}`;
-
-  // Chart instituciones
-  const instCount = {};
-  nominaData.forEach(n => { instCount[n.institucion] = (instCount[n.institucion]||0) + 1; });
-  const sorted = Object.entries(instCount).sort((a,b)=>b[1]-a[1]);
-  const maxVal = sorted[0]?.[1] || 1;
-  document.getElementById('nom-chart').innerHTML = sorted.map(([inst, cnt]) => `
-    <div style="flex:1;min-width:140px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${inst}</div>
-      <div style="background:var(--line);border-radius:4px;height:6px;margin-bottom:5px;">
-        <div style="background:var(--prm);height:6px;border-radius:4px;width:${Math.round(cnt/maxVal*100)}%;"></div>
-      </div>
-      <div style="font-size:12px;color:var(--mute);">${cnt} empleado${cnt!==1?'s':''}</div>
-    </div>
-  `).join('');
-
-  nominaFiltrada = [...nominaData];
-  filtrarNomina();
-}
-
-function filtrarNomina() {
-  const q       = (document.getElementById('nom-search').value||'').toLowerCase().trim();
-  const inst    = (document.getElementById('nom-f-inst').value||'').toLowerCase().trim();
-  const nivel   = document.getElementById('nom-f-nivel').value;
-  const lealtad = document.getElementById('nom-f-lealtad').value;
-
-  nominaFiltrada = nominaData.filter(n => {
-    if (q && !n.nombre.toLowerCase().includes(q) && !(n.cedula||'').includes(q)) return false;
-    if (inst && !(n.institucion||'').toLowerCase().includes(inst)) return false;
-    if (nivel && n.nivel !== nivel) return false;
-    if (lealtad && n.lealtad !== lealtad) return false;
-    return true;
-  });
-  renderNomina();
-}
-
-function renderNomina() {
-  const tb = document.getElementById('nom-tb');
-  if (nominaFiltrada.length === 0) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mute)">Sin resultados.</td></tr>';
-    return;
-  }
-  tb.innerHTML = nominaFiltrada.map(n => `
-    <tr>
-      <td class="bold">${esc(n.nombre)}</td>
-      <td style="font-family:monospace;font-size:12px;">${n.cedula||'—'}</td>
-      <td style="font-size:12px;">${n.institucion||'—'}</td>
-      <td style="font-size:12px;color:var(--mute)">${esc(n.cargo||'—')}</td>
-      <td><span class="pill pill-mute" style="font-size:11px;">${NOM_NIVEL_LABEL[n.nivel]||n.nivel||'—'}</span></td>
-      <td>${n.zona||'—'}</td>
-      <td><span class="pill ${LEALTAD_PILL[n.lealtad]||'pill-mute'}">${LEALTAD_LABEL[n.lealtad]||n.lealtad||'—'}</span></td>
-      <td><button class="btn-qr" onclick="editarNomina('${n.id}')">Editar</button></td>
-    </tr>
-  `).join('');
-}
-
-// ─── Modal ───
-function abrirModalNomina() {
-  ['nom-nombre','nom-cedula','nom-institucion','nom-cargo','nom-telefono','nom-notas'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('nom-salario').value = '';
-  document.getElementById('nom-nivel').value = 'tecnico';
-  document.getElementById('nom-zona').value = '';
-  document.getElementById('nom-edit-id').value = '';
-  document.querySelector('input[name="nom-lealtad"][value="leal"]').checked = true;
-  document.getElementById('nom-modal-title').textContent = 'Nuevo registro en nómina';
-  document.getElementById('nom-btn').textContent = 'Guardar registro';
-  document.getElementById('nom-btn').disabled = false;
-  document.getElementById('nom-error').style.display = 'none';
-  document.getElementById('modal-nomina').classList.add('show');
-}
-
-function editarNomina(id) {
-  const n = nominaData.find(x => x.id == id);
-  if (!n) return;
-  document.getElementById('nom-nombre').value      = n.nombre;
-  document.getElementById('nom-cedula').value      = n.cedula||'';
-  document.getElementById('nom-institucion').value = n.institucion||'';
-  document.getElementById('nom-cargo').value       = n.cargo||'';
-  document.getElementById('nom-nivel').value       = n.nivel||'tecnico';
-  document.getElementById('nom-zona').value        = n.zona||'';
-  document.getElementById('nom-telefono').value    = n.telefono||'';
-  document.getElementById('nom-salario').value     = n.salario||'';
-  document.getElementById('nom-notas').value       = n.notas||'';
-  document.getElementById('nom-edit-id').value     = id;
-  const radio = document.querySelector(`input[name="nom-lealtad"][value="${n.lealtad||'leal'}"]`);
-  if (radio) radio.checked = true;
-  document.getElementById('nom-modal-title').textContent = 'Editar registro';
-  document.getElementById('nom-btn').textContent = 'Guardar cambios';
-  document.getElementById('nom-btn').disabled = false;
-  document.getElementById('nom-error').style.display = 'none';
-  document.getElementById('modal-nomina').classList.add('show');
-}
-
-function cerrarModalNomina() {
-  document.getElementById('modal-nomina').classList.remove('show');
-}
-
-async function guardarNomina() {
-  const nombre      = document.getElementById('nom-nombre').value.trim();
-  const cedula      = document.getElementById('nom-cedula').value.trim();
-  const institucion = document.getElementById('nom-institucion').value.trim();
-  const cargo       = document.getElementById('nom-cargo').value.trim();
-  const nivel       = document.getElementById('nom-nivel').value;
-  const zona        = document.getElementById('nom-zona').value;
-  const telefono    = document.getElementById('nom-telefono').value.trim();
-  const salario     = parseInt(document.getElementById('nom-salario').value)||null;
-  const notas       = document.getElementById('nom-notas').value.trim();
-  const lealtad     = document.querySelector('input[name="nom-lealtad"]:checked')?.value||'leal';
-  const editId      = document.getElementById('nom-edit-id').value;
-  const errEl       = document.getElementById('nom-error');
-  const btn         = document.getElementById('nom-btn');
-
-  if (!nombre || !institucion || !cargo) {
-    errEl.textContent = 'Nombre, institución y cargo son obligatorios.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Guardando…';
-  errEl.style.display = 'none';
-
-  const payload = {
-    nombre, cedula: cedula||null, institucion, cargo, nivel,
-    zona: zona||null, telefono: telefono||null, salario, lealtad,
-    notas: notas||null
-  };
-
-  let error;
-  if (editId) {
-    ({ error } = await db.from('nomina_publica').update(payload).eq('id', editId));
-  } else {
-    ({ error } = await db.from('nomina_publica').insert(payload));
-  }
-
-  if (error) {
-    errEl.textContent = 'Error: ' + error.message;
-    errEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = editId ? 'Guardar cambios' : 'Guardar registro';
-    return;
-  }
-  cerrarModalNomina();
-  loadNomina();
-}
-
-function exportarNomina() {
-  const datos = nominaFiltrada.length > 0 ? nominaFiltrada : nominaData;
-  if (!datos.length) { alert('No hay registros para exportar.'); return; }
-  const headers = ['Nombre','Cédula','Institución','Cargo','Nivel','Zona','Lealtad','Teléfono','Salario','Notas'];
-  const rows = datos.map(n => [
-    `"${esc(n.nombre)}"`, n.cedula||'', `"${n.institucion||''}"`, `"${esc(n.cargo||'')}"`,
-    NOM_NIVEL_LABEL[n.nivel]||n.nivel||'', n.zona||'',
-    LEALTAD_LABEL[n.lealtad]||n.lealtad||'', n.telefono||'', n.salario||'', `"${(n.notas||'').replace(/"/g,"'")}"`
-  ].join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.download = `nomina_publica_prm_${new Date().toISOString().substring(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob);
-  a.click();
-}
-
-document.getElementById('modal-nomina').addEventListener('click', function(e) {
-  if (e.target === this) cerrarModalNomina();
-});
-
 // ─── Switch de Elección ───
 let eleccionActiva = false;
 
@@ -6935,7 +6591,7 @@ const AFIL_PAGE_SIZE = 50;
 
 async function loadAfiliados() {
   const tb = document.getElementById('afil-tb');
-  tb.innerHTML = '<tr><td colspan="8" class="loading-row">Cargando afiliados…</td></tr>';
+  tb.innerHTML = '<tr><td colspan="9" class="loading-row">Cargando afiliados…</td></tr>';
 
   // Fuente 1: padron_prm con afiliado = true
   const { data: delPadron } = await db.from('padron_prm')
@@ -6974,6 +6630,8 @@ async function loadAfiliados() {
     zona: a.zona || '—',
     sector: a.sector || '—',
     cargo: a.cargo || '—',
+    sector_laboral: a.sector_laboral || null,
+    institucion: a.institucion || null,
     notas: a.notas || '',
     fuente: 'directo',
     fecha: a.created_at ? a.created_at.substring(0,10) : '—'
@@ -7001,12 +6659,14 @@ function filtrarAfiliados() {
   const tipo = document.getElementById('afil-f-tipo').value;
   const zona = document.getElementById('afil-f-zona').value;
   const fuente = document.getElementById('afil-f-fuente').value;
+  const sectorLaboral = document.getElementById('afil-f-sector-laboral').value;
 
   afiliadosFiltrados = afiliadosData.filter(a => {
     if (q && !a.nombre.toLowerCase().includes(q) && !a.cedula.includes(q)) return false;
     if (tipo && a.tipo !== tipo) return false;
     if (zona && a.zona !== zona) return false;
     if (fuente && a.fuente !== fuente) return false;
+    if (sectorLaboral && a.sector_laboral !== sectorLaboral) return false;
     return true;
   });
 
@@ -7022,13 +6682,15 @@ function renderAfiliados() {
   const slice = afiliadosFiltrados.slice(start, start + AFIL_PAGE_SIZE);
 
   if (slice.length === 0) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mute)">Sin resultados para los filtros aplicados.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--mute)">Sin resultados para los filtros aplicados.</td></tr>';
     pg.textContent = '';
     return;
   }
 
   const tipoBadge = { simpatizante: 'pill-mute', militante: 'pill-info', dirigente: 'pill-warn', coordinador: 'pill-good' };
   const tipoLabel = { simpatizante: 'Simpatizante', militante: 'Militante', dirigente: 'Dirigente', coordinador: 'Coordinador' };
+  const sectorLabLabel = { publico: 'Público', privado: 'Privado' };
+  const sectorLabBadge = { publico: 'pill-warn', privado: 'pill-info' };
 
   tb.innerHTML = slice.map(a => `
     <tr>
@@ -7036,6 +6698,7 @@ function renderAfiliados() {
       <td style="font-family:monospace;font-size:12px;">${a.cedula}</td>
       <td><span class="pill ${tipoBadge[a.tipo] || 'pill-mute'}">${tipoLabel[a.tipo] || a.tipo}</span></td>
       <td>${a.zona}</td>
+      <td>${a.sector_laboral ? `<span class="pill ${sectorLabBadge[a.sector_laboral]}">${sectorLabLabel[a.sector_laboral]}</span>${a.institucion ? `<div style="font-size:10px;color:var(--mute);margin-top:2px;">${esc(a.institucion)}</div>` : ''}` : '<span style="font-size:11px;color:var(--mute)">—</span>'}</td>
       <td>${a.telefono}</td>
       <td><span class="pill ${a.fuente === 'padron' ? 'pill-info' : 'pill-good'}">${a.fuente === 'padron' ? 'Padrón' : 'Directo'}</span></td>
       <td style="font-size:11px;color:var(--mute)">${a.fecha}</td>
@@ -7061,12 +6724,21 @@ function afilPagina(dir) {
 }
 
 // ─── Modal nuevo/editar afiliado ───
+function toggleAfilInstitucion() {
+  const esPublico = document.getElementById('afil-sector-laboral').value === 'publico';
+  const wrap = document.getElementById('afil-institucion-wrap');
+  wrap.style.display = esPublico ? 'block' : 'none';
+  if (!esPublico) document.getElementById('afil-institucion').value = '';
+}
+
 function abrirModalAfiliado() {
-  ['afil-nombre','afil-cedula','afil-telefono','afil-email','afil-sector','afil-cargo','afil-notas'].forEach(id => {
+  ['afil-nombre','afil-cedula','afil-telefono','afil-email','afil-sector','afil-cargo','afil-institucion','afil-notas'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('afil-tipo').value = '';
   document.getElementById('afil-zona').value = '';
+  document.getElementById('afil-sector-laboral').value = '';
+  document.getElementById('afil-institucion-wrap').style.display = 'none';
   document.getElementById('afil-edit-id').value = '';
   document.getElementById('afil-edit-fuente').value = 'directo';
   document.getElementById('afil-modal-title').textContent = 'Nuevo afiliado';
@@ -7087,6 +6759,9 @@ function editarAfiliado(id) {
   document.getElementById('afil-zona').value = a.zona !== '—' ? a.zona : '';
   document.getElementById('afil-sector').value = a.sector !== '—' ? a.sector : '';
   document.getElementById('afil-cargo').value = a.cargo !== '—' ? a.cargo : '';
+  document.getElementById('afil-sector-laboral').value = a.sector_laboral || '';
+  document.getElementById('afil-institucion').value = a.institucion || '';
+  toggleAfilInstitucion();
   document.getElementById('afil-notas').value = a.notas;
   document.getElementById('afil-edit-id').value = id;
   document.getElementById('afil-edit-fuente').value = 'directo';
@@ -7110,6 +6785,8 @@ async function guardarAfiliado() {
   const zona     = document.getElementById('afil-zona').value;
   const sector   = document.getElementById('afil-sector').value.trim();
   const cargo    = document.getElementById('afil-cargo').value.trim();
+  const sectorLaboral = document.getElementById('afil-sector-laboral').value;
+  const institucion   = document.getElementById('afil-institucion').value.trim();
   const notas    = document.getElementById('afil-notas').value.trim();
   const editId   = document.getElementById('afil-edit-id').value;
   const errEl    = document.getElementById('afil-error');
@@ -7128,7 +6805,9 @@ async function guardarAfiliado() {
   const payload = {
     nombre, cedula: cedula || null, telefono: telefono || null,
     email: email || null, tipo, zona: zona || null,
-    sector: sector || null, cargo: cargo || null, notas: notas || null
+    sector: sector || null, cargo: cargo || null,
+    sector_laboral: sectorLaboral || null, institucion: institucion || null,
+    notas: notas || null
   };
 
   let error;
@@ -7224,7 +6903,6 @@ const PERMISOS_DEFINICION = [
   { key: 'gestionar_ponderacion',   label: 'Configurar ponderación' },
   { key: 'gestionar_dirigentes',    label: 'Gestionar dirigentes/activistas' },
   { key: 'gestionar_aspirantes',    label: 'Gestionar aspirantes' },
-  { key: 'gestionar_nomina_publica',label: 'Gestionar nómina pública' },
   { key: 'gestionar_roles',         label: 'Gestionar roles y permisos' },
   { key: 'acceso_total',            label: 'Acceso total (administrador)' },
   { key: 'app_ver_padron',          label: 'App campo: Buscar electores / Comprometidos' },
