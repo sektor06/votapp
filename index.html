@@ -266,6 +266,27 @@ button { background: none; border: none; cursor: pointer; }
 .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .login-btn svg { width: 18px; height: 18px; }
 
+.login-btn-google {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  padding: 13px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+}
+.login-btn-google:hover { background: rgba(255,255,255,0.12); }
+.login-btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .login-err {
   background: rgba(239,68,68,0.15);
   border: 1px solid rgba(239,68,68,0.3);
@@ -1528,6 +1549,17 @@ button { background: none; border: none; cursor: pointer; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </form>
+
+    <div style="display:flex;align-items:center;gap:12px;margin:18px 0;">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.15);"></div>
+      <span style="color:rgba(255,255,255,0.4);font-size:12px;">o</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.15);"></div>
+    </div>
+
+    <button type="button" class="login-btn-google" id="login-btn-google" onclick="loginConGoogle()">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.78-2.4 3.63v3.02h3.88c2.27-2.09 3.57-5.17 3.57-8.84z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.62H1.27a12 12 0 0 0 0 10.76z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.62l4 3.11C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+      Continuar con Google
+    </button>
   </div>
 
   <div class="login-teletype" id="login-teletype">
@@ -3476,11 +3508,48 @@ function fmtDate(d) {
 async function checkAuth() {
   const { data: { session } } = await db.auth.getSession();
   if (session) {
+    // Si entró por Google, verificar que esté autorizado en usuarios_sistema
+    // (el login por correo/contraseña ya está controlado porque las cuentas
+    // se crean a mano en Supabase, así que no necesita este chequeo extra)
+    if (session.user.app_metadata?.provider === 'google') {
+      const { data: autorizado } = await db.from('usuarios_sistema')
+        .select('id, activo')
+        .eq('auth_user_id', session.user.id)
+        .maybeSingle();
+
+      if (!autorizado || autorizado.activo === false) {
+        await db.auth.signOut();
+        document.getElementById('login-screen').classList.remove('hidden');
+        const errEl = document.getElementById('login-err');
+        errEl.textContent = 'Tu cuenta de Google no tiene acceso autorizado a este panel. Contactá a un administrador.';
+        errEl.style.display = 'block';
+        return;
+      }
+    }
     currentUser = session.user;
     showApp();
   } else {
     document.getElementById('login-screen').classList.remove('hidden');
   }
+}
+
+async function loginConGoogle() {
+  const btn = document.getElementById('login-btn-google');
+  const errEl = document.getElementById('login-err');
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+
+  if (error) {
+    errEl.textContent = 'Error al conectar con Google: ' + error.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+  }
+  // Si no hay error, el navegador redirige a Google — no hace falta hacer nada más acá
 }
 
 async function doLogin(e) {
