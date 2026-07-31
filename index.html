@@ -266,6 +266,27 @@ button { background: none; border: none; cursor: pointer; }
 .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .login-btn svg { width: 18px; height: 18px; }
 
+.login-btn-google {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  padding: 13px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+}
+.login-btn-google:hover { background: rgba(255,255,255,0.12); }
+.login-btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .login-err {
   background: rgba(239,68,68,0.15);
   border: 1px solid rgba(239,68,68,0.3);
@@ -1528,6 +1549,17 @@ button { background: none; border: none; cursor: pointer; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </form>
+
+    <div style="display:flex;align-items:center;gap:12px;margin:18px 0;">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.15);"></div>
+      <span style="color:rgba(255,255,255,0.4);font-size:12px;">o</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,0.15);"></div>
+    </div>
+
+    <button type="button" class="login-btn-google" id="login-btn-google" onclick="loginConGoogle()">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.78-2.4 3.63v3.02h3.88c2.27-2.09 3.57-5.17 3.57-8.84z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.62H1.27a12 12 0 0 0 0 10.76z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.62l4 3.11C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+      Continuar con Google
+    </button>
   </div>
 
   <div class="login-teletype" id="login-teletype">
@@ -1685,7 +1717,7 @@ button { background: none; border: none; cursor: pointer; }
             <div class="kpi-l">Electores en padrón</div>
           </div>
           <div class="kpi-v tab-nums" id="kpi-padron">—</div>
-          <div class="kpi-delta">San Pedro de Macorís · 9 zonas</div>
+          <div class="kpi-delta">San Pedro de Macorís · 9 estructuras</div>
         </div>
         <div class="kpi" data-tone="good">
           <div class="kpi-head">
@@ -1719,7 +1751,7 @@ button { background: none; border: none; cursor: pointer; }
         <div class="panel">
           <div class="panel-h">
             <div>
-              <div class="panel-t">Avance por zona</div>
+              <div class="panel-t">Avance por estructura</div>
               <div class="panel-sub">Comprometidos vs total de electores</div>
             </div>
             <button type="button" class="panel-link" onclick="navTo('territorial')">
@@ -1729,7 +1761,7 @@ button { background: none; border: none; cursor: pointer; }
           </div>
           <div class="panel-b tight">
             <div class="zona-list" id="zona-list">
-              <div class="loading-row">Cargando zonas…</div>
+              <div class="loading-row">Cargando estructura…</div>
             </div>
           </div>
         </div>
@@ -1767,7 +1799,7 @@ button { background: none; border: none; cursor: pointer; }
             <thead>
               <tr>
                 <th>Dirigente</th>
-                <th>Zona</th>
+                <th>Estructura</th>
                 <th class="num">Comprometidos</th>
                 <th class="num">Seguros</th>
                 <th class="num">Probables</th>
@@ -1842,7 +1874,7 @@ button { background: none; border: none; cursor: pointer; }
         <div class="kpi-card"><div class="kpi-n" id="dir-k-activos">—</div><div class="kpi-l">Activos</div></div>
         <div class="kpi-card"><div class="kpi-n" id="dir-k-compromisos" style="color:var(--seguro)">—</div><div class="kpi-l">Compromisos totales</div></div>
         <div class="kpi-card"><div class="kpi-n" id="dir-k-encuestas" style="color:var(--prm)">—</div><div class="kpi-l">Encuestas aplicadas</div></div>
-        <div class="kpi-card"><div class="kpi-n" id="dir-k-vacantes" style="color:var(--dudoso)">—</div><div class="kpi-l">Zonas sin cobertura</div></div>
+        <div class="kpi-card"><div class="kpi-n" id="dir-k-vacantes" style="color:var(--dudoso)">—</div><div class="kpi-l">Estructura sin cobertura</div></div>
       </div>
 
       <!-- TABS -->
@@ -1862,7 +1894,7 @@ button { background: none; border: none; cursor: pointer; }
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
               <input class="mf-input" id="dir-search" placeholder="Buscar por nombre…" oninput="filtrarDirigentes()" style="flex:1;min-width:180px;max-width:260px;">
               <select class="mf-input" id="dir-f-zona" onchange="filtrarDirigentes()" style="width:130px;">
-                <option value="">Todas las zonas</option>
+                <option value="">Toda la estructura</option>
                 <option>A</option><option>B</option><option>C</option><option>D</option>
                 <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
               </select>
@@ -1886,7 +1918,7 @@ button { background: none; border: none; cursor: pointer; }
                 <tr>
                   <th>Dirigente</th>
                   <th>Nivel / Cargo</th>
-                  <th>Zona</th>
+                  <th>Estructura</th>
                   <th>Territorio</th>
                   <th>Superior</th>
                   <th class="num">Comprometidos</th>
@@ -1912,7 +1944,7 @@ button { background: none; border: none; cursor: pointer; }
                 <tr>
                   <th>Dirigente</th>
                   <th>Nivel</th>
-                  <th>Zona</th>
+                  <th>Estructura</th>
                   <th class="num">Comprometidos</th>
                   <th class="num">Meta</th>
                   <th class="num">% Meta</th>
@@ -2033,7 +2065,7 @@ button { background: none; border: none; cursor: pointer; }
             <select class="mf-input" id="nd-nivel">
               <option value="">Selecciona nivel</option>
               <option value="coordinador_general">Coordinador General</option>
-              <option value="coordinador_zona">Coordinador de Zona</option>
+              <option value="coordinador_zona">Coordinador de Estructura</option>
               <option value="dirigente">Dirigente</option>
               <option value="supervisor">Supervisor</option>
               <option value="lider_comunitario">Líder Comunitario</option>
@@ -2045,12 +2077,12 @@ button { background: none; border: none; cursor: pointer; }
         <div class="mf-row2">
           <div class="mf-group">
             <label class="mf-label">Cargo específico</label>
-            <input class="mf-input" id="nd-cargo" placeholder="Presidente de zona, Coordinador…">
+            <input class="mf-input" id="nd-cargo" placeholder="Presidente de estructura, Coordinador…">
           </div>
           <div class="mf-group">
-            <label class="mf-label">Zona asignada</label>
+            <label class="mf-label">Estructura asignada</label>
             <select class="mf-input" id="nd-zona" onchange="cargarRecintosPorZona()">
-              <option value="">Selecciona zona</option>
+              <option value="">Selecciona estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -2060,7 +2092,7 @@ button { background: none; border: none; cursor: pointer; }
           <div class="mf-group">
             <label class="mf-label">Recinto asignado <span style="color:var(--mute);font-weight:400;">(recomendado para modo offline)</span></label>
             <select class="mf-input" id="nd-recinto">
-              <option value="">Primero selecciona una zona</option>
+              <option value="">Primero selecciona una estructura</option>
             </select>
           </div>
           <div class="mf-group">
@@ -2146,7 +2178,7 @@ button { background: none; border: none; cursor: pointer; }
               <tr>
                 <th>Código</th>
                 <th>Nombre</th>
-                <th>Zona</th>
+                <th>Estructura</th>
                 <th class="num">Electores</th>
                 <th class="num">Colegios</th>
                 <th>Ganado 2020</th>
@@ -2165,7 +2197,7 @@ button { background: none; border: none; cursor: pointer; }
       <div class="content-h">
         <div class="content-h-l">
           <h1 class="content-title">Ubicación de Recintos</h1>
-          <p class="content-sub">Distribución geográfica de recintos por zona</p>
+          <p class="content-sub">Distribución geográfica de recintos por estructura</p>
         </div>
       </div>
 
@@ -2179,7 +2211,7 @@ button { background: none; border: none; cursor: pointer; }
       <div class="panel" style="margin-top: 14px;">
         <div class="panel-b">
           <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: var(--text);">
-            <div style="font-family: Sora; font-weight: 700; font-size: 12px; color: var(--mute); text-transform: uppercase; letter-spacing: .04em;">Zonas:</div>
+            <div style="font-family: Sora; font-weight: 700; font-size: 12px; color: var(--mute); text-transform: uppercase; letter-spacing: .04em;">Estructura:</div>
             <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #0047AB;"></div>A</div>
             <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #0a7c4a;"></div>B</div>
             <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 12px; height: 12px; border-radius: 99px; background: #b45309;"></div>C</div>
@@ -2418,7 +2450,7 @@ button { background: none; border: none; cursor: pointer; }
                 <option value="senador">Senador/a</option>
               </optgroup>
               <optgroup label="Partido">
-                <option value="coordinador_zona">Coordinador de Zona</option>
+                <option value="coordinador_zona">Coordinador de Estructura</option>
                 <option value="delegado">Delegado/a</option>
                 <option value="presidente_comite">Presidente de Comité</option>
                 <option value="otro_partido">Otro cargo partido</option>
@@ -2433,7 +2465,7 @@ button { background: none; border: none; cursor: pointer; }
               <option value="retirado">Retirado</option>
             </select>
             <select class="mf-input" id="asp-f-zona" onchange="filtrarAspirantes()" style="width:120px;">
-              <option value="">Todas las zonas</option>
+              <option value="">Toda la estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -2450,7 +2482,7 @@ button { background: none; border: none; cursor: pointer; }
                 <th>Aspirante</th>
                 <th>Cédula</th>
                 <th>Posición</th>
-                <th>Zona</th>
+                <th>Estructura</th>
                 <th>Estado</th>
                 <th>Apoyo estimado</th>
                 <th>Teléfono</th>
@@ -2495,7 +2527,7 @@ button { background: none; border: none; cursor: pointer; }
                 <option value="senador">Senador/a</option>
               </optgroup>
               <optgroup label="Cargos del Partido">
-                <option value="coordinador_zona">Coordinador de Zona</option>
+                <option value="coordinador_zona">Coordinador de Estructura</option>
                 <option value="delegado">Delegado/a</option>
                 <option value="presidente_comite">Presidente de Comité</option>
                 <option value="otro_partido">Otro cargo partido</option>
@@ -2515,9 +2547,9 @@ button { background: none; border: none; cursor: pointer; }
         </div>
         <div class="mf-row2">
           <div class="mf-group">
-            <label class="mf-label">Zona</label>
+            <label class="mf-label">Estructura</label>
             <select class="mf-input" id="asp-zona">
-              <option value="">Selecciona zona</option>
+              <option value="">Selecciona estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -2563,7 +2595,7 @@ button { background: none; border: none; cursor: pointer; }
       <div class="content-h">
         <div class="content-h-l">
           <h1 class="content-title">Encuestas</h1>
-          <p class="content-sub" id="enc-sub">Encuestas dinámicas · estratificadas por zona</p>
+          <p class="content-sub" id="enc-sub">Encuestas dinámicas · estratificadas por estructura</p>
         </div>
         <div class="content-h-r">
           <button class="btn-primary" onclick="abrirModalEncuesta()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
@@ -2601,7 +2633,7 @@ button { background: none; border: none; cursor: pointer; }
             <option value="">Selecciona una encuesta…</option>
           </select>
           <select class="mf-input" id="enc-f-zona" onchange="cargarResultados()" style="width:130px;">
-            <option value="">Todas las zonas</option>
+            <option value="">Toda la estructura</option>
             <option>A</option><option>B</option><option>C</option><option>D</option>
             <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
           </select>
@@ -2634,7 +2666,7 @@ button { background: none; border: none; cursor: pointer; }
             <table class="dt" id="enc-tabla-zonas">
               <thead>
                 <tr>
-                  <th>Zona</th>
+                  <th>Estructura</th>
                   <th class="num">Respuestas</th>
                   <th class="num">Cuota objetivo</th>
                   <th class="num">Avance</th>
@@ -2652,7 +2684,7 @@ button { background: none; border: none; cursor: pointer; }
           <div class="panel-b tight">
             <table class="dt">
               <thead>
-                <tr><th>Cédula</th><th>Zona</th><th>Sexo</th><th>Rango edad</th><th>Modalidad</th><th>Fecha</th><th>Estado</th></tr>
+                <tr><th>Cédula</th><th>Estructura</th><th>Sexo</th><th>Rango edad</th><th>Modalidad</th><th>Fecha</th><th>Estado</th></tr>
               </thead>
               <tbody id="enc-resp-tb">
                 <tr><td colspan="7" class="loading-row">Selecciona una encuesta…</td></tr>
@@ -2673,7 +2705,7 @@ button { background: none; border: none; cursor: pointer; }
         <div class="modal-sticky-body">
         <div class="mf-group">
           <label class="mf-label">Nombre de la encuesta *</label>
-          <input class="mf-input" id="enc-nombre" placeholder="Encuesta Julio 2026 — Zona Norte">
+          <input class="mf-input" id="enc-nombre" placeholder="Encuesta Julio 2026 — Estructura Norte">
         </div>
         <div class="mf-row2">
           <div class="mf-group">
@@ -2689,13 +2721,13 @@ button { background: none; border: none; cursor: pointer; }
             <label class="mf-label">Alcance *</label>
             <select class="mf-input" id="enc-alcance" onchange="toggleAlcanceDetalle()">
               <option value="general">General</option>
-              <option value="zona">Por zona</option>
+              <option value="zona">Por estructura</option>
               <option value="recinto">Por recinto</option>
             </select>
           </div>
         </div>
         <div class="mf-group" id="enc-alcance-detalle-wrap" style="display:none;">
-          <label class="mf-label" id="enc-alcance-detalle-label">Zonas</label>
+          <label class="mf-label" id="enc-alcance-detalle-label">Estructura</label>
           <select class="mf-input" id="enc-alcance-detalle" multiple size="6" style="height:auto;" onchange="autocompletarPoblacion()"></select>
           <div style="font-size:11px;color:var(--mute);margin-top:4px;">Mantené Ctrl (o Cmd) para elegir varias</div>
         </div>
@@ -2729,7 +2761,7 @@ button { background: none; border: none; cursor: pointer; }
         </div>
         <div class="mf-group">
           <label class="mf-label">Descripción / objetivo</label>
-          <textarea class="mf-input" id="enc-descripcion" rows="2" placeholder="Medir intención de voto en zona norte…" style="resize:vertical;"></textarea>
+          <textarea class="mf-input" id="enc-descripcion" rows="2" placeholder="Medir intención de voto en estructura norte…" style="resize:vertical;"></textarea>
         </div>
         <div class="mf-group">
           <label class="mf-label">¿Evalúa a algún aspirante? (opcional)</label>
@@ -2840,13 +2872,13 @@ button { background: none; border: none; cursor: pointer; }
           </div>
           <div class="mf-row2">
             <div class="mf-group">
-              <label class="mf-label">Zona asignada *</label>
+              <label class="mf-label">Estructura asignada *</label>
               <select class="mf-input" id="asig-zona">
-                <option value="A">Zona A</option><option value="B">Zona B</option>
-                <option value="C">Zona C</option><option value="D">Zona D</option>
-                <option value="E">Zona E</option><option value="F">Zona F</option>
-                <option value="G">Zona G</option><option value="H">Zona H</option>
-                <option value="I">Zona I</option>
+                <option value="A">Estructura A</option><option value="B">Estructura B</option>
+                <option value="C">Estructura C</option><option value="D">Estructura D</option>
+                <option value="E">Estructura E</option><option value="F">Estructura F</option>
+                <option value="G">Estructura G</option><option value="H">Estructura H</option>
+                <option value="I">Estructura I</option>
               </select>
             </div>
             <div class="mf-group">
@@ -2929,7 +2961,7 @@ button { background: none; border: none; cursor: pointer; }
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;margin-bottom:8px;">Sexo (automático)</div>
         <div id="pond-sexo-tabla" style="margin-bottom:16px;font-size:12px;"></div>
 
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;margin-bottom:8px;">Zona (automático)</div>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;margin-bottom:8px;">Estructura (automático)</div>
         <div id="pond-zona-tabla" style="margin-bottom:16px;font-size:12px;max-height:180px;overflow-y:auto;"></div>
 
         <div id="pond-recuerdo-wrap" style="display:none;">
@@ -3040,7 +3072,7 @@ button { background: none; border: none; cursor: pointer; }
         </div>
         <div class="panel"><div class="panel-b tight">
           <table class="dt">
-            <thead><tr><th>Nombre</th><th>Tipo</th><th>Zona</th><th>Fecha</th><th class="num">Asistentes</th><th class="num">Presupuesto</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Estructura</th><th>Fecha</th><th class="num">Asistentes</th><th class="num">Presupuesto</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="pres-car-tb"><tr><td colspan="8" class="loading-row">Cargando…</td></tr></tbody>
           </table>
         </div></div>
@@ -3110,7 +3142,7 @@ button { background: none; border: none; cursor: pointer; }
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <input class="mf-input" id="mont-search" placeholder="Buscar por recinto o delegado…" oninput="filtrarMontaje()" style="flex:1;min-width:200px;max-width:280px;">
             <select class="mf-input" id="mont-f-zona" onchange="filtrarMontaje()" style="width:130px;">
-              <option value="">Todas las zonas</option>
+              <option value="">Toda la estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -3149,7 +3181,7 @@ button { background: none; border: none; cursor: pointer; }
       <div id="mpanel-delegados" style="display:none;">
         <div class="panel"><div class="panel-b tight">
           <table class="dt">
-            <thead><tr><th>Delegado</th><th>Cédula</th><th>Rol</th><th>Recinto</th><th>Zona</th><th>Mesa</th><th>Teléfono</th><th class="num">Pago</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Delegado</th><th>Cédula</th><th>Rol</th><th>Recinto</th><th>Estructura</th><th>Mesa</th><th>Teléfono</th><th class="num">Pago</th><th>Acciones</th></tr></thead>
             <tbody id="mont-del-tb"><tr><td colspan="8" class="loading-row">Cargando…</td></tr></tbody>
           </table>
         </div></div>
@@ -3231,9 +3263,9 @@ button { background: none; border: none; cursor: pointer; }
         </div>
         <div class="mf-row2">
           <div class="mf-group">
-            <label class="mf-label">Zona</label>
+            <label class="mf-label">Estructura</label>
             <select class="mf-input" id="del-zona">
-              <option value="">Selecciona zona</option>
+              <option value="">Selecciona estructura</option>
               <option>A</option><option>B</option><option>C</option><option>D</option>
               <option>E</option><option>F</option><option>G</option><option>H</option><option>I</option>
             </select>
@@ -3331,7 +3363,7 @@ button { background: none; border: none; cursor: pointer; }
           <table class="dt">
             <thead>
               <tr>
-                <th>Mesa</th><th>Zona</th><th>Recinto</th>
+                <th>Mesa</th><th>Estructura</th><th>Recinto</th>
                 <th>Delegado</th>
                 <th class="num">Votos PRM reportados</th>
                 <th>Hora</th>
@@ -3369,7 +3401,7 @@ button { background: none; border: none; cursor: pointer; }
               <tr>
                 <th>Delegado</th>
                 <th>Recinto</th>
-                <th>Zona</th>
+                <th>Estructura</th>
                 <th>Mesa</th>
                 <th class="num">PRM</th>
                 <th class="num">PLD</th>
@@ -3476,11 +3508,48 @@ function fmtDate(d) {
 async function checkAuth() {
   const { data: { session } } = await db.auth.getSession();
   if (session) {
+    // Si entró por Google, verificar que esté autorizado en usuarios_sistema
+    // (el login por correo/contraseña ya está controlado porque las cuentas
+    // se crean a mano en Supabase, así que no necesita este chequeo extra)
+    if (session.user.app_metadata?.provider === 'google') {
+      const { data: autorizado } = await db.from('usuarios_sistema')
+        .select('id, activo')
+        .eq('auth_user_id', session.user.id)
+        .maybeSingle();
+
+      if (!autorizado || autorizado.activo === false) {
+        await db.auth.signOut();
+        document.getElementById('login-screen').classList.remove('hidden');
+        const errEl = document.getElementById('login-err');
+        errEl.textContent = 'Tu cuenta de Google no tiene acceso autorizado a este panel. Contactá a un administrador.';
+        errEl.style.display = 'block';
+        return;
+      }
+    }
     currentUser = session.user;
     showApp();
   } else {
     document.getElementById('login-screen').classList.remove('hidden');
   }
+}
+
+async function loginConGoogle() {
+  const btn = document.getElementById('login-btn-google');
+  const errEl = document.getElementById('login-err');
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+
+  if (error) {
+    errEl.textContent = 'Error al conectar con Google: ' + error.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+  }
+  // Si no hay error, el navegador redirige a Google — no hace falta hacer nada más acá
 }
 
 async function doLogin(e) {
@@ -3653,7 +3722,7 @@ async function initMapaZonas() {
     marker.bindPopup(`
       <div style="min-width: 220px;">
         <div style="font-family: Sora, sans-serif; font-weight: 700; font-size: 13px; color: ${color}; margin-bottom: 4px;">
-          Zona ${r.zona} · Recinto ${r.codigo}
+          Estructura ${r.zona} · Recinto ${r.codigo}
         </div>
         <div style="font-size: 12.5px; font-weight: 600; margin-bottom: 8px; color: #0f172a; line-height: 1.35;">
           ${r.nombre || 'Sin nombre'}
@@ -3699,7 +3768,7 @@ async function initMapaZonas() {
 
   L.control.layers(null, {
     'Nombres de barrio': capaBarrios,
-    'Letras de zona': capaEtiquetasZona
+    'Letras de estructura': capaEtiquetasZona
   }, { collapsed: true, position: 'topright' }).addTo(mapZonas);
 
   if (allBounds.length > 0) {
@@ -3782,7 +3851,7 @@ async function loadZonas() {
   }
 
   if (!zonasData || zonasData.length === 0) {
-    list.innerHTML = '<div class="empty"><div class="empty-t">Sin datos de zonas</div></div>';
+    list.innerHTML = '<div class="empty"><div class="empty-t">Sin datos de estructura</div></div>';
     return;
   }
 
@@ -3792,7 +3861,7 @@ async function loadZonas() {
       <div class="zona-item">
         <div class="zona-letter">${z.zona}</div>
         <div class="zona-info">
-          <div class="zona-name">Zona ${z.zona}</div>
+          <div class="zona-name">Estructura ${z.zona}</div>
           <div class="zona-meta">${fmtNum(z.comprometidos)} de ${fmtNum(z.total)} electores</div>
         </div>
         <div class="zona-bar"><div class="zona-bar-fill" style="width:${Math.min(pct, 100)}%"></div></div>
@@ -3945,7 +4014,7 @@ async function doSearchPadron(q) {
       <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}</div>
       <div class="elector-info">
         <div class="elector-name">${esc(e.nombre)}</div>
-        <div class="elector-meta">${e.cedula} · ${e.zona ? 'Zona ' + e.zona : 'Sin zona'}</div>
+        <div class="elector-meta">${e.cedula} · ${e.zona ? 'Estructura ' + e.zona : 'Sin estructura'}</div>
       </div>
       <div class="elector-tags">
         ${e.afiliacion ? `<span class="pill ${afilP[e.afiliacion] || 'pill-mute'}">${e.afiliacion}</span>` : ''}
@@ -4028,7 +4097,7 @@ async function openFicha(id) {
       <div class="ficha-row"><span class="ficha-row-l">Recinto</span><span class="ficha-row-v">${e.recinto_nombre || '—'}</span></div>
       <div class="ficha-row"><span class="ficha-row-l">Código recinto</span><span class="ficha-row-v">${e.recinto_codigo || '—'}</span></div>
       <div class="ficha-row"><span class="ficha-row-l">Colegio</span><span class="ficha-row-v">${e.colegio_numero || '—'}</span></div>
-      <div class="ficha-row"><span class="ficha-row-l">Zona</span><span class="ficha-row-v">${e.zona || '—'}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Estructura</span><span class="ficha-row-v">${e.zona || '—'}</span></div>
     </div>
 
     ${(e.celular || e.telefono || e.direccion) ? `
@@ -4167,7 +4236,7 @@ async function cargarResultados() {
   if (asps.length) {
     aspVincEl.style.display = 'block';
     aspVincEl.innerHTML = `<span style="font-size:11px;color:var(--mute);margin-right:6px;">Evaluando a:</span>` +
-      asps.map(a => `<span class="pill pill-info" style="font-size:11px;margin-right:4px;">👤 ${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Zona '+a.zona+')':''}</span>`).join('');
+      asps.map(a => `<span class="pill pill-info" style="font-size:11px;margin-right:4px;">👤 ${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Estructura '+a.zona+')':''}</span>`).join('');
   } else {
     aspVincEl.style.display = 'none';
   }
@@ -4185,7 +4254,7 @@ async function cargarResultados() {
     const hayObjetivos = Object.keys(pesos).length && Object.values(pesos).some(w => w !== 1);
     avisoEl.style.display = 'block';
     avisoEl.textContent = hayObjetivos
-      ? 'Mostrando resultados ponderados (ajustados por sexo, zona y/o recuerdo de voto según los objetivos configurados).'
+      ? 'Mostrando resultados ponderados (ajustados por sexo, estructura y/o recuerdo de voto según los objetivos configurados).'
       : 'No hay objetivos de ponderación configurados todavía — usá el botón "⚖️ Ponderación" para definirlos. Mostrando datos sin ajustar.';
   } else {
     avisoEl.style.display = 'none';
@@ -4201,7 +4270,7 @@ async function cargarResultados() {
     const cuotaZona = (cuotas||[]).filter(c=>c.zona===z).reduce((a,c)=>a+(c.cuota_objetivo||0),0);
     if (!zResp.length && !cuotaZona) return '';
     return `<tr>
-      <td><span class="pill pill-info">Zona ${z}</span></td>
+      <td><span class="pill pill-info">Estructura ${z}</span></td>
       <td class="num">${zResp.length}</td>
       <td class="num">${cuotaZona||'—'}</td>
       <td class="num" style="font-weight:700;color:var(--prm);">${cuotaZona?pct(zResp.length,cuotaZona)+'%':'—'}</td>
@@ -4323,7 +4392,7 @@ async function toggleAlcanceDetalle() {
   if (alcance === 'zona') {
     label.textContent = 'Zonas';
     sel.innerHTML = ['A','B','C','D','E','F','G','H','I']
-      .map(z => `<option value="${z}">Zona ${z}</option>`).join('');
+      .map(z => `<option value="${z}">Estructura ${z}</option>`).join('');
   } else if (alcance === 'recinto') {
     label.textContent = 'Recintos';
     sel.innerHTML = '<option disabled>Cargando…</option>';
@@ -4365,7 +4434,7 @@ async function abrirModalEncuesta() {
   const { data: aspirantes } = await db.from('aspirantes').select('id, nombre, posicion, zona').order('nombre');
   const selAsp = document.getElementById('enc-aspirantes');
   selAsp.innerHTML = (aspirantes||[]).map(a =>
-    `<option value="${a.id}">${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Zona '+a.zona+')':''}</option>`
+    `<option value="${a.id}">${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Estructura '+a.zona+')':''}</option>`
   ).join('') || '<option disabled>No hay aspirantes registrados</option>';
 }
 
@@ -4627,7 +4696,7 @@ async function abrirModalEncuestadores(encuestaId) {
   dirigentesTmp = dirigentes || [];
   const sel = document.getElementById('asig-persona');
   sel.innerHTML = dirigentesTmp.map(d =>
-    `<option value="${d.id}" data-zona="${d.zona||''}">${esc(d.nombre)} — ${d.nivel==='activista'?'Activista':'Dirigente'} (Zona ${d.zona||'—'})</option>`
+    `<option value="${d.id}" data-zona="${d.zona||''}">${esc(d.nombre)} — ${d.nivel==='activista'?'Activista':'Dirigente'} (Estructura ${d.zona||'—'})</option>`
   ).join('');
   autocompletarZonaAsignada();
 
@@ -4663,7 +4732,7 @@ async function cargarEncuestadoresAsignados(encuestaId) {
       <div>
         <div style="font-size:13px;font-weight:600;color:var(--text);">${a.dirigentes?.nombre||'—'}</div>
         <div style="font-size:11px;color:var(--mute);margin-top:2px;">
-          ${a.dirigentes?.nivel==='activista'?'Activista':'Dirigente'} · Zona ${a.zona_asignada} · Meta ${a.meta_asignada||0} · Completadas ${a.completadas||0}
+          ${a.dirigentes?.nivel==='activista'?'Activista':'Dirigente'} · Estructura ${a.zona_asignada} · Meta ${a.meta_asignada||0} · Completadas ${a.completadas||0}
         </div>
       </div>
       <button class="btn-qr" onclick="quitarEncuestador('${a.id}')" style="padding:6px 10px;">Quitar</button>
@@ -4745,7 +4814,7 @@ async function abrirModalPonderacion() {
 
   document.getElementById('pond-zona-tabla').innerHTML = Object.entries(zonaCount).sort().map(([zona,n]) => {
     const pct = (100*n/totalPadron).toFixed(1);
-    return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);"><span>Zona ${zona}</span><span style="font-weight:700;">${pct}%</span><input type="hidden" class="pond-zona-input" data-valor="${zona}" value="${pct}"></div>`;
+    return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);"><span>Estructura ${zona}</span><span style="font-weight:700;">${pct}%</span><input type="hidden" class="pond-zona-input" data-valor="${zona}" value="${pct}"></div>`;
   }).join('') || '<span style="color:var(--mute);">Sin datos del padrón para este alcance.</span>';
 
   // 2. Ver si hay pregunta de recuerdo_voto para pedir el dato real manual
@@ -4897,7 +4966,7 @@ async function generarReporte() {
     const zResp = (respuestas||[]).filter(r=>r.zona===z);
     const cuotaZona = (cuotas||[]).filter(c=>c.zona===z).reduce((a,c)=>a+(c.cuota_objetivo||0),0);
     if (!zResp.length && !cuotaZona) return '';
-    return `<tr><td style="padding:3px 0;">Zona ${z}</td><td style="text-align:right;">${zResp.length}</td><td style="text-align:right;">${cuotaZona||'—'}</td></tr>`;
+    return `<tr><td style="padding:3px 0;">Estructura ${z}</td><td style="text-align:right;">${zResp.length}</td><td style="text-align:right;">${cuotaZona||'—'}</td></tr>`;
   }).join('');
 
   let narrativaPreguntas = '';
@@ -4953,11 +5022,11 @@ async function generarReporte() {
 
     <h3 style="font-family:'Sora',sans-serif;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:6px;">Cobertura de la muestra</h3>
     <p>Se recolectaron <b>${fmtNum(totalResp)}</b> respuestas de una muestra objetivo de <b>${fmtNum(enc.muestra_objetivo||0)}</b>, alcanzando un <b>${avancePct}%</b> de avance.</p>
-    ${filasZona ? `<table style="width:100%;font-size:13px;margin-bottom:14px;"><tr style="color:var(--mute);"><td>Zona</td><td style="text-align:right;">Respuestas</td><td style="text-align:right;">Cuota</td></tr>${filasZona}</table>` : ''}
+    ${filasZona ? `<table style="width:100%;font-size:13px;margin-bottom:14px;"><tr style="color:var(--mute);"><td>Estructura</td><td style="text-align:right;">Respuestas</td><td style="text-align:right;">Cuota</td></tr>${filasZona}</table>` : ''}
 
     <h3 style="font-family:'Sora',sans-serif;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:6px;">Calidad de los datos</h3>
     <p>${sospechosas>0 ? `⚠️ Se detectaron <b>${sospechosas}</b> respuesta(s) marcadas como sospechosas por opción trampa. Se recomienda revisarlas antes de usar los resultados finales.` : 'No se detectaron respuestas sospechosas.'}</p>
-    <p>${pesos ? 'Los resultados de este reporte están <b>ponderados</b> (ajustados por sexo, zona y/o recuerdo de voto según los objetivos configurados).' : 'Esta encuesta no tiene objetivos de ponderación configurados — los resultados mostrados son crudos, sin ajustar.'}</p>
+    <p>${pesos ? 'Los resultados de este reporte están <b>ponderados</b> (ajustados por sexo, estructura y/o recuerdo de voto según los objetivos configurados).' : 'Esta encuesta no tiene objetivos de ponderación configurados — los resultados mostrados son crudos, sin ajustar.'}</p>
 
     <h3 style="font-family:'Sora',sans-serif;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:6px;margin-top:18px;">Resultados por pregunta</h3>
     ${narrativaPreguntas}
@@ -5239,7 +5308,7 @@ async function loadActas() {
   tb.innerHTML = actas.map(a => `<tr>
     <td class="bold" style="font-size:12px;">${a.dirigente_nombre||'—'}</td>
     <td style="font-size:12px;color:var(--mute);">${a.recinto_codigo||'—'}</td>
-    <td>${a.zona ? `<span class="pill pill-info">Zona ${a.zona}</span>` : '—'}</td>
+    <td>${a.zona ? `<span class="pill pill-info">Estructura ${a.zona}</span>` : '—'}</td>
     <td class="num">${a.mesa||'—'}</td>
     <td class="num" style="color:var(--prm);font-weight:700;">${a.votos_prm??'—'}</td>
     <td class="num">${a.votos_pld??'—'}</td>
@@ -5399,7 +5468,7 @@ function renderZonasVivo() {
     return `
       <div style="background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">Zona ${z}</span>
+          <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">Estructura ${z}</span>
           <span style="font-size:18px;font-weight:800;color:${color};">${pct}%</span>
         </div>
         <div style="background:var(--line);border-radius:4px;height:8px;margin-bottom:8px;">
@@ -5422,7 +5491,7 @@ function renderRecintosTabla() {
 
   tb.innerHTML = segData.reportes.map(rep => `<tr>
     <td class="bold" style="font-size:12px;">${esc(rep.mesa) || '—'}</td>
-    <td><span class="pill pill-info">Zona ${esc(rep.zona)||'?'}</span></td>
+    <td><span class="pill pill-info">Estructura ${esc(rep.zona)||'?'}</span></td>
     <td style="font-size:12px;">${rep.recinto_codigo ? esc(rep.recinto_codigo) + ' — ' + esc((recNombre[rep.recinto_codigo]||'').substring(0,25)) : '—'}</td>
     <td style="font-size:12px;">${esc(rep.dirigente_nombre)||'—'}</td>
     <td class="num" style="color:var(--seguro);font-weight:700;">${fmtNum(rep.votos_reportados||0)}</td>
@@ -5432,7 +5501,7 @@ function renderRecintosTabla() {
 
 // Reporte manual desde el panel
 async function reportarMesa(recintoCod, zona) {
-  const cant = prompt(`Recinto ${recintoCod} · Zona ${zona}\n\n¿Cuántos electores del PRM han votado hasta ahora en este recinto?`);
+  const cant = prompt(`Recinto ${recintoCod} · Estructura ${zona}\n\n¿Cuántos electores del PRM han votado hasta ahora en este recinto?`);
   if (cant === null || isNaN(cant)) return;
   const { error } = await db.from('reportes_mesa').insert({
     recinto_codigo: recintoCod,
@@ -5472,7 +5541,7 @@ async function buscarElectorSeg() {
   res.innerHTML = `
     <div style="background:${yaVoto?'#f0fdf4':'#eff6ff'};border:1.5px solid ${yaVoto?'#86efac':'#bfdbfe'};border-radius:10px;padding:14px;">
       <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">${esc(data.nombre.split(',').slice(0,2).join(',').trim())}</div>
-      <div style="font-size:12px;color:var(--mute);margin-bottom:8px;">Cédula: ${data.cedula} · Zona ${data.zona||'?'} · Recinto ${data.recinto||'?'}</div>
+      <div style="font-size:12px;color:var(--mute);margin-bottom:8px;">Cédula: ${data.cedula} · Estructura ${data.zona||'?'} · Recinto ${data.recinto||'?'}</div>
       <div style="font-size:12px;margin-bottom:${yaVoto?'0':'12px'};font-weight:600;color:${data.comprometido?'var(--seguro)':'var(--mute)'};">
         ${data.comprometido?'✓ Comprometido con el PRM':'Sin compromiso registrado'}
       </div>
@@ -5522,7 +5591,7 @@ function renderAlertas() {
     <div style="background:${a.tipo==='sin_reporte'?'#fef3c7':'#fee2e2'};border:1.5px solid ${a.tipo==='sin_reporte'?'#fcd34d':'#fca5a5'};border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-weight:700;font-size:13px;color:var(--text);">
-          ${a.tipo==='sin_reporte'?'⚠️ Sin reporte':'🔴 Baja asistencia'} — ${a.rec.codigo} Zona ${a.rec.zona||'?'}
+          ${a.tipo==='sin_reporte'?'⚠️ Sin reporte':'🔴 Baja asistencia'} — ${a.rec.codigo} Estructura ${a.rec.zona||'?'}
         </div>
         <div style="font-size:12px;color:var(--mute);margin-top:2px;">${(a.rec.nombre||'').substring(0,40)} · ${fmtNum(a.comp)} comprometidos · ${fmtNum(a.votos)} votaron (${a.pct}%)</div>
       </div>
@@ -5582,7 +5651,7 @@ async function loadMontaje() {
   // Poblar selector de recintos en modal
   const selRec = document.getElementById('del-recinto');
   selRec.innerHTML = '<option value="">Selecciona recinto</option>' +
-    recList.map(r => `<option value="${r.codigo}">${r.codigo} — ${(r.nombre||'').substring(0,35)} (Zona ${r.zona||'?'})</option>`).join('');
+    recList.map(r => `<option value="${r.codigo}">${r.codigo} — ${(r.nombre||'').substring(0,35)} (Estructura ${r.zona||'?'})</option>`).join('');
 
   // Calcular cobertura
   // Total mesas = suma de colegios de todos los recintos
@@ -5660,7 +5729,7 @@ function renderRecintos() {
             <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">
               ${cod} — ${(rec.nombre||'').substring(0,30)}
             </div>
-            <div style="font-size:11px;color:var(--mute);">Zona ${rec.zona||'?'} · ${total} mesas</div>
+            <div style="font-size:11px;color:var(--mute);">Estructura ${rec.zona||'?'} · ${total} mesas</div>
           </div>
           <div style="font-size:18px;font-weight:800;color:${pct===100?'var(--seguro)':pct>=50?'var(--probable)':'var(--dudoso)'};">${pct}%</div>
         </div>
@@ -5688,7 +5757,7 @@ function renderListaDelegados() {
     <td style="font-family:monospace;font-size:12px;">${d.cedula||'—'}</td>
     <td><span style="background:${ROL_COLOR[d.rol]||'#64748b'}20;color:${ROL_COLOR[d.rol]||'#64748b'};border:1px solid ${ROL_COLOR[d.rol]||'#64748b'}40;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;">${ROL_LABEL[d.rol]||d.rol||'—'}</span></td>
     <td style="font-size:12px;">${d.recinto_codigo||'—'} <span style="color:var(--mute);font-size:11px;">${(recintosMap[d.recinto_codigo]?.nombre||'').substring(0,20)}</span></td>
-    <td>${d.zona ? `<span class="pill pill-info">Zona ${d.zona}</span>` : '—'}</td>
+    <td>${d.zona ? `<span class="pill pill-info">Estructura ${d.zona}</span>` : '—'}</td>
     <td class="num">${d.mesa||'—'}</td>
     <td style="font-size:12px;">${d.telefono||'—'}</td>
     <td class="num">
@@ -5723,7 +5792,7 @@ function renderMesasVacias() {
 
     html += `
       <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:12px 14px;">
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:4px;">${cod} · Zona ${rec.zona||'?'}</div>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:4px;">${cod} · Estructura ${rec.zona||'?'}</div>
         <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${(rec.nombre||'').substring(0,35)}</div>
         <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:8px;">⚠️ ${sinCubrir} mesa${sinCubrir!==1?'s':''} sin delegado titular</div>
         <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${total} mesas total · ${cubiertas} cubiertas</div>
@@ -5951,7 +6020,7 @@ function imprimirConstancia(id) {
       <tr><td style="padding:6px 0;color:var(--mute);">Cédula</td><td style="padding:6px 0;">${d.cedula||'—'}</td></tr>
       <tr><td style="padding:6px 0;color:var(--mute);">Posición</td><td style="padding:6px 0;">${ROL_LABEL[d.rol]||d.rol||'—'}</td></tr>
       <tr><td style="padding:6px 0;color:var(--mute);">Recinto</td><td style="padding:6px 0;">${d.recinto_codigo||''} — ${rec?.nombre||''}</td></tr>
-      <tr><td style="padding:6px 0;color:var(--mute);">Zona</td><td style="padding:6px 0;">${d.zona||'—'}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);">Estructura</td><td style="padding:6px 0;">${d.zona||'—'}</td></tr>
       <tr><td style="padding:6px 0;color:var(--mute);">Mesa</td><td style="padding:6px 0;">${d.mesa||'—'}</td></tr>
       <tr><td style="padding:10px 0 6px;color:var(--mute);border-top:1px solid var(--line);">Monto a pagar</td><td style="padding:10px 0 6px;font-weight:800;font-size:16px;color:var(--prm);border-top:1px solid var(--line);">${d.moneda||'RD$'} ${d.monto_pago ? fmtNum(d.monto_pago) : '—'}</td></tr>
     </table>
@@ -6114,7 +6183,7 @@ function renderCaravanas() {
   tb.innerHTML = presData.caravanas.map(r => `<tr>
     <td class="bold">${esc(r.nombre||'—')}</td>
     <td style="font-size:12px;">${r.tipo||'—'}</td>
-    <td>${r.zona ? '<span class="pill pill-info">Zona '+r.zona+'</span>' : '—'}</td>
+    <td>${r.zona ? '<span class="pill pill-info">Estructura '+r.zona+'</span>' : '—'}</td>
     <td style="font-size:12px;color:var(--mute);">${r.fecha||'—'}</td>
     <td class="num">${r.asistentes_estimados ? fmtNum(r.asistentes_estimados) : '—'}</td>
     <td class="num">${r.presupuesto_estimado ? fmtMonto(r.presupuesto_estimado,r.moneda) : '—'}</td>
@@ -6142,7 +6211,7 @@ function renderRecursos() {
 // ─── Formularios dinámicos ───
 const PRES_FORMS = {
   ingreso: () => `
-    <div class="mf-group"><label class="mf-label">Descripción *</label><input class="mf-input" id="pf-desc" placeholder="Aportación de dirigentes zona A…"></div>
+    <div class="mf-group"><label class="mf-label">Descripción *</label><input class="mf-input" id="pf-desc" placeholder="Aportación de dirigentes estructura A…"></div>
     <div class="mf-row2">
       <div class="mf-group"><label class="mf-label">Fuente / Categoría</label>
         <select class="mf-input" id="pf-cat">${CAT_INGRESO.map(c=>`<option>${c}</option>`).join('')}</select></div>
@@ -6156,11 +6225,11 @@ const PRES_FORMS = {
     <div class="mf-group"><label class="mf-label">Notas</label><textarea class="mf-input" id="pf-notas" rows="2" style="resize:vertical;" placeholder="Observaciones…"></textarea></div>`,
 
   gasto: () => `
-    <div class="mf-group"><label class="mf-label">Descripción *</label><input class="mf-input" id="pf-desc" placeholder="Combustible caravana zona B…"></div>
+    <div class="mf-group"><label class="mf-label">Descripción *</label><input class="mf-input" id="pf-desc" placeholder="Combustible caravana estructura B…"></div>
     <div class="mf-row2">
       <div class="mf-group"><label class="mf-label">Categoría</label>
         <select class="mf-input" id="pf-cat">${CAT_GASTO.map(c=>`<option>${c}</option>`).join('')}</select></div>
-      <div class="mf-group"><label class="mf-label">Actividad relacionada</label><input class="mf-input" id="pf-actividad" placeholder="Caravana Zona B, 15 junio…"></div>
+      <div class="mf-group"><label class="mf-label">Actividad relacionada</label><input class="mf-input" id="pf-actividad" placeholder="Caravana Estructura B, 15 junio…"></div>
     </div>
     <div class="mf-row2">
       <div class="mf-group"><label class="mf-label">Moneda</label>
@@ -6174,11 +6243,11 @@ const PRES_FORMS = {
     <div class="mf-group"><label class="mf-label">Notas</label><textarea class="mf-input" id="pf-notas" rows="2" style="resize:vertical;" placeholder="Observaciones…"></textarea></div>`,
 
   caravana: () => `
-    <div class="mf-group"><label class="mf-label">Nombre del evento *</label><input class="mf-input" id="pf-nombre" placeholder="Caravana Zona Norte — Junio 2026"></div>
+    <div class="mf-group"><label class="mf-label">Nombre del evento *</label><input class="mf-input" id="pf-nombre" placeholder="Caravana Estructura Norte — Junio 2026"></div>
     <div class="mf-row2">
       <div class="mf-group"><label class="mf-label">Tipo</label>
         <select class="mf-input" id="pf-tipo">${TIPO_EVENTO.map(t=>`<option>${t}</option>`).join('')}</select></div>
-      <div class="mf-group"><label class="mf-label">Zona</label>
+      <div class="mf-group"><label class="mf-label">Estructura</label>
         <select class="mf-input" id="pf-zona"><option value="">General</option>${'ABCDEFGHI'.split('').map(z=>`<option>${z}</option>`).join('')}</select></div>
     </div>
     <div class="mf-row2">
@@ -7055,7 +7124,7 @@ async function cargarOrganigrama() {
         <div style="background:var(--bg);border:2px solid ${color};border-radius:10px;padding:8px 14px;min-width:150px;text-align:center;${!nodo.activo?'opacity:0.5;':''}">
           <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;">${esc(nodo.nombre)}</div>
           <div style="font-size:10px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:.03em;">${rolNombre}</div>
-          ${nodo.zona ? `<div style="font-size:10px;color:var(--mute);">Zona ${nodo.zona}</div>` : ''}
+          ${nodo.zona ? `<div style="font-size:10px;color:var(--mute);">Estructura ${nodo.zona}</div>` : ''}
         </div>
         ${nodo.hijos.length ? `
           <div style="width:2px;height:16px;background:var(--line);"></div>
@@ -7170,7 +7239,7 @@ function renderDirigentes() {
     return `<tr>
       <td><div style="font-weight:700;color:var(--text);">${esc(d.nombre)}</div><div style="font-size:11px;color:var(--mute);">${d.cedula||''} ${d.telefono?'· '+d.telefono:''}</div></td>
       <td><span style="background:${color}20;color:${color};border:1px solid ${color}40;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">${NIVEL_LABEL[nivel]||nivel}</span><div style="font-size:11px;color:var(--mute);margin-top:2px;">${esc(d.cargo||'')}</div></td>
-      <td>${d.zona ? '<span class="pill pill-info">Zona '+d.zona+'</span>' : '—'}</td>
+      <td>${d.zona ? '<span class="pill pill-info">Estructura '+d.zona+'</span>' : '—'}</td>
       <td style="font-size:12px;color:var(--mute);">${d.territorio||'—'}</td>
       <td style="font-size:12px;color:var(--mute);">${d.superior_nombre||'—'}</td>
       <td class="num"><div style="font-weight:700;">${fmtNum(d.stats.total)}</div>${d.meta ? '<div style="font-size:10px;color:'+(pctMeta>=100?'var(--seguro)':'var(--mute)')+';">'+pctMeta+'% meta</div>' : ''}</td>
@@ -7193,7 +7262,7 @@ function renderDesempeno() {
     return `<tr>
       <td class="bold">${esc(d.nombre)}</td>
       <td style="font-size:12px;">${NIVEL_LABEL[d.nivel]||d.nivel||'—'}</td>
-      <td>${d.zona ? '<span class="pill pill-info">Zona '+d.zona+'</span>' : '—'}</td>
+      <td>${d.zona ? '<span class="pill pill-info">Estructura '+d.zona+'</span>' : '—'}</td>
       <td class="num" style="font-weight:700;">${fmtNum(d.stats.total)}</td>
       <td class="num" style="color:var(--mute);">${fmtNum(meta)}</td>
       <td class="num"><div style="background:var(--line);border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle;"><div style="background:${pct>=100?'var(--seguro)':pct>=60?'var(--probable)':'var(--dudoso)'};height:6px;border-radius:4px;width:${pct}%;"></div></div><span style="margin-left:6px;font-size:11px;">${pct}%</span></td>
@@ -7223,7 +7292,7 @@ function renderVacantes() {
     const labels = { sin_cobertura: 'Sin cobertura', sin_coordinador: 'Sin coordinador', ok: 'Cubierta' };
     html += `<div style="background:${bgs[status]};border:1.5px solid ${bords[status]};border-radius:10px;padding:12px 14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">Zona ${z}</span>
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">Estructura ${z}</span>
         <span style="font-size:11px;font-weight:600;">${icons[status]} ${labels[status]}</span>
       </div>
       <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${zonaLabels[z]||''}</div>
@@ -7241,7 +7310,7 @@ async function cargarRecintosPorZona(recintoSeleccionado) {
   const zona = document.getElementById('nd-zona').value;
   const sel  = document.getElementById('nd-recinto');
   if (!zona) {
-    sel.innerHTML = '<option value="">Primero selecciona una zona</option>';
+    sel.innerHTML = '<option value="">Primero selecciona una estructura</option>';
     return;
   }
   sel.innerHTML = '<option value="">Cargando…</option>';
@@ -7266,7 +7335,7 @@ function abrirModalNuevoDirigente(zonaPreset) {
   document.getElementById('nd-error').style.display = 'none';
   poblarSuperior(null);
   if (zonaPreset) cargarRecintosPorZona();
-  else document.getElementById('nd-recinto').innerHTML = '<option value="">Primero selecciona una zona</option>';
+  else document.getElementById('nd-recinto').innerHTML = '<option value="">Primero selecciona una estructura</option>';
   document.getElementById('modal-dirigente').classList.add('show');
 }
 
@@ -7290,7 +7359,7 @@ function editarDirigente(id) {
   poblarSuperior(id, d.superior_id);
   // Cargar recintos y seleccionar el actual
   if (d.zona) cargarRecintosPorZona(d.recinto || '');
-  else document.getElementById('nd-recinto').innerHTML = '<option value="">Primero selecciona una zona</option>';
+  else document.getElementById('nd-recinto').innerHTML = '<option value="">Primero selecciona una estructura</option>';
   document.getElementById('modal-dirigente').classList.add('show');
 }
 
@@ -7376,7 +7445,7 @@ function verQRDirigente(id, nombre, zona, token) {
   }
   const appUrl = 'https://atenas.app/app.html?token=' + token;
   document.getElementById('qr-nombre').textContent    = nombre;
-  document.getElementById('qr-subtitulo').textContent = zona ? 'Zona ' + zona + ' · PRM SPM' : 'PRM San Pedro de Macorís';
+  document.getElementById('qr-subtitulo').textContent = zona ? 'Estructura ' + zona + ' · PRM SPM' : 'PRM San Pedro de Macorís';
   document.getElementById('qr-url-texto').textContent = appUrl;
 
   // Generar QR como imagen via api.qrserver.com
@@ -7440,7 +7509,7 @@ async function loadRecintos() {
       <tr>
         <td class="mono bold">${r.codigo}</td>
         <td class="bold">${esc(r.nombre)}</td>
-        <td>${r.zona ? 'Zona ' + r.zona : '—'}</td>
+        <td>${r.zona ? 'Estructura ' + r.zona : '—'}</td>
         <td class="num">${fmtNum(r.total_electores)}</td>
         <td class="num">${fmtNum(r.total_colegios)}</td>
         <td><span class="pill ${pillClass}">${ganador}</span></td>
