@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#01173A">
+<title>ATENAS · Regístrate</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCI+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwMTE3M0EiLz4KCiAgPCEtLSBUcmnDoW5ndWxvICJBIiBlbiBjb250b3JubyBibGFuY28gLS0+CiAgPHBhdGggZD0iTTIwMCA2MAogICAgICAgICAgIEwyODAgMjIwIEwyNTAgMjIwIEwyMDAgMTIyIEwxNTAgMjIwIEwxMjAgMjIwIFoiCiAgICAgICAgZmlsbD0iI0ZGRkZGRiIvPgoKICA8IS0tIFRyacOhbmd1bG8gdmVyZGUgc8OzbGlkbywgaW50ZXJpb3IgLS0+CiAgPHBhdGggZD0iTTIwMCAxNjAgTDIyOCAyMTYgTDE3MiAyMTYgWiIgZmlsbD0iIzgxQ0QzNSIvPgo8L3N2Zz4K">
+<script src="https://js.sentry-cdn.com/f4cbd13364faf3fa015ef6a39603eb3f.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #01173A; --navy-2: #0A2A5C; --green: #81CD35; --green-dark: #5A9E2A;
+    --bg: #FAFAF8; --card: #FFFFFF; --line: #E5E7EB; --text: #14203A; --mute: #64748B; --danger: #DC2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  .topband { background: linear-gradient(170deg, var(--navy) 0%, var(--navy-2) 100%); padding: 32px 20px 40px; text-align: center; position: relative; overflow: hidden; }
+  .topband::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 15% 20%, rgba(129,205,53,0.10) 0%, transparent 40%), radial-gradient(circle at 85% 60%, rgba(129,205,53,0.06) 0%, transparent 40%); }
+  .brand-mark { position: relative; z-index: 1; } .brand-mark svg { width: 46px; height: 46px; }
+  .brand-name { position: relative; z-index: 1; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 26px; color: #fff; letter-spacing: 3px; margin-top: 10px; }
+  .brand-tag { position: relative; z-index: 1; font-size: 11px; font-weight: 700; color: var(--green); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+
+  .stepper-wrap { max-width: 640px; margin: -22px auto 0; padding: 0 20px; position: relative; z-index: 2; }
+  .stepper { background: var(--card); border-radius: 16px; box-shadow: 0 8px 28px rgba(1,23,58,0.12); padding: 20px 24px; display: flex; justify-content: space-between; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; position: relative; }
+  .step:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: 55%; width: 90%; height: 2px; background: var(--line); z-index: 0; }
+  .step.done:not(:last-child)::after { background: var(--green); }
+  .step-dot { width: 30px; height: 30px; border-radius: 50%; background: var(--line); color: var(--mute); display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px; position: relative; z-index: 1; transition: background .2s, color .2s; }
+  .step.active .step-dot { background: var(--navy); color: #fff; }
+  .step.done .step-dot { background: var(--green); color: #fff; }
+  .step-label { font-size: 11px; font-weight: 600; color: var(--mute); text-align: center; }
+  .step.active .step-label { color: var(--navy); font-weight: 700; }
+
+  main { flex: 1; max-width: 640px; margin: 0 auto; width: 100%; padding: 28px 20px 40px; }
+  .card { background: var(--card); border-radius: 16px; border: 1px solid var(--line); padding: 28px; }
+  .card-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: var(--navy); margin-bottom: 6px; }
+  .card-sub { font-size: 13px; color: var(--mute); margin-bottom: 24px; line-height: 1.5; }
+
+  .google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; font-weight: 600; font-size: 14px; color: var(--text); cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+  .google-btn:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+  .google-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .account-pill { display: none; align-items: center; gap: 12px; background: #F0F7E8; border: 1.5px solid var(--green); border-radius: 12px; padding: 14px 16px; margin-top: 14px; }
+  .account-pill.show { display: flex; }
+  .account-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; }
+  .account-info b { font-size: 14px; display: block; } .account-info span { font-size: 12px; color: var(--mute); }
+
+  .org-search { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 14px; font-size: 14px; margin-bottom: 16px; outline: none; }
+  .org-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+  .org-card { display: flex; align-items: center; gap: 14px; border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .org-card.selected { border-color: var(--navy); background: #F4F7FC; }
+  .org-logo { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 15px; color: #fff; flex-shrink: 0; }
+  .org-name { font-weight: 700; font-size: 14px; } .org-meta { font-size: 12px; color: var(--mute); margin-top: 1px; }
+  .org-type-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; letter-spacing: .4px; margin-left: auto; flex-shrink: 0; }
+  .badge-partido { background: #E7EEF8; color: var(--navy); } .badge-movimiento { background: #FEF3E2; color: #B45309; } .badge-candidato { background: #EAF6DC; color: var(--green-dark); }
+  .org-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .org-card.selected .org-check { border-color: var(--navy); background: var(--navy); }
+  .org-check svg { display: none; width: 12px; height: 12px; } .org-card.selected .org-check svg { display: block; }
+
+  .cat-choice { display: flex; gap: 10px; }
+  .cat-btn { flex: 1; text-align: center; border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .cat-btn.selected { border-color: var(--green-dark); background: #F4FAEE; color: var(--green-dark); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } }
+  .f-group { display: flex; flex-direction: column; gap: 5px; }
+  .f-group.span2 { grid-column: span 2; } @media (max-width: 480px) { .f-group.span2 { grid-column: span 1; } }
+  .f-label { font-size: 11px; font-weight: 700; color: var(--mute); text-transform: uppercase; letter-spacing: .3px; }
+  .f-input { border: 1.5px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 14px; outline: none; }
+  .f-input:focus { border-color: var(--navy); }
+
+  .legal-box { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 12.5px; color: var(--mute); line-height: 1.6; max-height: 160px; overflow-y: auto; margin-bottom: 18px; }
+  .consent-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px; }
+  .consent-row input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--navy); }
+  .consent-row label { font-size: 13px; line-height: 1.5; }
+
+  .summary-box { background: #F4F7FC; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+  .summary-row span:first-child { color: var(--mute); } .summary-row span:last-child { font-weight: 700; text-align:right; }
+
+  .confirm-view { text-align: center; padding: 20px 0; }
+  .confirm-icon { width: 68px; height: 68px; border-radius: 50%; background: #EAF6DC; color: var(--green-dark); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+  .confirm-icon.warn { background:#FEF2F2; color:var(--danger); }
+  .confirm-icon svg { width: 34px; height: 34px; }
+
+  .nav-row { display: flex; gap: 10px; margin-top: 26px; }
+  .btn { flex: 1; border: none; border-radius: 10px; padding: 13px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .15s, transform .1s; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--navy); color: #fff; } .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--mute); border: 1.5px solid var(--line); flex: 0 0 auto; padding: 13px 20px; }
+
+  .error-box { background:#FEF2F2; color:var(--danger); border-radius:9px; padding:10px 14px; font-size:12.5px; font-weight:600; margin-bottom:14px; display:none; }
+  .error-box.show { display:block; }
+  .loading-txt { text-align:center; color:var(--mute); font-size:13px; padding:20px; }
+</style>
+</head>
+<body>
+
+  <div class="topband">
+    <div class="brand-mark"><svg viewBox="0 0 400 400"><path d="M200 60 L280 220 L250 220 L200 122 L150 220 L120 220 Z" fill="#FFFFFF"/><path d="M200 160 L228 216 L172 216 Z" fill="#81CD35"/></svg></div>
+    <div class="brand-name">ATENAS</div>
+    <div class="brand-tag">Inteligencia para liderar</div>
+  </div>
+
+  <div class="stepper-wrap">
+    <div class="stepper" id="stepper">
+      <div class="step active" data-step="1"><div class="step-dot">1</div><div class="step-label">Cuenta</div></div>
+      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">A quién apoyás</div></div>
+      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">Tus datos</div></div>
+      <div class="step" data-step="4"><div class="step-dot">4</div><div class="step-label">Confirmar</div></div>
+    </div>
+  </div>
+
+  <main>
+    <div class="card">
+
+      <div class="step-content" id="content-1">
+        <div class="card-title">Creá tu cuenta</div>
+        <div class="card-sub">Usá tu cuenta de Google para registrarte — es gratis y toma un minuto.</div>
+        <div class="error-box" id="err-1"></div>
+        <button class="google-btn" id="btn-google" onclick="loginGoogle()">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.78-2.4 3.63v3.02h3.88c2.27-2.09 3.57-5.17 3.57-8.84z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.62H1.27a12 12 0 0 0 0 10.76z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.62l4 3.11C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+          Continuar con Google
+        </button>
+        <div class="account-pill" id="account-pill">
+          <div class="account-avatar" id="account-avatar">--</div>
+          <div class="account-info"><b id="account-name">--</b><span id="account-email">--</span></div>
+        </div>
+        <div class="nav-row"><button class="btn btn-primary" id="btn-next-1" onclick="irPaso(2)" disabled>Continuar</button></div>
+      </div>
+
+      <div class="step-content" id="content-2" style="display:none;">
+        <div class="card-title">¿A quién querés apoyar?</div>
+        <div class="card-sub">Elegí el partido, movimiento o candidato al que querés solicitar unirte.</div>
+        <input class="org-search" placeholder="Buscar por nombre…" oninput="filtrarOrgs(this.value)">
+        <div class="org-list" id="org-list"><div class="loading-txt">Cargando organizaciones…</div></div>
+        <div id="cat-section" style="display:none;">
+          <div class="f-label" style="margin-bottom:8px;">¿Con qué categoría querés solicitar entrar?</div>
+          <div class="cat-choice">
+            <div class="cat-btn" data-cat="simpatizante" onclick="elegirCategoria('simpatizante')">Simpatizante</div>
+            <div class="cat-btn" data-cat="militante" onclick="elegirCategoria('militante')">Militante</div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-ghost" onclick="irPaso(1)">Atrás</button>
+          <button class="btn btn-primary" id="btn-next-2" onclick="irPaso(3)" disabled>Continuar</button>
+        </div>
+      </div>
+
+      <div class="step-content" id="content-3" style="display:none;">
+        <div class="card-title">Tus datos</div>
+        <div class="card-sub">Esta información queda vinculada a tu solicitud de afiliación.</div>
+        <div class="form-grid">
+          <div class="f-group span2"><label class="f-label">Cédula *</label><input class="f-input" id="f-cedula" placeholder="000-0000000-0"></div>
+          <div class="f-group"><label class="f-label">Nombre(s) *</label><input class="f-input" id="f-nombre"></div>
+          <div class="f-group"><label class="f-label">Apellido(s) *</label><input class="f-input" id="f-apellido"></div>
+          <div class="f-group"><label class="f-label">Teléfono celular *</label><input class="f-input" id="f-telefono" placeholder="809-000-0000"></div>
+          <div class="f-group"><label class="f-label">Correo electrónico</label><input class="f-input" id="f-correo" disabled style="background:#F4F4F4;color:var(--mute);"></div>
+          <div class="f-group span2"><label class="f-label">Calle, avenida o carretera</label><input class="f-input" id="f-calle" placeholder="Calle Principal #12"></div>
+          <div class="f-group"><label class="f-label">Barrio o sector</label><input class="f-input" id="f-barrio" list="barrios-lista" placeholder="Escribí para buscar…" autocomplete="off"><datalist id="barrios-lista"><option value="24 de Abril"><option value="30 de Mayo"><option value="Alto de Abraham"><option value="Alto de San Pedro"><option value="Bajo Manhattan"><option value="Barrio Azul"><option value="Barrio Blanco"><option value="Barrio Kilometro 3 1/2"><option value="Barrio Lindo"><option value="Barrio Lindo II"><option value="Barrio Mexico"><option value="Barrio Restauración"><option value="Brizas del Este"><option value="Buenos Aires"><option value="Cacarajicara"><option value="Campus UCE"><option value="Centro"><option value="Ciudad Codiana"><option value="El Batey Central"><option value="El Brisal"><option value="El Golfo"><option value="El Ocho"><option value="El Patio"><option value="El Retiro"><option value="El Silencio"><option value="El Toconal"><option value="Enrriquillo"><option value="Invi CEA"><option value="Jaime Brugal"><option value="Japón"><option value="Jardines del Este"><option value="José Blanche"><option value="Juan Pablo Duarte"><option value="Kennedy I"><option value="Kennedy II"><option value="La Arena"><option value="La Barca"><option value="La Belleza"><option value="La Piedra"><option value="La Puerta"><option value="La Roca"><option value="Las Caobas"><option value="Las Colinas I"><option value="Las Colinas II"><option value="Las Filipinas"><option value="Las Flores"><option value="Loma del Cochero"><option value="Los 4 Caminos"><option value="Los Bomberitos"><option value="Los Cajones"><option value="Los Guandules"><option value="Los Maestros"><option value="Los Multis"><option value="Los Profesionales"><option value="Los Transformadores"><option value="Lotificación CEA"><option value="Maranatha"><option value="Miramar"><option value="Nueva Esperanza"><option value="Palo de Azucar"><option value="Paraiso"><option value="Pedro Justo Carrión"><option value="Perez Marquez"><option value="Petropolis"><option value="Placer Bonito"><option value="Playa de Muerto"><option value="Proyecto Lotificación"><option value="Puerto Rico"><option value="Punta Pescadora"><option value="Punta de Garza"><option value="San Anton"><option value="Santa Clara"><option value="Santa Fe"><option value="Sarmiento I"><option value="Sarmiento II"><option value="Sin Nombre"><option value="Urb, Marina"><option value="Urb. Evangelina Rodriguez"><option value="Urb. Garden"><option value="Urb. Hazim"><option value="Urb. Independencia"><option value="Urb. La Bendición"><option value="Urb. Mallen"><option value="Urb. Naime"><option value="Urb. Oriental"><option value="Urb. Peréz Bernal"><option value="Urb. Vicini"><option value="Villa Azucarera"><option value="Villa Cañera"><option value="Villa Centro"><option value="Villa Cesarina"><option value="Villa Coral"><option value="Villa España"><option value="Villa Faro"><option value="Villa Magdalena"><option value="Villa Mexico"><option value="Villa Municipal"><option value="Villa Olimpica"><option value="Villa Orilla"><option value="Villa Progreso I"><option value="Villa Progreso II"><option value="Villa Providencia"><option value="Villa Providencia II"><option value="Villa Velasquez"><option value="Villa Vizan"><option value="Villla Hermosa"><option value="Vitania"></datalist></div>
+          <div class="f-group"><label class="f-label">Ciudad / Municipio</label><input class="f-input" id="f-ciudad" value="San Pedro de Macorís"></div>
+          <div class="f-group"><label class="f-label">Ocupación</label><input class="f-input" id="f-ocupacion" placeholder="Ej: Comerciante"></div>
+          <div class="f-group"><label class="f-label">Frente sectorial <span style="text-transform:none;font-weight:500;">(opcional)</span></label>
+            <select class="f-input" id="f-frente"><option value="">No aplica</option><option>Frente Juvenil</option><option>Frente Femenino</option><option>Frente Sindical</option><option>Frente Profesional</option></select>
+          </div>
+        </div>
+        <div>
+          <div class="f-label" style="margin-bottom:8px;">¿Cómo querés que te avisemos si te aceptan?</div>
+          <div class="cat-choice" id="notif-choice">
+            <div class="cat-btn" data-notif="correo" onclick="elegirNotif('correo')">📧 Por correo</div>
+            <div class="cat-btn" data-notif="llamada" onclick="elegirNotif('llamada')">📞 Por llamada</div>
+          </div>
+        </div>
+        <div class="error-box" id="err-3"></div>
+        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(2)">Atrás</button><button class="btn btn-primary" onclick="validarPaso3()">Continuar</button></div>
+      </div>
+
+      <div class="step-content" id="content-4" style="display:none;">
+        <div class="card-title">Confirmá tu solicitud</div>
+        <div class="card-sub">Revisá los datos antes de enviar.</div>
+        <div class="summary-box">
+          <div class="summary-row"><span>Solicitás unirte a</span><span id="sum-org">—</span></div>
+          <div class="summary-row"><span>Categoría</span><span id="sum-cat">—</span></div>
+          <div class="summary-row"><span>Nombre</span><span id="sum-nombre">—</span></div>
+          <div class="summary-row"><span>Aviso de respuesta</span><span id="sum-notif">—</span></div>
+        </div>
+        <div class="legal-box">
+          Al enviar esta solicitud, autorizás a la organización elegida a incluirte en su registro interno de afiliados/simpatizantes, conforme a la legislación vigente sobre partidos y agrupaciones políticas de la República Dominicana. Tus datos personales serán tratados conforme a la Ley 172-13 de Protección de Datos, y solo serán visibles para la organización a la que solicitás unirte — ninguna otra organización que use ATENAS puede acceder a tu información.
+        </div>
+        <div class="consent-row"><input type="checkbox" id="chk-consent" onchange="toggleEnviar()"><label for="chk-consent">Leí y acepto los términos anteriores, y confirmo que la información que proporcioné es correcta.</label></div>
+        <div class="error-box" id="err-4"></div>
+        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(3)">Atrás</button><button class="btn btn-primary" id="btn-enviar" onclick="enviarSolicitud()" disabled>Enviar solicitud</button></div>
+      </div>
+
+      <div class="step-content" id="content-confirm" style="display:none;">
+        <div class="confirm-view">
+          <div class="confirm-icon" id="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="card-title" style="text-align:center;" id="confirm-title">¡Solicitud enviada!</div>
+          <div class="card-sub" style="text-align:center;" id="confirm-text"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+<script>
+const SB_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
+const SB_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
+const db = supabase.createClient(SB_URL, SB_KEY);
+
+let sesionActual = null;
+let organizaciones = [];
+let orgSeleccionada = null;
+let categoriaSeleccionada = null;
+let notifPreferida = 'correo';
+
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    sesionActual = session;
+    mostrarCuentaConectada(session.user);
+  }
+}
+
+function mostrarCuentaConectada(user) {
+  const nombre = user.user_metadata?.full_name || user.email;
+  const inicial = nombre.substring(0,2).toUpperCase();
+  document.getElementById('account-avatar').textContent = inicial;
+  document.getElementById('account-name').textContent = nombre;
+  document.getElementById('account-email').textContent = user.email;
+  document.getElementById('account-pill').classList.add('show');
+  document.getElementById('btn-google').style.display = 'none';
+  document.getElementById('btn-next-1').disabled = false;
+  document.getElementById('f-correo').value = user.email;
+}
+
+async function loginGoogle() {
+  const btn = document.getElementById('btn-google');
+  const err = document.getElementById('err-1');
+  btn.disabled = true; err.classList.remove('show');
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) {
+    err.textContent = 'Error al conectar con Google: ' + error.message;
+    err.classList.add('show');
+    btn.disabled = false;
+  }
+}
+
+async function cargarOrganizaciones() {
+  const { data, error } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre');
+  organizaciones = data || [];
+  renderOrgs();
+}
+
+function renderOrgs(filtro = '') {
+  const cont = document.getElementById('org-list');
+  if (!organizaciones.length) { cont.innerHTML = '<div class="loading-txt">No hay organizaciones disponibles todavía.</div>'; return; }
+  const badge = { partido: 'Partido', movimiento: 'Movimiento', candidato: 'Candidato' };
+  const colores = { partido: '#01173A', movimiento: '#B45309', candidato: '#5A9E2A' };
+  const lista = organizaciones.filter(o => o.nombre.toLowerCase().includes(filtro.toLowerCase()));
+  if (!lista.length) { cont.innerHTML = '<div class="loading-txt">Sin resultados.</div>'; return; }
+  cont.innerHTML = lista.map(o => `
+    <div class="org-card ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${o.id}')">
+      <div class="org-logo" style="background:${colores[o.tipo]||'#64748B'};">${o.nombre.substring(0,2).toUpperCase()}</div>
+      <div><div class="org-name">${o.nombre}</div><div class="org-meta">Inscrito en ATENAS</div></div>
+      <span class="org-type-badge badge-${o.tipo}">${badge[o.tipo]||o.tipo}</span>
+      <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>`).join('');
+}
+function filtrarOrgs(q) { renderOrgs(q); }
+function elegirOrg(id) { orgSeleccionada = id; renderOrgs(document.querySelector('.org-search').value); document.getElementById('cat-section').style.display = 'block'; actualizarBotonPaso2(); }
+function elegirCategoria(cat) { categoriaSeleccionada = cat; document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.toggle('selected', b.dataset.cat===cat)); actualizarBotonPaso2(); }
+function actualizarBotonPaso2() { document.getElementById('btn-next-2').disabled = !(orgSeleccionada && categoriaSeleccionada); }
+function elegirNotif(tipo) { notifPreferida = tipo; document.querySelectorAll('#notif-choice .cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.notif===tipo)); }
+
+function irPaso(n) {
+  document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+  document.getElementById('content-' + n).style.display = 'block';
+  document.querySelectorAll('.step').forEach(s => {
+    const num = parseInt(s.dataset.step);
+    s.classList.toggle('active', num === n);
+    s.classList.toggle('done', num < n);
+  });
+  if (n === 2 && !organizaciones.length) cargarOrganizaciones();
+  if (n === 4) actualizarResumen();
+}
+
+function validarPaso3() {
+  const err = document.getElementById('err-3');
+  const cedula = document.getElementById('f-cedula').value.trim();
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const apellido = document.getElementById('f-apellido').value.trim();
+  const telefono = document.getElementById('f-telefono').value.trim();
+  if (cedula.replace(/\D/g,'').length < 11 || !nombre || !apellido || !telefono) {
+    err.textContent = 'Completá cédula (11 dígitos), nombre, apellido y teléfono antes de continuar.';
+    err.classList.add('show');
+    return;
+  }
+  err.classList.remove('show');
+  irPaso(4);
+}
+
+function actualizarResumen() {
+  const org = organizaciones.find(o => o.id === orgSeleccionada);
+  document.getElementById('sum-org').textContent = org ? org.nombre : '—';
+  document.getElementById('sum-cat').textContent = categoriaSeleccionada === 'militante' ? 'Militante' : 'Simpatizante';
+  document.getElementById('sum-nombre').textContent = document.getElementById('f-nombre').value + ' ' + document.getElementById('f-apellido').value;
+  document.getElementById('sum-notif').textContent = notifPreferida === 'llamada' ? '📞 Por llamada' : '📧 Por correo';
+}
+
+function toggleEnviar() { document.getElementById('btn-enviar').disabled = !document.getElementById('chk-consent').checked; }
+
+async function enviarSolicitud() {
+  const btn = document.getElementById('btn-enviar');
+  const err = document.getElementById('err-4');
+  btn.disabled = true; btn.textContent = 'Enviando…'; err.classList.remove('show');
+
+  const { data, error } = await db.rpc('crear_solicitud_afiliacion', {
+    p_organizacion_id: orgSeleccionada,
+    p_categoria: categoriaSeleccionada,
+    p_nombre: document.getElementById('f-nombre').value.trim(),
+    p_apellido: document.getElementById('f-apellido').value.trim(),
+    p_apodo: null,
+    p_cedula: document.getElementById('f-cedula').value.trim(),
+    p_telefono_celular: document.getElementById('f-telefono').value.trim(),
+    p_telefono_residencial: null,
+    p_telefono_trabajo: null,
+    p_correo: document.getElementById('f-correo').value,
+    p_calle: document.getElementById('f-calle').value.trim() || null,
+    p_numero: null,
+    p_residencial_condominio: null,
+    p_barrio: document.getElementById('f-barrio').value.trim() || null,
+    p_paraje_seccion: null,
+    p_ciudad_municipio: document.getElementById('f-ciudad').value.trim() || null,
+    p_ocupacion: document.getElementById('f-ocupacion').value.trim() || null,
+    p_frente_sectorial: document.getElementById('f-frente').value || null,
+    p_aviso_preferido: notifPreferida,
+    p_estructura_sugerida: null
+  });
+
+  if (error) {
+    err.textContent = 'No se pudo enviar la solicitud: ' + error.message;
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'Enviar solicitud';
+    if (window.Sentry) Sentry.captureException(error);
+    return;
+  }
+
+  const org = organizaciones.find(o => o.id === orgSeleccionada);
+  document.getElementById('stepper').style.display = 'none';
+  document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+  document.getElementById('content-confirm').style.display = 'block';
+  const canal = notifPreferida === 'llamada' ? 'por llamada telefónica' : 'por correo';
+  document.getElementById('confirm-text').innerHTML =
+    `Tu solicitud para unirte como <b>${categoriaSeleccionada==='militante'?'Militante':'Simpatizante'}</b> a <b>${org?org.nombre:''}</b> fue enviada. Te vamos a avisar ${canal} cuando la revisen.`;
+}
+
+init();
+</script>
+</body>
+</html>
