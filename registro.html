@@ -244,7 +244,7 @@ async function loginGoogle() {
   btn.disabled = true; err.classList.remove('show');
   const { error } = await db.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: { redirectTo: window.location.href }
   });
   if (error) {
     err.textContent = 'Error al conectar con Google: ' + error.message;
@@ -257,6 +257,12 @@ async function cargarOrganizaciones() {
   const { data, error } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre');
   organizaciones = data || [];
   renderOrgs();
+
+  // Si venimos desde el directorio público con una organización elegida, preseleccionarla
+  const orgDesdeUrl = new URLSearchParams(window.location.search).get('org');
+  if (orgDesdeUrl && organizaciones.some(o => o.id === orgDesdeUrl)) {
+    elegirOrg(orgDesdeUrl);
+  }
 }
 
 function renderOrgs(filtro = '') {
