@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#01173A">
+<title>ATENAS · Inteligencia para liderar</title>
+<meta name="description" content="La plataforma de gestión electoral para partidos, movimientos y candidatos en República Dominicana.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCI+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwMTE3M0EiLz4KCiAgPCEtLSBUcmnDoW5ndWxvICJBIiBlbiBjb250b3JubyBibGFuY28gLS0+CiAgPHBhdGggZD0iTTIwMCA2MAogICAgICAgICAgIEwyODAgMjIwIEwyNTAgMjIwIEwyMDAgMTIyIEwxNTAgMjIwIEwxMjAgMjIwIFoiCiAgICAgICAgZmlsbD0iI0ZGRkZGRiIvPgoKICA8IS0tIFRyacOhbmd1bG8gdmVyZGUgc8OzbGlkbywgaW50ZXJpb3IgLS0+CiAgPHBhdGggZD0iTTIwMCAxNjAgTDIyOCAyMTYgTDE3MiAyMTYgWiIgZmlsbD0iIzgxQ0QzNSIvPgo8L3N2Zz4K">
+<script src="https://js.sentry-cdn.com/f4cbd13364faf3fa015ef6a39603eb3f.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#01173A; --navy-2:#0A2A5C; --navy-3:#123465; --green:#81CD35; --green-dark:#5A9E2A; --green-light:#B4E67E;
+    --bg:#F7F8FA; --text:#0D1B33; --mute:#5C6B85; --line:#E4E8F0; --gold:#D9B65C;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; }
+  a { text-decoration:none; color:inherit; }
+  .serif { font-family:'Fraunces',serif; }
+
+  /* ═══ Utilidades de aparición al hacer scroll ═══ */
+  .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity:1; transform:translateY(0); }
+
+  /* ═══ HERO ═══ */
+  .hero {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(129,205,53,0.16), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 105% 20%, rgba(129,205,53,0.10), transparent 55%),
+      linear-gradient(155deg, #010D26 0%, var(--navy) 42%, var(--navy-3) 100%);
+    padding-bottom:60px;
+  }
+  .hero-noise {
+    position:absolute; inset:0; opacity:.5; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  .greek-key {
+    position:absolute; top:0; left:0; right:0; height:14px;
+    background-image: repeating-linear-gradient(90deg, rgba(129,205,53,.55) 0 3px, transparent 3px 22px);
+  }
+  .orbit { position:absolute; border-radius:50%; border:1px solid rgba(129,205,53,0.14); pointer-events:none; }
+
+  .nav-top { position:relative; z-index:2; display:flex; justify-content:space-between; align-items:center; max-width:1080px; margin:0 auto; padding:26px 24px 0; }
+  .nav-brand { display:flex; align-items:center; gap:10px; }
+  .nav-brand svg { width:24px; height:24px; }
+  .nav-brand span { font-family:'Sora',sans-serif; font-weight:800; color:#fff; letter-spacing:2.5px; font-size:15px; }
+  .nav-login { color:#DCE4F2; font-size:12.5px; font-weight:600; border:1.5px solid rgba(255,255,255,0.18); border-radius:9px; padding:9px 18px; transition:border-color .2s, background .2s; }
+  .nav-login:hover { border-color:var(--green); background:rgba(129,205,53,0.08); }
+
+  .hero-inner { position:relative; z-index:2; max-width:760px; margin:0 auto; padding:64px 24px 0; text-align:center; }
+  .hero-eyebrow {
+    display:inline-flex; align-items:center; gap:8px; background:rgba(129,205,53,0.1); border:1px solid rgba(129,205,53,0.3);
+    color:var(--green-light); font-size:11.5px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+    padding:7px 16px; border-radius:30px; margin-bottom:30px;
+  }
+  .hero-eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); }
+  .hero-headline {
+    font-family:'Fraunces',serif; font-weight:500; font-size:clamp(34px,6vw,54px); line-height:1.12;
+    color:#fff; letter-spacing:-0.5px;
+  }
+  .hero-headline em { font-style:italic; color:var(--green-light); font-weight:500; }
+  .hero-sub { color:#B7C3DC; font-size:16px; margin-top:22px; line-height:1.65; max-width:520px; margin-left:auto; margin-right:auto; }
+  .hero-actions { display:flex; gap:14px; justify-content:center; margin-top:36px; flex-wrap:wrap; }
+  .btn-hero-primary {
+    display:inline-flex; align-items:center; gap:9px; background:var(--green); color:var(--navy); font-weight:700; font-size:14.5px;
+    padding:15px 28px; border-radius:11px; border:none; cursor:pointer; box-shadow:0 10px 30px -8px rgba(129,205,53,0.5);
+    transition:transform .2s, box-shadow .2s;
+  }
+  .btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 14px 34px -6px rgba(129,205,53,0.6); }
+  .btn-hero-ghost {
+    display:inline-flex; align-items:center; gap:9px; background:rgba(255,255,255,0.04); color:#fff; font-weight:600; font-size:14.5px;
+    padding:15px 24px; border-radius:11px; border:1.5px solid rgba(255,255,255,0.16); cursor:pointer;
+  }
+
+  /* ═══ Tira de estadísticas, flotando sobre el hero ═══ */
+  .stats-float { position:relative; z-index:3; max-width:900px; margin:-70px auto 0; padding:0 24px; }
+  .stats-card {
+    background:#fff; border-radius:20px; box-shadow:0 24px 60px -20px rgba(1,23,58,0.35);
+    display:grid; grid-template-columns:repeat(3,1fr); overflow:hidden;
+  }
+  .stat-item { padding:26px 20px; text-align:center; border-right:1px solid var(--line); }
+  .stat-item:last-child { border-right:none; }
+  .stat-n { font-family:'Sora',sans-serif; font-weight:800; font-size:28px; color:var(--navy); }
+  .stat-l { font-size:11.5px; color:var(--mute); font-weight:600; margin-top:3px; text-transform:uppercase; letter-spacing:.4px; }
+  @media (max-width:560px){ .stat-item { padding:18px 8px; } .stat-n { font-size:20px; } .stat-l { font-size:9.5px; } }
+
+  /* ═══ Sección "cómo funciona" ═══ */
+  .section { max-width:1080px; margin:0 auto; padding:150px 24px 0; }
+  .section-tight { padding-top:90px; }
+  .section-head { text-align:center; max-width:560px; margin:0 auto 52px; }
+  .section-eyebrow { color:var(--green-dark); font-size:11.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
+  .section-title { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(26px,4vw,36px); color:var(--navy); margin-top:10px; line-height:1.2; }
+  .section-sub { color:var(--mute); font-size:14.5px; margin-top:14px; line-height:1.6; }
+
+  .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media (max-width:760px){ .steps-grid { grid-template-columns:1fr; } }
+  .step-card { background:#fff; border-radius:18px; padding:32px 26px; border:1px solid var(--line); position:relative; }
+  .step-num { font-family:'Fraunces',serif; font-size:44px; font-weight:500; color:var(--green); opacity:.35; line-height:1; }
+  .step-title { font-family:'Sora',sans-serif; font-weight:700; font-size:16px; color:var(--navy); margin-top:14px; }
+  .step-text { font-size:13.5px; color:var(--mute); margin-top:8px; line-height:1.6; }
+
+  /* ═══ Directorio ═══ */
+  .search-bar { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(1,23,58,0.06); padding:15px 20px; margin-bottom:22px; display:flex; gap:10px; border:1px solid var(--line); }
+  .search-bar input { flex:1; border:none; outline:none; font-size:14.5px; font-family:'Inter',sans-serif; }
+  .filters { display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap; }
+  .filter-chip { background:#fff; border:1.5px solid var(--line); border-radius:20px; padding:7px 16px; font-size:12.5px; font-weight:600; color:var(--text); cursor:pointer; transition:all .15s; }
+  .filter-chip.active { background:var(--navy); border-color:var(--navy); color:#fff; }
+
+  .org-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px) { .org-grid { grid-template-columns:1fr; } }
+  .org-card {
+    background:#fff; border-radius:16px; border:1px solid var(--line); padding:22px;
+    transition:transform .2s, box-shadow .2s, border-color .2s;
+  }
+  .org-card:hover { transform:translateY(-3px); box-shadow:0 16px 34px -14px rgba(1,23,58,0.22); border-color:transparent; }
+  .org-top { display:flex; align-items:center; gap:13px; margin-bottom:14px; }
+  .org-logo { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; font-size:15px; color:#fff; flex-shrink:0; }
+  .org-name { font-weight:700; font-size:15px; line-height:1.3; }
+  .org-type { font-size:9.5px; font-weight:800; text-transform:uppercase; padding:2px 9px; border-radius:20px; margin-top:4px; display:inline-block; letter-spacing:.3px; }
+  .t-partido { background:#E7EEF8; color:var(--navy); } .t-movimiento { background:#FEF3E2; color:#B45309; } .t-candidato { background:#EAF6DC; color:var(--green-dark); }
+  .org-stats { font-size:11.5px; color:#94A3B8; margin-bottom:16px; }
+  .btn-solicitar { display:block; width:100%; text-align:center; background:var(--navy); color:#fff; border:none; border-radius:10px; padding:11px; font-weight:700; font-size:13px; cursor:pointer; transition:background .2s; }
+  .btn-solicitar:hover { background:var(--navy-3); }
+  .loading-txt, .empty-txt { text-align:center; color:var(--mute); font-size:13.5px; padding:40px; grid-column:1/-1; }
+
+  /* ═══ CTA final ═══ */
+  .cta-final {
+    max-width:1080px; margin:150px auto 0; padding:0 24px;
+  }
+  .cta-box {
+    background:linear-gradient(135deg, var(--navy), var(--navy-3));
+    border-radius:24px; padding:64px 40px; text-align:center; position:relative; overflow:hidden;
+  }
+  .cta-box::before { content:''; position:absolute; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle, rgba(129,205,53,0.22), transparent 70%); top:-140px; right:-100px; }
+  .cta-title { font-family:'Fraunces',serif; font-weight:500; font-size:clamp(24px,3.6vw,32px); color:#fff; position:relative; z-index:1; }
+  .cta-sub { color:#B7C3DC; font-size:14px; margin-top:12px; position:relative; z-index:1; }
+
+  /* ═══ Footer ═══ */
+  .footer { max-width:1080px; margin:80px auto 0; padding:40px 24px 50px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .footer-brand { display:flex; align-items:center; gap:8px; }
+  .footer-brand svg { width:18px; height:18px; }
+  .footer-brand span { font-family:'Sora',sans-serif; font-weight:800; color:var(--navy); font-size:13px; letter-spacing:1.5px; }
+  .footer-text { font-size:12px; color:#94A3B8; }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="greek-key"></div>
+    <div class="hero-noise"></div>
+    <div class="orbit" style="width:520px;height:520px;top:-180px;right:-160px;"></div>
+    <div class="orbit" style="width:340px;height:340px;top:60px;right:-40px;"></div>
+
+    <div class="nav-top">
+      <div class="nav-brand">
+        <svg viewBox="0 0 400 400"><path d="M200 60 L280 220 L250 220 L200 122 L150 220 L120 220 Z" fill="#FFFFFF"/><path d="M200 160 L228 216 L172 216 Z" fill="#81CD35"/></svg>
+        <span>ATENAS</span>
+      </div>
+      <a class="nav-login" href="panel.html">Ya tengo cuenta</a>
+    </div>
+
+    <div class="hero-inner">
+      <div class="hero-eyebrow"><span class="dot"></span> Inteligencia para liderar</div>
+      <h1 class="hero-headline">Descubrí quién está <em>postulando</em>, y sumate a construirlo</h1>
+      <p class="hero-sub">Un directorio público de partidos, movimientos y candidatos que ya organizan su campaña con ATENAS. Elegí a quién apoyar — el resto toma un minuto.</p>
+      <div class="hero-actions">
+        <button class="btn-hero-primary" onclick="document.getElementById('directorio').scrollIntoView({behavior:'smooth'})">
+          Ver el directorio
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <a class="btn-hero-ghost" href="#como-funciona">Cómo funciona</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-float reveal" id="stats-float">
+    <div class="stats-card">
+      <div class="stat-item"><div class="stat-n" id="stat-orgs">—</div><div class="stat-l">Organizaciones</div></div>
+      <div class="stat-item"><div class="stat-n">100%</div><div class="stat-l">Datos aislados</div></div>
+      <div class="stat-item"><div class="stat-n">1</div><div class="stat-l">Minuto para unirte</div></div>
+    </div>
+  </div>
+
+  <div class="section section-tight" id="como-funciona">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Cómo funciona</div>
+      <h2 class="section-title">De curioso a colaborador, en tres pasos</h2>
+      <p class="section-sub">Sin formularios eternos ni trámites confusos — así de directo es sumarte.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal"><div class="step-num">01</div><div class="step-title">Elegí a quién apoyar</div><div class="step-text">Explorá el directorio y encontrá el partido, movimiento o candidato con el que te identificás.</div></div>
+      <div class="step-card reveal"><div class="step-num">02</div><div class="step-title">Registrate con Google</div><div class="step-text">Sin contraseñas nuevas que recordar — tu cuenta de Google te identifica en segundos.</div></div>
+      <div class="step-card reveal"><div class="step-num">03</div><div class="step-title">Esperá la confirmación</div><div class="step-text">Tu solicitud llega directo a la organización elegida. Te avisamos por correo o llamada apenas la revisen.</div></div>
+    </div>
+  </div>
+
+  <div class="section" id="directorio">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Directorio público</div>
+      <h2 class="section-title">Quiénes ya están en ATENAS</h2>
+      <p class="section-sub">No hace falta cuenta para mirar — solo para sumarte.</p>
+    </div>
+    <div class="search-bar reveal"><input id="buscador" placeholder="Buscar por nombre…" oninput="filtrar(this.value)"></div>
+    <div class="filters reveal">
+      <div class="filter-chip active" data-tipo="" onclick="filtrarTipo(this)">Todos</div>
+      <div class="filter-chip" data-tipo="partido" onclick="filtrarTipo(this)">Partidos</div>
+      <div class="filter-chip" data-tipo="movimiento" onclick="filtrarTipo(this)">Movimientos</div>
+      <div class="filter-chip" data-tipo="candidato" onclick="filtrarTipo(this)">Candidatos</div>
+    </div>
+    <div class="org-grid reveal" id="org-grid"><div class="loading-txt">Cargando organizaciones…</div></div>
+  </div>
+
+  <div class="cta-final reveal">
+    <div class="cta-box">
+      <div class="cta-title">¿Tu partido o campaña todavía no está acá?</div>
+      <p class="cta-sub">Escribinos y te mostramos cómo llevar tu estructura completa a ATENAS.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-brand">
+      <svg viewBox="0 0 400 400"><path d="M200 60 L280 220 L250 220 L200 122 L150 220 L120 220 Z" fill="#01173A"/><path d="M200 160 L228 216 L172 216 Z" fill="#5A9E2A"/></svg>
+      <span>ATENAS</span>
+    </div>
+    <div class="footer-text">© 2026 ATENAS — Inteligencia para liderar</div>
+  </div>
+
+<script>
+// Animación de aparición al hacer scroll — corre sola, sin depender de Supabase
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); observer.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+const SB_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
+const SB_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
+const db = supabase.createClient(SB_URL, SB_KEY);
+
+let organizaciones = [];
+let tipoActivo = '';
+
+async function cargarOrganizaciones() {
+  const { data, error } = await db.from('organizaciones').select('id, nombre, tipo, provincia').eq('activa', true).order('nombre');
+  if (error) {
+    document.getElementById('org-grid').innerHTML = '<div class="empty-txt">No se pudo cargar el directorio. Intentá de nuevo en un momento.</div>';
+    if (window.Sentry) Sentry.captureException(error);
+    return;
+  }
+  organizaciones = data || [];
+  document.getElementById('stat-orgs').textContent = organizaciones.length;
+  render();
+}
+
+function filtrar(q) { render(q); }
+function filtrarTipo(el) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  tipoActivo = el.dataset.tipo;
+  render(document.getElementById('buscador').value);
+}
+
+function render(q = '') {
+  const cont = document.getElementById('org-grid');
+  const badge = { partido: 'Partido', movimiento: 'Movimiento', candidato: 'Candidato' };
+  const colores = { partido: '#01173A', movimiento: '#B45309', candidato: '#5A9E2A' };
+  const lista = organizaciones.filter(o => o.nombre.toLowerCase().includes(q.toLowerCase()) && (!tipoActivo || o.tipo === tipoActivo));
+
+  if (!lista.length) {
+    cont.innerHTML = organizaciones.length ? '<div class="empty-txt">Sin resultados para tu búsqueda.</div>' : '<div class="empty-txt">Todavía no hay organizaciones inscritas en la plataforma.</div>';
+    return;
+  }
+  cont.innerHTML = lista.map(o => `
+    <div class="org-card">
+      <div class="org-top">
+        <div class="org-logo" style="background:${colores[o.tipo]||'#64748B'};">${o.nombre.substring(0,2).toUpperCase()}</div>
+        <div><div class="org-name">${escHtml(o.nombre)}</div><span class="org-type t-${o.tipo}">${badge[o.tipo]||o.tipo}</span></div>
+      </div>
+      <div class="org-stats">📍 ${escHtml(o.provincia || 'República Dominicana')}</div>
+      <a class="btn-solicitar" href="registro.html?org=${o.id}">Solicitar unirme</a>
+    </div>`).join('');
+}
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+cargarOrganizaciones();
+</script>
+</body>
+</html>
