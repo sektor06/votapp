@@ -1644,7 +1644,7 @@ if (typeof supabase === 'undefined') {
 
 const SB_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
 const SB_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
-const db = supabase.createClient(SB_URL, SB_KEY);
+const db = supabase.createClient(SB_URL, SB_KEY, { auth: { storageKey: 'atenas-app-auth' } });
 
 let currentDirigente = null;
 let currentElector = null;
@@ -2196,7 +2196,7 @@ async function setupApp(dir) {
 
 async function doLogout() {
   if (!confirm('¿Cerrar sesión?')) return;
-  await db.auth.signOut();
+  await db.auth.signOut({ scope: 'local' });
   location.reload();
 }
 

@@ -411,7 +411,14 @@ select.fi{appearance:none;-webkit-appearance:none}
 <script>
 const SB_URL='https://izyqrakicqqdzgdlmxfb.supabase.co';
 const SB_KEY='sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
-const db=supabase.createClient(SB_URL,SB_KEY);
+// El admin guarda su sesión aparte (storageKey propio) para que no se mezcle con la del panel
+// ni con la de la app cuando se prueban otras cuentas en el mismo navegador.
+const db=supabase.createClient(SB_URL,SB_KEY,{auth:{storageKey:'atenas-admin-auth'}});
+db.auth.onAuthStateChange((ev)=>{
+  if(ev==='SIGNED_OUT'&&typeof currentAdmin!=='undefined'&&currentAdmin){
+    currentAdmin=null;localStorage.removeItem('votapp_admin');goPage('pg-login');
+  }
+});
 let currentAdmin=null;
 
 function goPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -493,8 +500,13 @@ async function guardarNuevaPass(){
 }
 
 async function entrarConSesion(id){
+  // Solo se entra sin pedir clave si la sesión real de Supabase sigue viva y es de este administrador
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){localStorage.removeItem('votapp_admin');goPage('pg-login');return;}
   const {data}=await db.from('admins_tecnicos').select('*').eq('id',id).single();
-  if(!data){localStorage.removeItem('votapp_admin');goPage('pg-login');return;}
+  if(!data||(session.user.email||'').toLowerCase()!==(data.email||'').toLowerCase()){
+    localStorage.removeItem('votapp_admin');goPage('pg-login');return;
+  }
   setupApp(data);
 }
 async function doLogin(){
@@ -754,7 +766,8 @@ async function loadSolicitudesOrg(){
   const pendientes=(data||[]).filter(s=>s.estado==='pendiente');
   const resueltas=(data||[]).filter(s=>s.estado!=='pendiente');
 
-  const {data:candSol}=await db.rpc('admin_listar_solicitudes_candidato');
+  const {data:candSol,error:candErr}=await db.rpc('admin_listar_solicitudes_candidato');
+  if(candErr){toast('No se pudieron cargar los candidatos: '+candErr.message+'. Cierra sesión y vuelve a entrar.',true);}
   solCandData=candSol||[];
   const candPend=solCandData.filter(x=>x.estado==='pendiente');
   const {data:aprob}=await db.rpc('admin_listar_candidatos');
