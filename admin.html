@@ -285,6 +285,21 @@ select.fi{appearance:none;-webkit-appearance:none}
   <div class="mactions"><button class="btn btn-gh" style="flex:1" onclick="closeModal('m-solcand')">Cancelar</button><button class="btn btn-red" style="flex:1" onclick="resolverSolCand('rechazar')">Rechazar</button><button class="btn btn-pri" style="flex:2" onclick="resolverSolCand('aceptar')">Dar de alta</button></div>
 </div></div>
 
+<!-- MODAL EDITAR CANDIDATO -->
+<div class="modal-bg" id="m-editcand"><div class="modal">
+  <div class="mtitle">Editar candidato</div>
+  <input type="hidden" id="ec-id">
+  <div id="ec-info" style="margin-bottom:12px;font-size:12px;color:var(--txt3)"></div>
+  <div class="fg"><label class="fl">Nombre completo</label><input class="fi" id="ec-nombre"></div>
+  <div class="fg"><label class="fl">Cargo al que aspira</label><select class="fi" id="ec-cargo"></select></div>
+  <div class="fg"><label class="fl">Provincia</label><input class="fi" id="ec-prov" placeholder="Opcional"></div>
+  <div class="fg"><label class="fl">Teléfono</label><input class="fi" id="ec-tel" placeholder="Opcional"></div>
+  <div class="fg"><label class="fl">Estado del acceso</label><select class="fi" id="ec-activo"><option value="true">Activo</option><option value="false">Suspendido (no puede entrar)</option></select></div>
+  <div class="fg"><label class="fl">Paquete de módulos</label><select class="fi" id="ec-paquete" onchange="aplicarPaqueteEditCand()"><option value="">Personalizado</option></select></div>
+  <div class="fg"><label class="fl">Módulos que tiene</label><div id="ec-modulos" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:12px"></div></div>
+  <div class="mactions"><button class="btn btn-gh" style="flex:1" onclick="closeModal('m-editcand')">Cancelar</button><button class="btn btn-pri" style="flex:2" onclick="guardarEditCand()">Guardar cambios</button></div>
+</div></div>
+
 <!-- MODAL NUEVO USUARIO -->
 <div class="modal-bg" id="m-usuario"><div class="modal">
   <div class="mtitle">Agregar usuario a <span id="us-org-nombre">—</span></div>
@@ -598,6 +613,9 @@ async function loadOrganizaciones(){
   if(error){c.innerHTML=`<div class="empty">Error cargando organizaciones: ${error.message}</div>`;return;}
 
   const {data:usuarios}=await db.from('usuarios_sistema').select('id,organizacion_id,nombre,email,activo');
+  const {data:aprobOrg}=await db.rpc('admin_listar_candidatos');
+  candidatosAprobados=aprobOrg||[];
+  const candPorEmail={};candidatosAprobados.forEach(cd=>{if(cd.email)candPorEmail[cd.email.toLowerCase()]=cd;});
   const usuariosPorOrg={};
   (usuarios||[]).forEach(u=>{(usuariosPorOrg[u.organizacion_id]=usuariosPorOrg[u.organizacion_id]||[]).push(u);});
 
@@ -630,7 +648,7 @@ async function loadOrganizaciones(){
           </div>
         </div>
         ${us.length?`<div style="margin-top:12px;border-top:1px solid var(--bd);padding-top:10px">
-          ${us.map(u=>`<div class="health-row" style="padding:7px 0"><span style="font-size:12px;color:var(--txt2)">${u.nombre} · ${u.email}</span><span class="pill ${u.activo!==false?'p-green':'p-red'}" style="font-size:10px">${u.activo!==false?'Activo':'Inactivo'}</span></div>`).join('')}
+          ${us.map(u=>`<div class="health-row" style="padding:7px 0"><span style="font-size:12px;color:var(--txt2)">${u.nombre} · ${u.email}</span><span style="display:flex;align-items:center;gap:8px"><span class="pill ${u.activo!==false?'p-green':'p-red'}" style="font-size:10px">${u.activo!==false?'Activo':'Inactivo'}</span>${candPorEmail[(u.email||'').toLowerCase()]?`<button class="btn btn-sm btn-gh" style="padding:3px 9px;font-size:11px" onclick="editCandOrigen='org';abrirEditCand('${candPorEmail[(u.email||'').toLowerCase()].candidato_id}')">✏️ Editar candidato</button>`:''}</span></div>`).join('')}
         </div>`:''}
       </div>`;
         }).join('')}
@@ -739,7 +757,25 @@ async function loadSolicitudesOrg(){
   const {data:candSol}=await db.rpc('admin_listar_solicitudes_candidato');
   solCandData=candSol||[];
   const candPend=solCandData.filter(x=>x.estado==='pendiente');
-  const candRes=solCandData.filter(x=>x.estado!=='pendiente');
+  const {data:aprob}=await db.rpc('admin_listar_candidatos');
+  candidatosAprobados=aprob||[];
+  const candRes=solCandData.filter(x=>x.estado==='rechazada');
+  const etiquetaMod=Object.fromEntries(MODULOS_CAND);
+  const aprobCard=(x)=>`
+    <div class="card" style="margin-bottom:12px;background:var(--dark3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;color:#fff;font-size:15px">${x.nombre} <span style="font-weight:500;color:var(--txt3);font-size:12px">· ${x.cargo||'—'}</span></div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:2px">Partido: <b style="color:#fff">${x.partido||'—'}</b> · ${x.provincia||'—'}</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:4px">${x.email||'—'} · ${x.telefono||'—'}</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:4px">Módulos: ${(x.modulos||[]).filter(m=>etiquetaMod[m]).map(m=>etiquetaMod[m]).join(', ')||'—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="pill ${x.activo?'p-green':'p-red'}">${x.activo?'Activo':'Suspendido'}</span>
+          <button class="btn btn-sm btn-gh" onclick="editCandOrigen='sol';abrirEditCand('${x.candidato_id}')">✏️ Editar</button>
+        </div>
+      </div>
+    </div>`;
   const candCard=(x)=>`
     <div class="card" style="margin-bottom:12px;background:var(--dark3)">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -759,7 +795,8 @@ async function loadSolicitudesOrg(){
       <div class="card-h"><div class="card-title">Candidatos — pendientes (${candPend.length})</div></div>
       ${!candPend.length?'<div class="empty"><div class="empty-ic">🧑‍💼</div>No hay candidatos esperando alta</div>':candPend.map(candCard).join('')}
     </div>
-    ${candRes.length?`<div class="card"><div class="card-h"><div class="card-title">Candidatos — resueltos (${candRes.length})</div></div>${candRes.map(candCard).join('')}</div>`:''}`;
+    ${candidatosAprobados.length?`<div class="card"><div class="card-h"><div class="card-title">Candidatos aprobados (${candidatosAprobados.length})</div></div>${candidatosAprobados.map(aprobCard).join('')}</div>`:''}
+    ${candRes.length?`<div class="card"><div class="card-h"><div class="card-title">Candidatos — rechazados (${candRes.length})</div></div>${candRes.map(candCard).join('')}</div>`:''}`;
 
   const badge=document.getElementById('badge-sol-org');
   const totPend=pendientes.length+candPend.length;
@@ -845,6 +882,50 @@ async function resolverSolCand(accion){
   closeModal('m-solcand');
   toast(accion==='aceptar'?'Candidato dado de alta. Ya aparece para los dirigentes de su partido.':'Solicitud rechazada');
   loadSolicitudesOrg();
+}
+
+// ═══ EDITAR CANDIDATOS APROBADOS ═══
+let candidatosAprobados=[];let editCandOrigen='sol';
+const CARGOS_CAND=['Presidente','Senador','Diputado','Alcalde','Regidor','Director de distrito municipal','Vocal','Otro'];
+async function abrirEditCand(id){
+  const x=candidatosAprobados.find(y=>y.candidato_id===id);if(!x)return;
+  if(!paquetesCand.length){const {data}=await db.from('paquetes_modulos').select('*').order('orden');paquetesCand=data||[];}
+  document.getElementById('ec-id').value=id;
+  document.getElementById('ec-info').innerHTML=`${x.partido||''} · ${x.email||''}`;
+  document.getElementById('ec-nombre').value=x.nombre||'';
+  const cargos=CARGOS_CAND.includes(x.cargo)||!x.cargo?CARGOS_CAND:[x.cargo,...CARGOS_CAND];
+  document.getElementById('ec-cargo').innerHTML=cargos.map(c=>`<option ${c===x.cargo?'selected':''}>${c}</option>`).join('');
+  document.getElementById('ec-prov').value=x.provincia||'';
+  document.getElementById('ec-tel').value=x.telefono||'';
+  document.getElementById('ec-activo').value=x.activo===false?'false':'true';
+  document.getElementById('ec-paquete').innerHTML='<option value="">Personalizado</option>'+paquetesCand.map(p=>`<option value="${p.id}">${p.nombre} — ${p.descripcion||''}</option>`).join('');
+  const actuales=x.modulos||[];
+  document.getElementById('ec-modulos').innerHTML=MODULOS_CAND.map(m=>`<label style="display:flex;gap:7px;align-items:center"><input type="checkbox" class="ec-mod" value="${m[0]}" ${actuales.includes(m[0])?'checked':''} onchange="document.getElementById('ec-paquete').value=''"> ${m[1]}</label>`).join('');
+  openModal('m-editcand');
+}
+function aplicarPaqueteEditCand(){
+  const p=paquetesCand.find(x=>x.id===document.getElementById('ec-paquete').value);if(!p)return;
+  document.querySelectorAll('.ec-mod').forEach(c=>{c.checked=p.modulos.includes(c.value);});
+}
+async function guardarEditCand(){
+  const id=document.getElementById('ec-id').value;
+  const x=candidatosAprobados.find(y=>y.candidato_id===id);if(!x)return;
+  const visibles=MODULOS_CAND.map(m=>m[0]);
+  const marcados=[...document.querySelectorAll('.ec-mod:checked')].map(c=>c.value);
+  // los módulos ocultos por ahora (aspiraciones, encuestas) se conservan tal como estén
+  const ocultos=(x.modulos||[]).filter(m=>!visibles.includes(m));
+  const modulos=[...marcados,...ocultos];
+  const nombre=document.getElementById('ec-nombre').value.trim();
+  if(!nombre){toast('Escribe el nombre',true);return;}
+  if(!marcados.length){toast('Elige al menos un módulo',true);return;}
+  const {error}=await db.rpc('admin_editar_candidato',{
+    p_candidato_id:id,p_nombre:nombre,p_cargo:document.getElementById('ec-cargo').value,
+    p_provincia:document.getElementById('ec-prov').value.trim(),p_telefono:document.getElementById('ec-tel').value.trim(),
+    p_modulos:modulos,p_activo:document.getElementById('ec-activo').value==='true'});
+  if(error){toast('Error: '+error.message,true);return;}
+  closeModal('m-editcand');
+  toast('Candidato actualizado. Los cambios se ven cuando recargue el panel.');
+  editCandOrigen==='org'?loadOrganizaciones():loadSolicitudesOrg();
 }
 
 // ═══ DIRIGENTES ADMIN ═══
