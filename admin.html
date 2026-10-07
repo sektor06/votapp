@@ -407,6 +407,18 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 
 // AUTH
 function initSaved(){
+  // Link de recuperación con el dominio propio: ?token_hash=...&type=recovery
+  const qsRec=new URLSearchParams(window.location.search);
+  if(qsRec.get('type')==='recovery'&&qsRec.get('token_hash')){
+    db.auth.verifyOtp({token_hash:qsRec.get('token_hash'),type:'recovery'}).then(({error})=>{
+      history.replaceState(null,'',window.location.pathname);
+      if(!error){goPage('pg-nueva-pass');return;}
+      goPage('pg-login');
+      const le=document.getElementById('login-err');
+      if(le){le.textContent='El link de recuperación venció o ya fue usado. Pide uno nuevo con "¿Olvidaste tu contraseña?".';le.style.display='block';}
+    });
+    return;
+  }
   // Si Supabase nos mandó aquí desde un link de recuperación de contraseña,
   // el URL trae #access_token=...&type=recovery
   if(window.location.hash.includes('type=recovery')){
