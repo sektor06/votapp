@@ -1710,6 +1710,8 @@ function fmtCed(v) {
   return v.slice(0, 3) + '-' + v.slice(3, 10) + '-' + v.slice(10);
 }
 
+function jsq(s){return esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '));}
+function safeUrl(u){u=String(u==null?'':u).trim();return /^(https?:\/\/|data:image\/(png|jpe?g|gif|webp);base64,)/i.test(u)?esc(u):'';}
 function ini(nombre) {
   if (!nombre) return 'D';
   return nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
@@ -1757,7 +1759,7 @@ function recordarUsuario(datos) {
 
 function mostrarBienvenida(u) {
   const av = document.getElementById('welcome-av');
-  if (u.foto) av.innerHTML = `<img src="${u.foto}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+  if (u.foto) av.innerHTML = `<img src="${safeUrl(u.foto)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
   else av.textContent = (u.nombre || 'U').trim().charAt(0).toUpperCase();
   document.getElementById('welcome-name').textContent = u.nombre || 'Usuario';
   document.getElementById('welcome-email').textContent = u.email || 'Lista para continuar';
@@ -1922,8 +1924,8 @@ function renderOrgs(filtro = '') {
   const lista = organizaciones.filter(o => o.nombre.toLowerCase().includes(filtro.toLowerCase()));
   if (!lista.length) { cont.innerHTML = '<div class="empty-text">Sin resultados.</div>'; return; }
   cont.innerHTML = lista.map(o => `
-    <div class="org-item ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${o.id}')">
-      <div class="org-avatar" style="background:${colores[o.tipo]||'#64748B'};">${esc(o.nombre.substring(0,2).toUpperCase())}</div>
+    <div class="org-item ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${esc(o.id)}')">
+      <div class="org-avatar" style="background:${esc(colores[o.tipo]||'#64748B')};">${esc(o.nombre.substring(0,2).toUpperCase())}</div>
       <div class="org-info"><h4>${esc(o.nombre)}</h4><span>${badge[o.tipo]||esc(o.tipo)}${o.provincia ? ' · ' + esc(o.provincia) : ''}</span></div>
       <div class="org-check"></div>
     </div>`).join('') + `<button type="button" class="btn btn-prm btn-block" style="margin-top:10px;" onclick="confirmarOrganizacion()" ${orgSeleccionada?'':'disabled'}>Continuar</button>`;
@@ -1972,8 +1974,8 @@ function renderCandidatos() {
     <div class="cargo-heading">${esc(cargo)}</div>
     <div style="padding:0 14px;">
       ${candidatosPorCargo[cargo].map(c => `
-        <div class="cand-item ${apoyosElegidos[cargo]===c.id?'selected':''}" onclick="elegirCandidato('${c.id}','${cargo.replace(/'/g,"\\'")}')">
-          <div class="cand-avatar">${c.foto_url ? `<img src="${esc(c.foto_url)}" alt="">` : esc(ini(c.nombre))}</div>
+        <div class="cand-item ${apoyosElegidos[cargo]===c.id?'selected':''}" onclick="elegirCandidato('${esc(c.id)}','${jsq(cargo)}')">
+          <div class="cand-avatar">${c.foto_url ? `<img src="${safeUrl(c.foto_url)}" alt="">` : esc(ini(c.nombre))}</div>
           <div class="cand-info"><h4>${esc(c.nombre)}</h4><span>${esc(c.partido || '')}</span></div>
           <div class="cand-check"></div>
         </div>`).join('')}
@@ -2059,7 +2061,7 @@ async function cargarVistaPerfil() {
 
   const { data: apoyos } = await db.rpc('mis_apoyos');
   document.getElementById('perfilv-apoyos').textContent = apoyos && apoyos.length
-    ? apoyos.map(a => `${a.candidato_nombre} (${a.cargo})`).join(' · ')
+    ? apoyos.map(a => `${esc(a.candidato_nombre)} (${esc(a.cargo)})`).join(' · ')
     : 'Todavía no has elegido a quién apoyar.';
 }
 
@@ -2123,7 +2125,7 @@ async function cargarNotificaciones() {
   const lbl = document.getElementById('tab-notif-label');
   if (lbl) lbl.textContent = pendientes ? `Notif. (${pendientes})` : 'Notificaciones';
   cont.innerHTML = data.map(n => `
-    <div class="detail-card" style="margin:0 0 10px;${n.leida?'':'border-color:var(--prm);'}" onclick="marcarNotificacionLeida('${n.id}')">
+    <div class="detail-card" style="margin:0 0 10px;${n.leida?'':'border-color:var(--prm);'}" onclick="marcarNotificacionLeida('${esc(n.id)}')">
       <div class="dc-header">${n.leida ? '' : '🔵 '}${esc(n.titulo)}</div>
       <div class="dc-body" style="font-size:var(--fs-sm);">${esc(n.mensaje || '')}</div>
     </div>`).join('');
@@ -2308,15 +2310,15 @@ async function buscarElector(cedula) {
   const clasP = { 'Voto Duro': 'pill-duro', 'Posible': 'pill-pos', 'Voto Difícil': 'pill-dif' };
   
   div.innerHTML = `
-    <button type="button" class="elector-card" onclick="abrirFicha('${elec.id}')" aria-label="Abrir ficha de ${esc(elec.nombre)}">
+    <button type="button" class="elector-card" onclick="abrirFicha('${esc(elec.id)}')" aria-label="Abrir ficha de ${esc(elec.nombre)}">
       <div class="ec-row">
-        <div class="ec-av ${elec.comprometido ? 'committed' : ''}" aria-hidden="true">${ini(elec.nombre)}${elec.cedula ? `<img class="ec-av-img" data-pf="${elec.cedula}" alt="" onerror="this.remove()">` : ''}</div>
+        <div class="ec-av ${elec.comprometido ? 'committed' : ''}" aria-hidden="true">${ini(elec.nombre)}${elec.cedula ? `<img class="ec-av-img" data-pf="${esc(elec.cedula)}" alt="" onerror="this.remove()">` : ''}</div>
         <div class="ec-info">
           <div class="ec-name">${esc(elec.nombre)}</div>
-          <div class="ec-meta tab-nums">${elec.cedula}</div>
+          <div class="ec-meta tab-nums">${esc(elec.cedula)}</div>
           <div class="ec-tags">
-            ${elec.afiliacion ? `<span class="pill ${afilP[elec.afiliacion] || 'pill-dif'}">${elec.afiliacion}</span>` : ''}
-            ${elec.clasificacion ? `<span class="pill ${clasP[elec.clasificacion] || 'pill-dif'}">${elec.clasificacion}</span>` : ''}
+            ${elec.afiliacion ? `<span class="pill ${esc(afilP[elec.afiliacion] || 'pill-dif')}">${esc(elec.afiliacion)}</span>` : ''}
+            ${elec.clasificacion ? `<span class="pill ${esc(clasP[elec.clasificacion] || 'pill-dif')}">${esc(elec.clasificacion)}</span>` : ''}
             ${elec.comprometido ? `<span class="pill pill-comp">✓ Comprometido</span>` : ''}
           </div>
         </div>
@@ -2343,23 +2345,23 @@ async function abrirFicha(id) {
   if (elec.voto_2024m) hist.push('2024-M');
   
   const compromisoCard = elec.comprometido ? `
-    <div class="compromiso-banner" data-nivel="${elec.nivel_compromiso || 'seguro'}">
+    <div class="compromiso-banner" data-nivel="${esc(elec.nivel_compromiso || 'seguro')}">
       <div class="cb-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <div class="cb-text">
         <div class="cb-label">Voto comprometido</div>
-        <div class="cb-nivel">${elec.nivel_compromiso || 'comprometido'}</div>
+        <div class="cb-nivel">${esc(elec.nivel_compromiso || 'comprometido')}</div>
         ${elec.fecha_compromiso ? `<div class="cb-meta">${new Date(elec.fecha_compromiso).toLocaleDateString('es-DO', { day: 'numeric', month: 'short', year: 'numeric' })}</div>` : ''}
       </div>
     </div>` : '';
   
   document.getElementById('profile-content').innerHTML = `
-    <div class="profile-hero" data-afil="${elec.afiliacion || ''}">
-      <div class="profile-av" aria-hidden="true">${ini(elec.nombre)}${elec.cedula ? `<img class="profile-av-img" data-pf="${elec.cedula}" alt="" onerror="this.remove()">` : ''}</div>
+    <div class="profile-hero" data-afil="${esc(elec.afiliacion || '')}">
+      <div class="profile-av" aria-hidden="true">${ini(elec.nombre)}${elec.cedula ? `<img class="profile-av-img" data-pf="${esc(elec.cedula)}" alt="" onerror="this.remove()">` : ''}</div>
       <h1 class="profile-name">${esc(elec.nombre)}</h1>
-      <div class="profile-ced tab-nums">${elec.cedula}</div>
-      ${elec.afiliacion ? `<div class="profile-badge">Afiliado ${elec.afiliacion}</div>` : ''}
+      <div class="profile-ced tab-nums">${esc(elec.cedula)}</div>
+      ${elec.afiliacion ? `<div class="profile-badge">Afiliado ${esc(elec.afiliacion)}</div>` : ''}
     </div>
     
     ${compromisoCard}
@@ -2367,11 +2369,11 @@ async function abrirFicha(id) {
     <div class="info-grid">
       <div class="info-cell">
         <div class="info-l">Clasificación</div>
-        <div class="info-v">${elec.clasificacion || 'Sin definir'}</div>
+        <div class="info-v">${esc(elec.clasificacion || 'Sin definir')}</div>
       </div>
       <div class="info-cell">
         <div class="info-l">Ranking</div>
-        <div class="info-v tab-nums">${elec.ranking || '—'}</div>
+        <div class="info-v tab-nums">${esc(elec.ranking || '—')}</div>
       </div>
     </div>
     
@@ -2381,7 +2383,7 @@ async function abrirFicha(id) {
         Ubicación electoral
       </div>
       <div class="dc-body">
-        <div style="font-weight: 600">${elec.recinto_nombre || 'Sin recinto'}</div>
+        <div style="font-weight: 600">${esc(elec.recinto_nombre || 'Sin recinto')}</div>
         <div style="font-size: var(--fs-sm); color: var(--mute); margin-top: 4px" class="tab-nums">
           Recinto ${elec.recinto_codigo || '—'} · Colegio ${elec.colegio_numero || '—'}
         </div>
@@ -2395,8 +2397,8 @@ async function abrirFicha(id) {
         Contacto
       </div>
       <div class="dc-body">
-        ${elec.celular ? `<div class="dc-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><a href="tel:${elec.celular}" class="tab-nums" style="color:inherit;text-decoration:none">${elec.celular}</a></div>` : ''}
-        ${elec.telefono ? `<div class="dc-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:${elec.telefono}" class="tab-nums" style="color:inherit;text-decoration:none">${elec.telefono}</a></div>` : ''}
+        ${elec.celular ? `<div class="dc-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><a href="tel:${esc(elec.celular)}" class="tab-nums" style="color:inherit;text-decoration:none">${esc(elec.celular)}</a></div>` : ''}
+        ${elec.telefono ? `<div class="dc-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:${esc(elec.telefono)}" class="tab-nums" style="color:inherit;text-decoration:none">${esc(elec.telefono)}</a></div>` : ''}
         ${elec.direccion ? `<div class="dc-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>${esc(elec.direccion)}</span></div>` : ''}
       </div>
     </div>` : ''}
@@ -2436,7 +2438,7 @@ async function abrirFicha(id) {
         placeholder="Notas opcionales"
         spellcheck="false"
         autocomplete="off"
-      >${elec.notas || ''}</textarea>
+      >${esc(elec.notas || '')}</textarea>
       <button type="button" class="btn btn-success btn-block" style="margin-top: 14px" onclick="guardarCompromiso()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
         ${elec.comprometido ? 'Actualizar compromiso' : 'Guardar compromiso'}
@@ -2617,7 +2619,7 @@ function previsualizarFoto(input) {
   const reader = new FileReader();
   reader.onload = e => {
     const preview = document.getElementById('acta-foto-preview');
-    preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:auto;border-radius:10px;display:block;">`;
+    preview.innerHTML = `<img src="${esc(e.target.result)}" style="width:100%;height:auto;border-radius:10px;display:block;">`;
   };
   reader.readAsDataURL(file);
 }
@@ -2894,11 +2896,11 @@ async function buscarVoto() {
   res.innerHTML = `
     <div style="background:${yaVoto?'#f0fdf4':'#f8fafc'};border:1.5px solid ${yaVoto?'#86efac':'#e2e8f0'};border-radius:10px;padding:12px;">
       <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;">${esc(data.nombre.split(',').slice(0,2).join(',').trim())}</div>
-      <div style="font-size:11px;color:var(--ink-2);margin-bottom:8px;">Cédula: ${data.cedula} · Estructura ${data.zona||'?'}</div>
+      <div style="font-size:11px;color:var(--ink-2);margin-bottom:8px;">Cédula: ${esc(data.cedula)} · Estructura ${esc(data.zona||'?')}</div>
       ${data.comprometido ? '<div style="font-size:12px;color:#10b981;font-weight:600;margin-bottom:8px;">✓ Comprometido PRM</div>' : ''}
       ${yaVoto
         ? '<div style="font-size:13px;font-weight:700;color:#10b981;">✓ YA VOTÓ — registrado</div>'
-        : `<button onclick="marcarVotoApp('${data.cedula}','${data.zona||''}','${data.recinto||''}')" style="width:100%;background:#0047AB;color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">✓ Marcar que ya votó</button>`
+        : `<button onclick="marcarVotoApp('${jsq(data.cedula)}','${jsq(data.zona||'')}','${jsq(data.recinto||'')}')" style="width:100%;background:#0047AB;color:#fff;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">✓ Marcar que ya votó</button>`
       }
     </div>`;
 }
@@ -2981,15 +2983,15 @@ function pintarMisComprometidos(data) {
   const nivelP = { 'seguro': 'pill-seguro', 'probable': 'pill-probable', 'dudoso': 'pill-dudoso' };
   const afilP = { 'PRM': 'pill-prm', 'PLD': 'pill-pld', 'FP': 'pill-fp' };
   box.innerHTML = '<div class="comp-list">' + data.map(e => `
-    <button type="button" class="elector-card" onclick="abrirFicha('${e.id}')" aria-label="Abrir ficha de ${esc(e.nombre)}">
+    <button type="button" class="elector-card" onclick="abrirFicha('${esc(e.id)}')" aria-label="Abrir ficha de ${esc(e.nombre)}">
       <div class="ec-row">
-        <div class="ec-av committed" aria-hidden="true">${ini(e.nombre)}${e.cedula ? `<img class="ec-av-img" data-pf="${e.cedula}" alt="" onerror="this.remove()">` : ''}</div>
+        <div class="ec-av committed" aria-hidden="true">${ini(e.nombre)}${e.cedula ? `<img class="ec-av-img" data-pf="${esc(e.cedula)}" alt="" onerror="this.remove()">` : ''}</div>
         <div class="ec-info">
           <div class="ec-name">${esc(e.nombre)}</div>
-          <div class="ec-meta tab-nums">${e.cedula}${e.fecha_compromiso ? ' · ' + new Date(e.fecha_compromiso).toLocaleDateString('es-DO', { day: 'numeric', month: 'short' }) : ''}</div>
+          <div class="ec-meta tab-nums">${esc(e.cedula)}${e.fecha_compromiso ? ' · ' + new Date(e.fecha_compromiso).toLocaleDateString('es-DO', { day: 'numeric', month: 'short' }) : ''}</div>
           <div class="ec-tags">
-            <span class="pill ${nivelP[e.nivel_compromiso] || 'pill-dif'}">${e.nivel_compromiso || '?'}</span>
-            ${e.afiliacion ? `<span class="pill ${afilP[e.afiliacion] || 'pill-dif'}">${e.afiliacion}</span>` : ''}
+            <span class="pill ${esc(nivelP[e.nivel_compromiso] || 'pill-dif')}">${esc(e.nivel_compromiso || '?')}</span>
+            ${e.afiliacion ? `<span class="pill ${esc(afilP[e.afiliacion] || 'pill-dif')}">${esc(e.afiliacion)}</span>` : ''}
             ${misVotaron[e.cedula] ? `<span class="pill pill-seguro">✓ Votó ${new Date(misVotaron[e.cedula]).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'})}</span>` : ''}
           </div>
         </div>
@@ -3057,7 +3059,7 @@ async function buscarElectorEnc() {
   }
 
   electorEncuestado = data;
-  document.getElementById('enc-elector-av').innerHTML = `${ini(data.nombre)}${data.cedula ? `<img data-pf="${data.cedula}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove()">` : ''}`;
+  document.getElementById('enc-elector-av').innerHTML = `${ini(data.nombre)}${data.cedula ? `<img data-pf="${esc(data.cedula)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove()">` : ''}`;
   document.getElementById('enc-elector-nombre').textContent = data.nombre.split(',').slice(0,2).join(',').trim();
   document.getElementById('enc-elector-info').textContent   = `Cédula: ${data.cedula} · Estructura ${data.zona||'?'}`;
   banner.style.display = 'flex';
@@ -3153,7 +3155,7 @@ async function buscarElectorEnc() {
   }
 
   electorEncuestado = data;
-  document.getElementById('enc-elector-av').innerHTML = `${ini(data.nombre)}${data.cedula ? `<img data-pf="${data.cedula}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove()">` : ''}`;
+  document.getElementById('enc-elector-av').innerHTML = `${ini(data.nombre)}${data.cedula ? `<img data-pf="${esc(data.cedula)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove()">` : ''}`;
   document.getElementById('enc-elector-nombre').textContent = data.nombre.split(',').slice(0,2).join(',').trim();
   document.getElementById('enc-elector-info').textContent   = `Cédula: ${data.cedula} · Estructura ${data.zona||'?'} · ${data.sexo||''}`;
   banner.style.display = 'flex';
@@ -3185,7 +3187,7 @@ async function loadEncuestaApp() {
   }
 
   sel.style.display = 'block'; empty.style.display = 'none';
-  sel.innerHTML = activas.map(a => `<option value="${a.encuesta_id}" data-zona="${a.zona_asignada}" data-asig="${a.id}">${esc(a.encuesta_nombre)}</option>`).join('');
+  sel.innerHTML = activas.map(a => `<option value="${esc(a.encuesta_id)}" data-zona="${esc(a.zona_asignada)}" data-asig="${esc(a.id)}">${esc(a.encuesta_nombre)}</option>`).join('');
   await cargarEncuestaApp();
 }
 
@@ -3245,16 +3247,16 @@ function renderPreguntasDinamicas() {
     let campo = '';
     if (p.tipo === 'opcion_unica' || p.tipo === 'opcion_multiple') {
       campo = `<div style="display:flex;flex-wrap:wrap;gap:6px;">` + (p.opciones||[]).map(op => `
-        <button type="button" class="app-din-opt" data-preg="${p.id}" data-multi="${p.tipo==='opcion_multiple'}" data-val="${op}" onclick="selDinOpt(this)"
+        <button type="button" class="app-din-opt" data-preg="${esc(p.id)}" data-multi="${p.tipo==='opcion_multiple'}" data-val="${op}" onclick="selDinOpt(this)"
           style="padding:9px 12px;border-radius:8px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);">${op}</button>
       `).join('') + `</div>`;
     } else if (p.tipo === 'escala') {
       campo = `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">` + [1,2,3,4,5].map(n => `
-        <button type="button" class="app-din-opt" data-preg="${p.id}" data-multi="false" data-val="${n}" onclick="selDinOpt(this)"
+        <button type="button" class="app-din-opt" data-preg="${esc(p.id)}" data-multi="false" data-val="${n}" onclick="selDinOpt(this)"
           style="padding:10px 4px;border-radius:8px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink);">${n}</button>
       `).join('') + `</div>`;
     } else {
-      campo = `<textarea class="app-din-abierta" data-preg="${p.id}" oninput="respuestasFormDin['${p.id}']=this.value" style="width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;resize:none;" rows="2" placeholder="Respuesta…"></textarea>`;
+      campo = `<textarea class="app-din-abierta" data-preg="${esc(p.id)}" oninput="respuestasFormDin['${esc(p.id)}']=this.value" style="width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 13px;font-size:13px;color:var(--ink);font-family:inherit;outline:none;resize:none;" rows="2" placeholder="Respuesta…"></textarea>`;
     }
     return `<div style="margin-bottom:16px;">
       <label style="font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:8px;">${i+1}. ${esc(p.texto)}${p.obligatoria?'':' (opcional)'}</label>

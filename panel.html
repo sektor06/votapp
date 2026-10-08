@@ -4428,6 +4428,8 @@ function toast(type, msg) {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
+function jsq(s){return esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '));}
+function safeUrl(u){u=String(u==null?'':u).trim();return /^(https?:\/\/|data:image\/(png|jpe?g|gif|webp);base64,)/i.test(u)?esc(u):'';}
 function ini(nombre) {
   if (!nombre) return '?';
   return nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
@@ -4775,7 +4777,7 @@ function aplicarApariencia(org, config) {
 
   const markEl = document.getElementById('sb-mark');
   if (config?.logo_url) {
-    markEl.innerHTML = `<img class="sb-mark-img" src="${config.logo_url}" alt="" onerror="this.remove()">`;
+    markEl.innerHTML = `<img class="sb-mark-img" src="${esc(config.logo_url)}" alt="" onerror="this.remove()">`;
   } else {
     markEl.textContent = org.nombre.slice(0, 3).toUpperCase();
   }
@@ -4846,7 +4848,7 @@ async function mostrarSolicitudCandidato(user) {
   } else { est.style.display = 'none'; }
   form.style.display = 'block';
   const { data: partidos } = await db.rpc('listar_partidos_publicos');
-  document.getElementById('cand-partido').innerHTML = (partidos || []).map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('') || '<option value="">Sin partidos disponibles</option>';
+  document.getElementById('cand-partido').innerHTML = (partidos || []).map(p => `<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join('') || '<option value="">Sin partidos disponibles</option>';
   const meta = user?.user_metadata || {};
   const nom = document.getElementById('sol-cand-nombre');
   if (!nom.value) nom.value = meta.full_name || meta.name || '';
@@ -4883,7 +4885,7 @@ async function loadSolicitudesCandidato() {
   box.innerHTML = solCandData.length ? solCandData.map(x => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line,#eee);flex-wrap:wrap;">
     <div><b>${esc(x.nombre)}</b> · ${esc(x.cargo)}<div style="font-size:12px;color:var(--mute);">${esc(x.email||'')} ${x.telefono ? '· ' + esc(x.telefono) : ''} ${x.provincia ? '· ' + esc(x.provincia) : ''}</div></div>
     <div>${x.estado === 'pendiente'
-      ? `<button class="btn-qr" onclick="abrirModalSolCand('${x.id}')">Revisar</button>`
+      ? `<button class="btn-qr" onclick="abrirModalSolCand('${esc(x.id)}')">Revisar</button>`
       : `<span class="pill ${x.estado==='aceptada'?'pill-good':'pill-dud'}" style="font-size:10px;">${x.estado==='aceptada'?'Aprobado':'Rechazado'}</span>`}</div>
   </div>`).join('') : '<div style="padding:16px;color:var(--mute);font-size:13px;">Aún no hay solicitudes de candidatos.</div>';
 }
@@ -4896,8 +4898,8 @@ async function abrirModalSolCand(id) {
   }
   document.getElementById('sc-id').value = id;
   document.getElementById('sc-info').innerHTML = `<b>${esc(x.nombre)}</b> · ${esc(x.cargo)}<br><span style="font-size:12px;color:var(--mute);">${esc(x.email||'')} ${x.telefono ? '· ' + esc(x.telefono) : ''}</span>`;
-  document.getElementById('sc-paquete').innerHTML = '<option value="">Personalizado</option>' + paquetesAcceso.map(p => `<option value="${p.id}">${esc(p.nombre)} — ${esc(p.descripcion||'')}</option>`).join('');
-  document.getElementById('sc-modulos').innerHTML = MODULOS_PANEL.map(m => `<label style="display:flex;gap:7px;align-items:center;font-size:12px;"><input type="checkbox" class="sc-mod" value="${m.key}" onchange="document.getElementById('sc-paquete').value=''"> ${esc(m.label)}</label>`).join('');
+  document.getElementById('sc-paquete').innerHTML = '<option value="">Personalizado</option>' + paquetesAcceso.map(p => `<option value="${esc(p.id)}">${esc(p.nombre)} — ${esc(p.descripcion||'')}</option>`).join('');
+  document.getElementById('sc-modulos').innerHTML = MODULOS_PANEL.map(m => `<label style="display:flex;gap:7px;align-items:center;font-size:12px;"><input type="checkbox" class="sc-mod" value="${esc(m.key)}" onchange="document.getElementById('sc-paquete').value=''"> ${esc(m.label)}</label>`).join('');
   document.getElementById('sc-motivo').value = '';
   document.getElementById('sc-error').style.display = 'none';
   document.getElementById('modal-solcand').classList.add('show');
@@ -4972,8 +4974,8 @@ async function loadAccesos() {
       ? '<span class="pill pill-good" style="font-size:10px;">Administrador (todo)</span>'
       : u.modulos.map(m => `<span class="pill pill-info" style="font-size:10px;margin:1px;">${esc(etiqueta(m))}</span>`).join('')}</td>
     <td><span class="pill ${u.activo ? 'pill-good' : 'pill-dud'}" style="font-size:10px;">${u.activo ? (u.vinculado ? 'Activo' : 'Invitado (aún no entra)') : 'Desactivado'}</span></td>
-    <td>${u.modulos === null ? '' : `<button class="btn-qr" onclick="abrirModalAcceso('${u.id}')">Editar</button>
-      <button class="btn-qr" onclick="toggleAcceso('${u.id}')" style="margin-left:4px;">${u.activo ? 'Desactivar' : 'Activar'}</button>`}</td>
+    <td>${u.modulos === null ? '' : `<button class="btn-qr" onclick="abrirModalAcceso('${esc(u.id)}')">Editar</button>
+      <button class="btn-qr" onclick="toggleAcceso('${esc(u.id)}')" style="margin-left:4px;">${u.activo ? 'Desactivar' : 'Activar'}</button>`}</td>
   </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--mute)">Sin usuarios.</td></tr>';
 }
 
@@ -4983,7 +4985,7 @@ async function abrirModalAcceso(id) {
     paquetesAcceso = data || [];
   }
   document.getElementById('acc-paquete').innerHTML = '<option value="">Personalizado</option>' +
-    paquetesAcceso.map(p => `<option value="${p.id}">${esc(p.nombre)} — ${esc(p.descripcion||'')}</option>`).join('');
+    paquetesAcceso.map(p => `<option value="${esc(p.id)}">${esc(p.nombre)} — ${esc(p.descripcion||'')}</option>`).join('');
   const u = id ? usuariosAcceso.find(x => x.id === id) : null;
   document.getElementById('acc-edit-id').value = id || '';
   document.getElementById('acc-title').textContent = u ? 'Editar accesos' : 'Invitar usuario';
@@ -4994,7 +4996,7 @@ async function abrirModalAcceso(id) {
   document.getElementById('acc-nombre').disabled = !!u;
   document.getElementById('acc-email').disabled = !!u;
   document.getElementById('acc-modulos').innerHTML = MODULOS_PANEL.map(m =>
-    `<label style="display:flex;gap:7px;align-items:center;font-size:12px;"><input type="checkbox" class="acc-mod" value="${m.key}" ${u?.modulos?.includes(m.key) ? 'checked' : ''} onchange="document.getElementById('acc-paquete').value=''"> ${esc(m.label)}</label>`).join('');
+    `<label style="display:flex;gap:7px;align-items:center;font-size:12px;"><input type="checkbox" class="acc-mod" value="${esc(m.key)}" ${u?.modulos?.includes(m.key) ? 'checked' : ''} onchange="document.getElementById('acc-paquete').value=''"> ${esc(m.label)}</label>`).join('');
   document.getElementById('acc-error').style.display = 'none';
   document.getElementById('modal-acceso').classList.add('show');
 }
@@ -5168,10 +5170,10 @@ async function initMapaZonas() {
     const div = L.DomUtil.create('div', 'map-legend');
     div.innerHTML = `
       <div class="map-legend-t">Ganado en 2020</div>
-      <div class="map-legend-row"><div class="map-legend-dot" style="background:${COLOR_PARTIDO.PRM}"></div>PRM</div>
-      <div class="map-legend-row"><div class="map-legend-dot" style="background:${COLOR_PARTIDO.PLD}"></div>PLD</div>
-      <div class="map-legend-row"><div class="map-legend-dot" style="background:${COLOR_PARTIDO.FP}"></div>Fuerza del Pueblo</div>
-      <div class="map-legend-row"><div class="map-legend-dot" style="background:${COLOR_PARTIDO.ND}"></div>Sin dato</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:${esc(COLOR_PARTIDO.PRM)}"></div>PRM</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:${esc(COLOR_PARTIDO.PLD)}"></div>PLD</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:${esc(COLOR_PARTIDO.FP)}"></div>Fuerza del Pueblo</div>
+      <div class="map-legend-row"><div class="map-legend-dot" style="background:${esc(COLOR_PARTIDO.ND)}"></div>Sin dato</div>
       <div class="map-legend-sub">La letra es la estructura.<br>El tamaño es el número de electores.</div>
     `;
     return div;
@@ -5254,9 +5256,9 @@ async function loadZonas() {
     const pct = z.total ? Math.round((z.comprometidos / z.total) * 100) : 0;
     return `
       <div class="zona-item">
-        <div class="zona-letter">${z.zona}</div>
+        <div class="zona-letter">${esc(z.zona)}</div>
         <div class="zona-info">
-          <div class="zona-name">Estructura ${z.zona}</div>
+          <div class="zona-name">Estructura ${esc(z.zona)}</div>
           <div class="zona-meta">${fmtNum(z.comprometidos)} de ${fmtNum(z.total)} electores</div>
         </div>
         <div class="zona-bar"><div class="zona-bar-fill" style="width:${Math.min(pct, 100)}%"></div></div>
@@ -5346,12 +5348,12 @@ async function loadTopDirigentes() {
   tb.innerHTML = ranked.map(d => `
     <tr>
       <td class="bold">${esc(d.nombre)}</td>
-      <td>${d.cargo || '—'}</td>
-      <td>${d.sectores?.nombre || d.sector || d.zona || '—'}</td>
+      <td>${esc(d.cargo || '—')}</td>
+      <td>${esc(d.sectores?.nombre || d.sector || d.zona || '—')}</td>
       <td class="num">${fmtNum(d.stats.total)}</td>
-      <td class="num" style="color: var(--seguro)">${d.stats.seguro || 0}</td>
-      <td class="num" style="color: var(--probable)">${d.stats.probable || 0}</td>
-      <td class="num" style="color: var(--dudoso)">${d.stats.dudoso || 0}</td>
+      <td class="num" style="color: var(--seguro)">${esc(d.stats.seguro || 0)}</td>
+      <td class="num" style="color: var(--probable)">${esc(d.stats.probable || 0)}</td>
+      <td class="num" style="color: var(--dudoso)">${esc(d.stats.dudoso || 0)}</td>
     </tr>
   `).join('');
 }
@@ -5397,7 +5399,7 @@ async function doSearchPadron(q) {
   }
 
   if (error) {
-    list.innerHTML = `<div class="empty"><div class="empty-t">Error al buscar</div><p class="empty-d">${error.message}</p></div>`;
+    list.innerHTML = `<div class="empty"><div class="empty-t">Error al buscar</div><p class="empty-d">${esc(error.message)}</p></div>`;
     return;
   }
 
@@ -5413,14 +5415,14 @@ async function doSearchPadron(q) {
   const afilP = { 'PRM': 'pill-good', 'PLD': 'pill-mute', 'FP': 'pill-mute' };
 
   list.innerHTML = data.map(e => `
-    <button type="button" class="elector-row" onclick="openFicha('${e.id}')" aria-label="Ver ficha de ${esc(e.nombre)}">
-      <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}${e.cedula ? `<img class="elector-avatar-img" data-pf="${e.cedula}" alt="" onerror="this.remove()">` : ''}</div>
+    <button type="button" class="elector-row" onclick="openFicha('${esc(e.id)}')" aria-label="Ver ficha de ${esc(e.nombre)}">
+      <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}${e.cedula ? `<img class="elector-avatar-img" data-pf="${esc(e.cedula)}" alt="" onerror="this.remove()">` : ''}</div>
       <div class="elector-info">
         <div class="elector-name">${esc(e.nombre)}</div>
-        <div class="elector-meta">${e.cedula} · ${e.zona ? 'Estructura ' + e.zona : 'Sin estructura'}</div>
+        <div class="elector-meta">${esc(e.cedula)} · ${e.zona ? 'Estructura ' + e.zona : 'Sin estructura'}</div>
       </div>
       <div class="elector-tags">
-        ${e.afiliacion ? `<span class="pill ${afilP[e.afiliacion] || 'pill-mute'}">${e.afiliacion}</span>` : ''}
+        ${e.afiliacion ? `<span class="pill ${esc(afilP[e.afiliacion] || 'pill-mute')}">${esc(e.afiliacion)}</span>` : ''}
         ${e.clasificacion === 'Voto Duro' ? `<span class="pill pill-alert">Duro</span>` : ''}
         ${e.comprometido ? `<span class="pill pill-good">✓ Comprometido</span>` : ''}
       </div>
@@ -5466,20 +5468,20 @@ async function openFicha(id) {
   if (e.voto_2024m) hist.push('2024-M');
 
   body.innerHTML = `
-    <div class="ficha-hero" data-afil="${e.afiliacion || ''}">
-      <div class="ficha-av">${ini(e.nombre)}${e.cedula ? `<img class="ficha-av-img" data-pf="${e.cedula}" alt="" onerror="this.remove()">` : ''}</div>
+    <div class="ficha-hero" data-afil="${esc(e.afiliacion || '')}">
+      <div class="ficha-av">${ini(e.nombre)}${e.cedula ? `<img class="ficha-av-img" data-pf="${esc(e.cedula)}" alt="" onerror="this.remove()">` : ''}</div>
       <div class="ficha-name">${esc(e.nombre)}</div>
-      <div class="ficha-ced">${e.cedula}</div>
+      <div class="ficha-ced">${esc(e.cedula)}</div>
     </div>
 
     ${e.comprometido ? `
-      <div class="ficha-commit" data-n="${e.nivel_compromiso || 'seguro'}">
+      <div class="ficha-commit" data-n="${esc(e.nivel_compromiso || 'seguro')}">
         <div class="ficha-commit-ic">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div class="ficha-commit-c">
           <div class="ficha-commit-l">Voto comprometido</div>
-          <div class="ficha-commit-v">${e.nivel_compromiso || 'comprometido'}</div>
+          <div class="ficha-commit-v">${esc(e.nivel_compromiso || 'comprometido')}</div>
           ${dirNombre ? `<div style="font-size: 11px; opacity: 0.85">por ${dirNombre}</div>` : ''}
         </div>
       </div>
@@ -5488,26 +5490,26 @@ async function openFicha(id) {
     <div class="ficha-section">
       <div class="ficha-section-t">Análisis político</div>
       <div class="ficha-grid">
-        <div class="ficha-row"><span class="ficha-row-l">Afiliación</span><span class="ficha-row-v">${e.afiliacion || '—'}</span></div>
-        <div class="ficha-row"><span class="ficha-row-l">Clasificación</span><span class="ficha-row-v">${e.clasificacion || '—'}</span></div>
-        <div class="ficha-row"><span class="ficha-row-l">Militancia</span><span class="ficha-row-v">${e.militancia || '—'}</span></div>
-        <div class="ficha-row"><span class="ficha-row-l">Ranking</span><span class="ficha-row-v">${e.ranking || '—'}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Afiliación</span><span class="ficha-row-v">${esc(e.afiliacion || '—')}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Clasificación</span><span class="ficha-row-v">${esc(e.clasificacion || '—')}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Militancia</span><span class="ficha-row-v">${esc(e.militancia || '—')}</span></div>
+        <div class="ficha-row"><span class="ficha-row-l">Ranking</span><span class="ficha-row-v">${esc(e.ranking || '—')}</span></div>
       </div>
     </div>
 
     <div class="ficha-section">
       <div class="ficha-section-t">Ubicación electoral</div>
-      <div class="ficha-row"><span class="ficha-row-l">Recinto</span><span class="ficha-row-v">${e.recinto_nombre || '—'}</span></div>
-      <div class="ficha-row"><span class="ficha-row-l">Código recinto</span><span class="ficha-row-v">${e.recinto_codigo || '—'}</span></div>
-      <div class="ficha-row"><span class="ficha-row-l">Colegio</span><span class="ficha-row-v">${e.colegio_numero || '—'}</span></div>
-      <div class="ficha-row"><span class="ficha-row-l">Estructura</span><span class="ficha-row-v">${e.zona || '—'}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Recinto</span><span class="ficha-row-v">${esc(e.recinto_nombre || '—')}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Código recinto</span><span class="ficha-row-v">${esc(e.recinto_codigo || '—')}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Colegio</span><span class="ficha-row-v">${esc(e.colegio_numero || '—')}</span></div>
+      <div class="ficha-row"><span class="ficha-row-l">Estructura</span><span class="ficha-row-v">${esc(e.zona || '—')}</span></div>
     </div>
 
     ${(e.celular || e.telefono || e.direccion) ? `
     <div class="ficha-section">
       <div class="ficha-section-t">Contacto</div>
-      ${e.celular ? `<div class="ficha-row"><span class="ficha-row-l">Celular</span><span class="ficha-row-v mono">${e.celular}</span></div>` : ''}
-      ${e.telefono ? `<div class="ficha-row"><span class="ficha-row-l">Teléfono</span><span class="ficha-row-v mono">${e.telefono}</span></div>` : ''}
+      ${e.celular ? `<div class="ficha-row"><span class="ficha-row-l">Celular</span><span class="ficha-row-v mono">${esc(e.celular)}</span></div>` : ''}
+      ${e.telefono ? `<div class="ficha-row"><span class="ficha-row-l">Teléfono</span><span class="ficha-row-v mono">${esc(e.telefono)}</span></div>` : ''}
       ${e.direccion ? `<div class="ficha-row"><span class="ficha-row-l">Dirección</span><span class="ficha-row-v">${esc(e.direccion)}</span></div>` : ''}
     </div>` : ''}
 
@@ -5546,11 +5548,11 @@ function renderBarras(containerId, datos) {
   el.innerHTML = datos.map(d => `
     <div style="margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-        <span style="color:var(--text);font-weight:500;">${d.label}</span>
-        <span style="color:var(--mute);">${d.val} <span style="color:var(--text);font-weight:700;">(${pct(d.val,total)}%)</span></span>
+        <span style="color:var(--text);font-weight:500;">${esc(d.label)}</span>
+        <span style="color:var(--mute);">${esc(d.val)} <span style="color:var(--text);font-weight:700;">(${pct(d.val,total)}%)</span></span>
       </div>
       <div style="background:var(--line);border-radius:4px;height:8px;">
-        <div style="background:${d.color};height:8px;border-radius:4px;width:${pct(d.val,total)}%;transition:width .4s;"></div>
+        <div style="background:${esc(d.color)};height:8px;border-radius:4px;width:${pct(d.val,total)}%;transition:width .4s;"></div>
       </div>
     </div>
   `).join('');
@@ -5627,7 +5629,7 @@ async function generarComparacionTiempo() {
   const todasLasOpciones = [...new Set(resultadosPorEncuesta.flatMap(r => r.opciones||[]))];
 
   let html = `<table class="dt"><thead><tr><th>Opción</th>`;
-  resultadosPorEncuesta.forEach(r => { html += `<th class="num">${esc(r.enc.nombre)}<br><span style="font-weight:400;color:var(--mute);font-size:10px;">${r.enc.fecha_inicio||''}</span></th>`; });
+  resultadosPorEncuesta.forEach(r => { html += `<th class="num">${esc(r.enc.nombre)}<br><span style="font-weight:400;color:var(--mute);font-size:10px;">${esc(r.enc.fecha_inicio||'')}</span></th>`; });
   html += `</tr></thead><tbody>`;
   todasLasOpciones.forEach(op => {
     html += `<tr><td class="bold" style="font-size:12px;">${esc(op)}</td>`;
@@ -5669,7 +5671,7 @@ async function loadEncuestas() {
   const ordenadasPorFecha = [...encuestasData].sort((a,b) => (a.fecha_inicio||'').localeCompare(b.fecha_inicio||''));
   compSel.innerHTML = ordenadasPorFecha.map(e => `
     <label style="display:flex;align-items:center;gap:7px;padding:5px 2px;font-size:13px;cursor:pointer;">
-      <input type="checkbox" class="comp-encuesta-check" value="${e.id}" onchange="poblarPreguntasComparables()">
+      <input type="checkbox" class="comp-encuesta-check" value="${esc(e.id)}" onchange="poblarPreguntasComparables()">
       ${esc(e.nombre)} — ${e.fecha_inicio||'sin fecha'}
     </label>
   `).join('') || '<div style="color:var(--mute);font-size:12px;padding:6px 2px;">No hay encuestas todavía</div>';
@@ -5710,17 +5712,17 @@ async function loadEncuestas() {
     return `
     <div style="background:var(--bg);border:1.5px solid ${e.estado==='activa'?'var(--prm)':'var(--line)'};border-radius:10px;padding:12px 14px;min-width:220px;flex:1;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
-        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);cursor:pointer;" onclick="seleccionarEncuesta('${e.id}')">${esc(e.nombre)}</span>
-        <span class="pill ${ESTADO_PILL[e.estado]||'pill-mute'}" style="font-size:10px;">${ESTADO_LABEL[e.estado]||e.estado}</span>
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);cursor:pointer;" onclick="seleccionarEncuesta('${esc(e.id)}')">${esc(e.nombre)}</span>
+        <span class="pill ${esc(ESTADO_PILL[e.estado]||'pill-mute')}" style="font-size:10px;">${esc(ESTADO_LABEL[e.estado]||e.estado)}</span>
       </div>
-      <div style="font-size:12px;color:var(--mute);">${e.tipo||''} · Muestra ${fmtNum(e.muestra_objetivo||0)}</div>
-      <div style="font-size:11px;color:var(--mute);margin-top:4px;">${e.fecha_inicio||''} ${e.fecha_fin?'→ '+e.fecha_fin:''}</div>
+      <div style="font-size:12px;color:var(--mute);">${esc(e.tipo||'')} · Muestra ${fmtNum(e.muestra_objetivo||0)}</div>
+      <div style="font-size:11px;color:var(--mute);margin-top:4px;">${esc(e.fecha_inicio||'')} ${e.fecha_fin?'→ '+e.fecha_fin:''}</div>
       ${asps.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">${asps.map(a=>`<span class="pill pill-info" style="font-size:10px;">👤 ${a.nombre.split(',')[0].trim()}</span>`).join('')}</div>` : ''}
       <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-        <button class="btn-qr" onclick="seleccionarEncuesta('${e.id}')" style="flex:1;min-width:70px;">Resultados</button>
-        <button class="btn-qr" onclick="abrirModalPreguntas('${e.id}')" style="flex:1;min-width:70px;">Preguntas</button>
-        <button class="btn-qr" onclick="abrirModalEncuestadores('${e.id}')" style="flex:1;min-width:70px;">Encuestadores</button>
-        <button class="btn-qr" onclick="toggleEncuesta('${e.id}','${e.estado}')" style="flex:1;min-width:70px;">${e.estado==='activa'?'Cerrar':'Activar'}</button>
+        <button class="btn-qr" onclick="seleccionarEncuesta('${esc(e.id)}')" style="flex:1;min-width:70px;">Resultados</button>
+        <button class="btn-qr" onclick="abrirModalPreguntas('${esc(e.id)}')" style="flex:1;min-width:70px;">Preguntas</button>
+        <button class="btn-qr" onclick="abrirModalEncuestadores('${esc(e.id)}')" style="flex:1;min-width:70px;">Encuestadores</button>
+        <button class="btn-qr" onclick="toggleEncuesta('${esc(e.id)}','${esc(e.estado)}')" style="flex:1;min-width:70px;">${e.estado==='activa'?'Cerrar':'Activar'}</button>
       </div>
     </div>
   `;
@@ -5728,7 +5730,7 @@ async function loadEncuestas() {
 
   const sel = document.getElementById('enc-selector');
   sel.innerHTML = '<option value="">Selecciona una encuesta…</option>' +
-    encuestasData.map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('');
+    encuestasData.map(e=>`<option value="${esc(e.id)}">${esc(e.nombre)}</option>`).join('');
 
   document.getElementById('enc-detalle-wrap').style.display = 'block';
   if (encuestasData.length) seleccionarEncuesta(encuestasData[0].id);
@@ -5745,7 +5747,7 @@ function poblarSelectorCruce() {
   const sel = document.getElementById('cruce-pregunta');
   const preguntasCruzables = preguntasEncuestaActual.filter(p => p.tipo !== 'abierta');
   sel.innerHTML = '<option value="">Selecciona…</option>' +
-    preguntasCruzables.map(p => `<option value="${p.id}">${esc(p.texto)}</option>`).join('');
+    preguntasCruzables.map(p => `<option value="${esc(p.id)}">${esc(p.texto)}</option>`).join('');
   document.getElementById('cruce-resultado-wrap').style.display = 'none';
   actualizarOpcionesCruce();
 }
@@ -5761,7 +5763,7 @@ function actualizarOpcionesCruce() {
     <option value="rango_edad">Rango de edad</option>
     <option value="zona">Estructura</option>
     ${otrasPreguntas.length ? '<option disabled>──────────</option>' : ''}
-    ${otrasPreguntas.map(p => `<option value="preg:${p.id}">${esc(p.texto)}</option>`).join('')}
+    ${otrasPreguntas.map(p => `<option value="preg:${esc(p.id)}">${esc(p.texto)}</option>`).join('')}
   `;
   if ([...sel.options].some(o => o.value === valorPrevio)) sel.value = valorPrevio;
 }
@@ -5928,11 +5930,11 @@ async function cargarResultados() {
   const respTb = document.getElementById('enc-resp-tb');
   respTb.innerHTML = respuestasData.slice(0,50).map(r => `
     <tr style="${r.sospechosa?'background:#fef2f2;':''}">
-      <td style="font-size:12px;">${r.cedula_encuestado||'—'}</td>
-      <td>${r.zona||'—'}</td>
-      <td style="font-size:12px;">${r.sexo||'—'}</td>
-      <td style="font-size:12px;">${r.rango_edad||'—'}</td>
-      <td style="font-size:11px;color:var(--mute);">${r.modalidad_usada||'—'}</td>
+      <td style="font-size:12px;">${esc(r.cedula_encuestado||'—')}</td>
+      <td>${esc(r.zona||'—')}</td>
+      <td style="font-size:12px;">${esc(r.sexo||'—')}</td>
+      <td style="font-size:12px;">${esc(r.rango_edad||'—')}</td>
+      <td style="font-size:11px;color:var(--mute);">${esc(r.modalidad_usada||'—')}</td>
       <td style="font-size:11px;color:var(--mute);">${r.created_at?r.created_at.substring(0,10):'—'}</td>
       <td>${r.sospechosa?'<span class="pill pill-warn">🪤 Sospechosa</span>':'<span class="pill pill-good">OK</span>'}</td>
     </tr>
@@ -5972,7 +5974,7 @@ async function renderResultadosPorPregunta(encuestaId, respuestaIds, pesos) {
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:12px;">
           ${i+1}. ${esc(p.texto)}
         </div>
-        <div id="preg-chart-${p.id}"></div>
+        <div id="preg-chart-${esc(p.id)}"></div>
       </div>
     </div>
   `).join('');
@@ -6028,7 +6030,7 @@ async function cargarOpcionesTerritoriales(nivel, padreId, selectId, multiple) {
   const sel = document.getElementById(selectId);
   const { data } = await db.from('estructura_territorial').select('id, nombre')
     .eq('nivel', nivel).eq('padre_id', padreId).order('nombre');
-  const opts = (data || []).map(n => `<option value="${n.id}">${esc(n.nombre)}</option>`).join('');
+  const opts = (data || []).map(n => `<option value="${esc(n.id)}">${esc(n.nombre)}</option>`).join('');
   sel.innerHTML = multiple ? opts : ('<option value="">Selecciona</option>' + opts);
 }
 
@@ -6036,7 +6038,7 @@ async function cargarZonasDelMunicipio(municipioId, selectId, multiple) {
   const sel = document.getElementById(selectId);
   const { data } = await db.from('zonas_organizacion').select('id, nombre')
     .eq('municipio_id', municipioId).eq('organizacion_id', currentOrg?.id).order('nombre');
-  const opts = (data || []).map(z => `<option value="${z.id}">Estructura ${esc(z.nombre)}</option>`).join('');
+  const opts = (data || []).map(z => `<option value="${esc(z.id)}">Estructura ${esc(z.nombre)}</option>`).join('');
   sel.innerHTML = multiple ? opts : ('<option value="">Selecciona</option>' + opts);
 }
 
@@ -6045,7 +6047,7 @@ async function cargarRecintosDeLaZona(zonaId, selectId) {
   const { data } = await db.from('recinto_zona_organizacion').select('recinto_id, recintos_prm(codigo, nombre)')
     .eq('zona_id', zonaId).eq('organizacion_id', currentOrg?.id);
   sel.innerHTML = (data || [])
-    .map(r => `<option value="${r.recintos_prm?.codigo}">${esc(r.recintos_prm?.nombre || r.recintos_prm?.codigo)}</option>`).join('');
+    .map(r => `<option value="${esc(r.recintos_prm?.codigo)}">${esc(r.recintos_prm?.nombre || r.recintos_prm?.codigo)}</option>`).join('');
 }
 
 function calcularTamanoMuestra() {
@@ -6252,7 +6254,7 @@ async function abrirModalEncuesta() {
   const { data: aspirantes } = await db.from('aspirantes').select('id, nombre, posicion, zona').order('nombre');
   const selAsp = document.getElementById('enc-aspirantes');
   selAsp.innerHTML = (aspirantes||[]).map(a =>
-    `<option value="${a.id}">${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Estructura '+a.zona+')':''}</option>`
+    `<option value="${esc(a.id)}">${esc(a.nombre)} — ${esc(a.posicion||'')}${a.zona?' (Estructura '+a.zona+')':''}</option>`
   ).join('') || '<option disabled>No hay aspirantes registrados</option>';
 }
 
@@ -6381,9 +6383,9 @@ function renderPreguntasLista() {
     <div style="background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
       <div>
         <div style="font-size:13px;font-weight:600;color:var(--text);">${i+1}. ${esc(p.texto)}</div>
-        <div style="font-size:11px;color:var(--mute);margin-top:2px;">${TIPO_LABEL[p.tipo]||p.tipo} ${p.obligatoria?'· Obligatoria':'· Opcional'}${p.opciones?.length?' · '+p.opciones.join(', '):''}${p.tipo_especial?' · '+ESPECIAL_LABEL[p.tipo_especial]:''}${p.opcion_trampa?' · 🪤 Trampa: '+p.opcion_trampa:''}${p.es_sensible?' · 🔒 Sensible':''}</div>
+        <div style="font-size:11px;color:var(--mute);margin-top:2px;">${esc(TIPO_LABEL[p.tipo]||p.tipo)} ${p.obligatoria?'· Obligatoria':'· Opcional'}${p.opciones?.length?' · '+p.opciones.join(', '):''}${p.tipo_especial?' · '+ESPECIAL_LABEL[p.tipo_especial]:''}${p.opcion_trampa?' · 🪤 Trampa: '+p.opcion_trampa:''}${p.es_sensible?' · 🔒 Sensible':''}</div>
       </div>
-      <button class="btn-qr" onclick="eliminarPregunta('${p.id}')" style="padding:6px 10px;">Quitar</button>
+      <button class="btn-qr" onclick="eliminarPregunta('${esc(p.id)}')" style="padding:6px 10px;">Quitar</button>
     </div>
   `).join('');
 }
@@ -6411,7 +6413,7 @@ function togglePregSensible() {
       sel.innerHTML = '<option value="">No hay otras preguntas agregadas todavía</option>';
     } else {
       sel.innerHTML = '<option value="">Seleccioná la pregunta inocua…</option>' +
-        preguntasTmp.map(p => `<option value="${p.id}">${esc(p.texto)}</option>`).join('');
+        preguntasTmp.map(p => `<option value="${esc(p.id)}">${esc(p.texto)}</option>`).join('');
     }
   }
 }
@@ -6516,7 +6518,7 @@ async function abrirModalEncuestadores(encuestaId) {
   dirigentesTmp = dirigentes || [];
   const sel = document.getElementById('asig-persona');
   sel.innerHTML = dirigentesTmp.map(d =>
-    `<option value="${d.id}" data-zona="${d.zona||''}">${esc(d.nombre)} — ${d.nivel==='activista'?'Activista':'Dirigente'} (Estructura ${d.zona||'—'})</option>`
+    `<option value="${esc(d.id)}" data-zona="${esc(d.zona||'')}">${esc(d.nombre)} — ${d.nivel==='activista'?'Activista':'Dirigente'} (Estructura ${esc(d.zona||'—')})</option>`
   ).join('');
   autocompletarZonaAsignada();
 
@@ -6550,12 +6552,12 @@ async function cargarEncuestadoresAsignados(encuestaId) {
   cont.innerHTML = data.map(a => `
     <div style="background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
       <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${a.dirigentes?.nombre||'—'}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${esc(a.dirigentes?.nombre||'—')}</div>
         <div style="font-size:11px;color:var(--mute);margin-top:2px;">
           ${a.dirigentes?.nivel==='activista'?'Activista':'Dirigente'} · Estructura ${a.zona_asignada} · Meta ${a.meta_asignada||0} · Completadas ${a.completadas||0}
         </div>
       </div>
-      <button class="btn-qr" onclick="quitarEncuestador('${a.id}')" style="padding:6px 10px;">Quitar</button>
+      <button class="btn-qr" onclick="quitarEncuestador('${esc(a.id)}')" style="padding:6px 10px;">Quitar</button>
     </div>
   `).join('');
 }
@@ -6654,7 +6656,7 @@ async function abrirModalPonderacion() {
     document.getElementById('pond-recuerdo-form').innerHTML = pregRecuerdo.opciones.map(op => `
       <div class="mf-group" style="margin-bottom:0;">
         <label class="mf-label">${op} (% real)</label>
-        <input class="mf-input pond-recuerdo-input" data-valor="${op}" type="number" min="0" max="100" step="0.1" value="${existentesMap[op]||''}" placeholder="Ej: 45.0">
+        <input class="mf-input pond-recuerdo-input" data-valor="${op}" type="number" min="0" max="100" step="0.1" value="${esc(existentesMap[op]||'')}" placeholder="Ej: 45.0">
       </div>
     `).join('');
   } else {
@@ -6829,7 +6831,7 @@ async function generarReporte() {
       conteos.sort((a,b)=>b.suma-a.suma);
       const lider = conteos[0];
       const liderPct = (100*lider.suma/totalOp).toFixed(1);
-      narrativaPreguntas += `<p>La opción más elegida fue <b>"${lider.op}"</b> con ${liderPct}% de las respuestas${pesos?' (ponderado)':''}. Detalle completo: ${conteos.map(c=>`${c.op} ${(100*c.suma/totalOp).toFixed(1)}%`).join(', ')}.</p>`;
+      narrativaPreguntas += `<p>La opción más elegida fue <b>"${esc(lider.op)}"</b> con ${liderPct}% de las respuestas${pesos?' (ponderado)':''}. Detalle completo: ${conteos.map(c=>`${esc(c.op)} ${(100*c.suma/totalOp).toFixed(1)}%`).join(', ')}.</p>`;
       const imgOpciones = dibujarGraficoCanvas(conteos.map(c => ({ label: c.op, val: Math.round(c.suma) })), { width: 480, height: Math.max(120, conteos.length*40) });
       narrativaPreguntas += `<div style="page-break-inside:avoid;break-inside:avoid;display:block;"><img src="${imgOpciones}" style="width:100%;max-width:480px;margin:6px 0 10px;display:block;"></div>`;
     }
@@ -6854,16 +6856,16 @@ async function generarReporte() {
 
     <h3 style="font-family:'Sora',sans-serif;font-size:14px;border-bottom:1px solid ${cLine};padding-bottom:6px;">Ficha técnica</h3>
     <table style="width:100%;font-size:13px;margin-bottom:14px;">
-      <tr><td style="color:${cMute};padding:3px 0;">Tipo</td><td style="text-align:right;">${TIPO_ENC[enc.tipo]||enc.tipo}</td></tr>
-      <tr><td style="color:${cMute};padding:3px 0;">Alcance</td><td style="text-align:right;">${ALCANCE_ENC[enc.alcance]||enc.alcance}</td></tr>
-      <tr><td style="color:${cMute};padding:3px 0;">Modalidad</td><td style="text-align:right;">${MODALIDAD_ENC[enc.modalidad]||enc.modalidad}</td></tr>
+      <tr><td style="color:${cMute};padding:3px 0;">Tipo</td><td style="text-align:right;">${esc(TIPO_ENC[enc.tipo]||enc.tipo)}</td></tr>
+      <tr><td style="color:${cMute};padding:3px 0;">Alcance</td><td style="text-align:right;">${esc(ALCANCE_ENC[enc.alcance]||enc.alcance)}</td></tr>
+      <tr><td style="color:${cMute};padding:3px 0;">Modalidad</td><td style="text-align:right;">${esc(MODALIDAD_ENC[enc.modalidad]||enc.modalidad)}</td></tr>
       <tr><td style="color:${cMute};padding:3px 0;">Población objetivo</td><td style="text-align:right;">${fmtNum(enc.poblacion_total||0)}</td></tr>
       <tr><td style="color:${cMute};padding:3px 0;">Muestra objetivo</td><td style="text-align:right;">${fmtNum(enc.muestra_objetivo||0)}</td></tr>
-      <tr><td style="color:${cMute};padding:3px 0;">Fechas</td><td style="text-align:right;">${enc.fecha_inicio||'—'} ${enc.fecha_fin?'→ '+enc.fecha_fin:''}</td></tr>
+      <tr><td style="color:${cMute};padding:3px 0;">Fechas</td><td style="text-align:right;">${esc(enc.fecha_inicio||'—')} ${enc.fecha_fin?'→ '+enc.fecha_fin:''}</td></tr>
     </table>
 
     <h3 style="font-family:'Sora',sans-serif;font-size:14px;border-bottom:1px solid ${cLine};padding-bottom:6px;">Cobertura de la muestra</h3>
-    <p>Se recolectaron <b>${fmtNum(totalResp)}</b> respuestas de una muestra objetivo de <b>${fmtNum(enc.muestra_objetivo||0)}</b>, alcanzando un <b>${avancePct}%</b> de avance. Perfil de la muestra: <b>${mujeresRep}</b> mujeres y <b>${hombresRep}</b> hombres${edadTopRep ? `, con el rango de edad <b>${edadTopRep[0]}</b> como el más frecuente` : ''}.</p>
+    <p>Se recolectaron <b>${fmtNum(totalResp)}</b> respuestas de una muestra objetivo de <b>${fmtNum(enc.muestra_objetivo||0)}</b>, alcanzando un <b>${avancePct}%</b> de avance. Perfil de la muestra: <b>${mujeresRep}</b> mujeres y <b>${hombresRep}</b> hombres${edadTopRep ? `, con el rango de edad <b>${esc(edadTopRep[0])}</b> como el más frecuente` : ''}.</p>
     ${filasZona ? `<table style="width:100%;font-size:13px;margin-bottom:14px;"><tr style="color:${cMute};"><td>Estructura</td><td style="text-align:right;">Respuestas</td><td style="text-align:right;">Cuota</td></tr>${filasZona}</table>` : ''}
 
     <h3 style="font-family:'Sora',sans-serif;font-size:14px;border-bottom:1px solid ${cLine};padding-bottom:6px;">Calidad de los datos</h3>
@@ -7287,22 +7289,22 @@ async function loadActas() {
   const ESTL = { pendiente:'Pendiente', revisado:'Revisado', confirmado:'Confirmado ✓', conflicto:'⚠ En conflicto', confirmada_doble:'Confirmada x2 ✓✓', descartada:'Descartada' };
 
   tb.innerHTML = actas.map(a => `<tr${a.estado === 'conflicto' ? ' style="background:#fef2f2;"' : ''}>
-    <td class="bold" style="font-size:12px;">${a.dirigente_nombre||'—'}</td>
-    <td style="font-size:12px;color:var(--mute);">${a.recinto_codigo||'—'}</td>
-    <td>${a.zona ? `<span class="pill pill-info">Estructura ${a.zona}</span>` : '—'}</td>
-    <td class="num">${a.mesa||'—'}</td>
+    <td class="bold" style="font-size:12px;">${esc(a.dirigente_nombre||'—')}</td>
+    <td style="font-size:12px;color:var(--mute);">${esc(a.recinto_codigo||'—')}</td>
+    <td>${a.zona ? `<span class="pill pill-info">Estructura ${esc(a.zona)}</span>` : '—'}</td>
+    <td class="num">${esc(a.mesa||'—')}</td>
     <td class="num" style="color:var(--prm);font-weight:700;">${a.votos_prm??'—'}</td>
     <td class="num">${a.votos_pld??'—'}</td>
     <td class="num">${a.votos_fp??'—'}</td>
     <td class="num">${a.votos_otros??'—'}</td>
     <td class="num" style="color:var(--mute);">${a.votos_nulos??'—'}</td>
     <td class="num" style="font-weight:700;">${a.total_votantes??'—'}</td>
-    <td>${a.foto_url ? `<a href="${a.foto_url}" target="_blank" style="color:var(--prm);font-size:12px;font-weight:600;">Ver foto 📷</a>` : '<span style="color:var(--mute);font-size:11px;">Sin foto</span>'}</td>
-    <td><span class="pill ${EST[a.estado]||'pill-mute'}">${ESTL[a.estado]||a.estado}</span></td>
+    <td>${a.foto_url ? `<a href="${safeUrl(a.foto_url)}" target="_blank" style="color:var(--prm);font-size:12px;font-weight:600;">Ver foto 📷</a>` : '<span style="color:var(--mute);font-size:11px;">Sin foto</span>'}</td>
+    <td><span class="pill ${esc(EST[a.estado]||'pill-mute')}">${esc(ESTL[a.estado]||a.estado)}</span></td>
     <td>
-      ${a.estado !== 'confirmado' && a.estado !== 'conflicto' ? `<button class="btn-qr" onclick="confirmarActa('${a.id}')">Confirmar</button>` : ''}
-      ${a.estado === 'conflicto' ? `<button class="btn-qr" onclick="confirmarActa('${a.id}')" style="background:var(--dudoso);color:#fff;border-color:var(--dudoso);">Esta es la correcta</button>` : ''}
-      <button class="btn-qr" onclick="editarActa('${a.id}')" style="margin-left:4px;">Editar</button>
+      ${a.estado !== 'confirmado' && a.estado !== 'conflicto' ? `<button class="btn-qr" onclick="confirmarActa('${esc(a.id)}')">Confirmar</button>` : ''}
+      ${a.estado === 'conflicto' ? `<button class="btn-qr" onclick="confirmarActa('${esc(a.id)}')" style="background:var(--dudoso);color:#fff;border-color:var(--dudoso);">Esta es la correcta</button>` : ''}
+      <button class="btn-qr" onclick="editarActa('${esc(a.id)}')" style="margin-left:4px;">Editar</button>
     </td>
   </tr>`).join('');
 }
@@ -7509,7 +7511,7 @@ function renderColegiosSeg() {
     const pct = r.electores ? Math.round(r.votaron/r.electores*1000)/10 : 0;
     const pc = r.comprometidos ? Math.round(r.comp_votaron/r.comprometidos*100) : 0;
     const col = pc>=75?'var(--seguro)':pc>=40?'var(--probable)':'var(--dudoso)';
-    return `<tr onclick="verVotantesColegio('${r.colegio_id}')" style="cursor:pointer;" title="Ver quiénes votaron">
+    return `<tr onclick="verVotantesColegio('${esc(r.colegio_id)}')" style="cursor:pointer;" title="Ver quiénes votaron">
       <td class="bold">${esc(r.numero)}</td>
       <td style="font-size:12px;">Colegio ${esc(r.numero)}</td>
       <td style="font-size:12px;">${esc(r.recinto_codigo||'')} — ${esc((r.recinto_nombre||'').substring(0,26))}</td>
@@ -7519,7 +7521,7 @@ function renderColegiosSeg() {
       <td class="num">${fmtNum(r.comprometidos)}</td>
       <td class="num" style="font-weight:700;color:${col};">${fmtNum(r.comp_votaron)}${r.comprometidos?' ('+pc+'%)':''}</td>
       <td style="font-size:11px;color:var(--mute);">${hora(r.ultimo_voto)}</td></tr>
-      <tr id="seg-colv-${r.colegio_id}" style="display:none;"><td colspan="9" style="background:var(--bg);padding:8px 14px;"></td></tr>`;
+      <tr id="seg-colv-${esc(r.colegio_id)}" style="display:none;"><td colspan="9" style="background:var(--bg);padding:8px 14px;"></td></tr>`;
   }).join('');
   cargarUltimosVotos();
 }
@@ -7614,13 +7616,13 @@ async function buscarElectorSeg() {
   res.innerHTML = `
     <div style="background:${yaVoto?'#f0fdf4':'#eff6ff'};border:1.5px solid ${yaVoto?'#86efac':'#bfdbfe'};border-radius:10px;padding:14px;">
       <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">${esc(data.nombre.split(',').slice(0,2).join(',').trim())}</div>
-      <div style="font-size:12px;color:var(--mute);margin-bottom:8px;">Cédula: ${data.cedula} · Estructura ${data.zona||'?'} · Recinto ${data.recinto||'?'}</div>
+      <div style="font-size:12px;color:var(--mute);margin-bottom:8px;">Cédula: ${esc(data.cedula)} · Estructura ${esc(data.zona||'?')} · Recinto ${esc(data.recinto||'?')}</div>
       <div style="font-size:12px;margin-bottom:${yaVoto?'0':'12px'};font-weight:600;color:${data.comprometido?'var(--seguro)':'var(--mute)'};">
         ${data.comprometido?'✓ Comprometido con el PRM':'Sin compromiso registrado'}
       </div>
       ${yaVoto
         ? '<div style="font-size:13px;font-weight:700;color:var(--seguro);">✓ YA VOTÓ — registrado en el sistema</div>'
-        : `<button onclick="marcarVoto('${data.cedula}','${data.zona||''}','${data.recinto||''}')" style="width:100%;background:var(--prm);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
+        : `<button onclick="marcarVoto('${jsq(data.cedula)}','${jsq(data.zona||'')}','${jsq(data.recinto||'')}')" style="width:100%;background:var(--prm);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
             ✓ Marcar como que ya votó
           </button>`
       }
@@ -7666,9 +7668,9 @@ function renderAlertas() {
         <div style="font-weight:700;font-size:13px;color:var(--text);">
           ${a.tipo==='sin_reporte'?'⚠️ Sin reporte':'🔴 Baja asistencia'} — ${a.rec.codigo} Estructura ${a.rec.zona||'?'}
         </div>
-        <div style="font-size:12px;color:var(--mute);margin-top:2px;">${(a.rec.nombre||'').substring(0,40)} · ${fmtNum(a.comp)} comprometidos · ${fmtNum(a.votos)} votaron (${a.pct}%)</div>
+        <div style="font-size:12px;color:var(--mute);margin-top:2px;">${(a.rec.nombre||'').substring(0,40)} · ${fmtNum(a.comp)} comprometidos · ${fmtNum(a.votos)} votaron (${esc(a.pct)}%)</div>
       </div>
-      <button class="btn-qr" onclick="reportarMesa('${a.rec.codigo}','${a.rec.zona||''}')">Reportar</button>
+      <button class="btn-qr" onclick="reportarMesa('${jsq(a.rec.codigo)}','${jsq(a.rec.zona||'')}')">Reportar</button>
     </div>`).join('') + '</div>';
 }
 
@@ -7736,7 +7738,7 @@ async function loadMontaje() {
   // Poblar selector de recintos en modal
   const selRec = document.getElementById('del-recinto');
   selRec.innerHTML = '<option value="">Selecciona recinto</option>' +
-    recList.map(r => `<option value="${r.codigo}">${r.codigo} — ${(r.nombre||'').substring(0,35)} (Zona ${r.zona||'?'})</option>`).join('');
+    recList.map(r => `<option value="${esc(r.codigo)}">${esc(r.codigo)} — ${(r.nombre||'').substring(0,35)} (Zona ${esc(r.zona||'?')})</option>`).join('');
 
   // Calcular cobertura — ahora por los 10 cargos del CRE, no por mesas
   const CARGOS = Object.keys(ROL_LABEL).filter(r => r !== 'delegado_colegio'); // los 10 cargos oficiales
@@ -7813,13 +7815,13 @@ function renderRecintos() {
     const bords = { sin_cobertura:'#fca5a5', parcial:'#fcd34d', casi:'#bfdbfe', completo:'#86efac' };
 
     return `
-      <div style="background:${bgs[status]};border:1.5px solid ${bords[status]};border-radius:12px;padding:14px;">
+      <div style="background:${esc(bgs[status])};border:1.5px solid ${esc(bords[status])};border-radius:12px;padding:14px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div>
             <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">
               ${cod} — ${(rec.nombre||'').substring(0,30)}
             </div>
-            <div style="font-size:11px;color:var(--mute);">Zona ${rec.zona||'?'} · ${cubiertas} de ${total} cargos</div>
+            <div style="font-size:11px;color:var(--mute);">Zona ${esc(rec.zona||'?')} · ${cubiertas} de ${total} cargos</div>
           </div>
           <div style="font-size:18px;font-weight:800;color:${pct===100?'var(--seguro)':pct>=50?'var(--probable)':'var(--dudoso)'};">${pct}%</div>
         </div>
@@ -7831,7 +7833,7 @@ function renderRecintos() {
         ${dels.slice(0,4).map(d=>`
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.06);">
             <span style="color:var(--text);font-weight:500;">${esc(d.nombre||'—')}</span>
-            <span style="color:${ROL_COLOR[d.rol]||'#64748b'};font-size:10px;font-weight:700;">${ROL_LABEL[d.rol]||d.rol}</span>
+            <span style="color:${esc(ROL_COLOR[d.rol]||'#64748b')};font-size:10px;font-weight:700;">${esc(ROL_LABEL[d.rol]||d.rol)}</span>
           </div>`).join('')}
         ${dels.length > 4 ? `<div style="font-size:11px;color:var(--mute);margin-top:4px;">+${dels.length-4} más…</div>` : ''}
         <button class="btn-qr" onclick="abrirModalDelegado('${cod}')" style="margin-top:10px;width:100%;text-align:center;">+ Agregar miembro</button>
@@ -7844,20 +7846,20 @@ function renderListaDelegados() {
   if (!montajeFiltrado.length) { tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--mute)">Sin delegados registrados.</td></tr>'; return; }
   tb.innerHTML = montajeFiltrado.map(d => `<tr>
     <td class="bold">${esc(d.nombre||'—')}</td>
-    <td style="font-family:monospace;font-size:12px;">${d.cedula||'—'}</td>
-    <td><span style="background:${ROL_COLOR[d.rol]||'#64748b'}20;color:${ROL_COLOR[d.rol]||'#64748b'};border:1px solid ${ROL_COLOR[d.rol]||'#64748b'}40;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;">${ROL_LABEL[d.rol]||d.rol||'—'}</span></td>
-    <td style="font-size:12px;">${d.recinto_codigo||'—'} <span style="color:var(--mute);font-size:11px;">${(recintosMap[d.recinto_codigo]?.nombre||'').substring(0,20)}</span></td>
-    <td>${d.zona ? `<span class="pill pill-info">Estructura ${d.zona}</span>` : '—'}</td>
-    <td class="num">${d.mesa||'—'}</td>
-    <td style="font-size:12px;">${d.telefono||'—'}</td>
+    <td style="font-family:monospace;font-size:12px;">${esc(d.cedula||'—')}</td>
+    <td><span style="background:${esc(ROL_COLOR[d.rol]||'#64748b')}20;color:${esc(ROL_COLOR[d.rol]||'#64748b')};border:1px solid ${esc(ROL_COLOR[d.rol]||'#64748b')}40;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;">${esc(ROL_LABEL[d.rol]||d.rol||'—')}</span></td>
+    <td style="font-size:12px;">${esc(d.recinto_codigo||'—')} <span style="color:var(--mute);font-size:11px;">${(recintosMap[d.recinto_codigo]?.nombre||'').substring(0,20)}</span></td>
+    <td>${d.zona ? `<span class="pill pill-info">Estructura ${esc(d.zona)}</span>` : '—'}</td>
+    <td class="num">${esc(d.mesa||'—')}</td>
+    <td style="font-size:12px;">${esc(d.telefono||'—')}</td>
     <td class="num">
       ${d.monto_pago ? `${d.moneda||'RD$'} ${fmtNum(d.monto_pago)}` : '—'}
       <div><span class="pill ${d.estado_pago==='pagado'?'pill-good':'pill-warn'}" style="font-size:9px;">${d.estado_pago==='pagado'?'Pagado':'Pendiente'}</span></div>
     </td>
     <td>
-      <button class="btn-qr" onclick="editarDelegado('${d.id}')">Editar</button>
-      <button class="btn-qr" onclick="imprimirConstancia('${d.id}')" style="margin-left:4px;">🖨️</button>
-      <span class="pill ${EST_MONT[d.estado]||'pill-mute'}" style="font-size:10px;margin-left:4px;">${EST_LMONT[d.estado]||d.estado||'—'}</span>
+      <button class="btn-qr" onclick="editarDelegado('${esc(d.id)}')">Editar</button>
+      <button class="btn-qr" onclick="imprimirConstancia('${esc(d.id)}')" style="margin-left:4px;">🖨️</button>
+      <span class="pill ${esc(EST_MONT[d.estado]||'pill-mute')}" style="font-size:10px;margin-left:4px;">${esc(EST_LMONT[d.estado]||d.estado||'—')}</span>
     </td>
   </tr>`).join('');
 }
@@ -7885,7 +7887,7 @@ function renderMesasVacias() {
 
     html += `
       <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:12px 14px;">
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:4px;">${cod} · Zona ${rec.zona||'?'}</div>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:4px;">${cod} · Zona ${esc(rec.zona||'?')}</div>
         <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${(rec.nombre||'').substring(0,35)}</div>
         <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:8px;">⚠️ ${sinCubrir} cargo${sinCubrir!==1?'s':''} sin cubrir de ${total}</div>
         <div style="font-size:11px;color:var(--mute);margin-bottom:8px;line-height:1.5;">${faltantes.map(c=>ROL_LABEL[c]).join(' · ')}</div>
@@ -7938,7 +7940,7 @@ async function cargarMesasRecinto(mesaSeleccionada) {
   );
 
   selMesa.innerHTML = '<option value="">Selecciona el colegio</option>' +
-    data.map(c => `<option value="${c.numero}" ${c.numero===String(mesaSeleccionada)?'selected':''}>Colegio ${c.numero} · ${fmtNum(c.cantidad_electores||0)} electores${ocupadas.has(c.numero) ? ' — ya tiene miembro asignado' : ''}</option>`).join('');
+    data.map(c => `<option value="${esc(c.numero)}" ${c.numero===String(mesaSeleccionada)?'selected':''}>Colegio ${esc(c.numero)} · ${fmtNum(c.cantidad_electores||0)} electores${ocupadas.has(c.numero) ? ' — ya tiene miembro asignado' : ''}</option>`).join('');
 }
 
 function abrirModalDelegado(reciCodigo) {
@@ -7989,7 +7991,7 @@ function editarDelegado(id) {
   document.getElementById('del-estado-pago').value = d.estado_pago||'pendiente';
   document.getElementById('del-comprobante').value = '';
   document.getElementById('del-comprobante-actual').innerHTML = d.comprobante_url
-    ? `<a href="${d.comprobante_url}" target="_blank" style="color:var(--prm);">📎 Ver comprobante ya subido</a>`
+    ? `<a href="${safeUrl(d.comprobante_url)}" target="_blank" style="color:var(--prm);">📎 Ver comprobante ya subido</a>`
     : '';
   document.getElementById('del-edit-id').value  = id;
   document.getElementById('del-modal-title').textContent = 'Editar miembro del recinto';
@@ -8142,18 +8144,18 @@ function imprimirConstancia(id) {
 
     <table style="width:100%;font-size:13px;margin-bottom:18px;border-collapse:collapse;">
       <tr><td style="padding:6px 0;color:var(--mute);width:40%;">Nombre</td><td style="padding:6px 0;font-weight:700;">${esc(d.nombre||'')}</td></tr>
-      <tr><td style="padding:6px 0;color:var(--mute);">Cédula</td><td style="padding:6px 0;">${d.cedula||'—'}</td></tr>
-      <tr><td style="padding:6px 0;color:var(--mute);">Posición</td><td style="padding:6px 0;">${ROL_LABEL[d.rol]||d.rol||'—'}</td></tr>
-      <tr><td style="padding:6px 0;color:var(--mute);">Recinto</td><td style="padding:6px 0;">${d.recinto_codigo||''} — ${rec?.nombre||''}</td></tr>
-      <tr><td style="padding:6px 0;color:var(--mute);">Estructura</td><td style="padding:6px 0;">${d.zona||'—'}</td></tr>
-      <tr><td style="padding:6px 0;color:var(--mute);">Mesa</td><td style="padding:6px 0;">${d.mesa||'—'}</td></tr>
-      <tr><td style="padding:10px 0 6px;color:var(--mute);border-top:1px solid var(--line);">Monto a pagar</td><td style="padding:10px 0 6px;font-weight:800;font-size:16px;color:var(--prm);border-top:1px solid var(--line);">${d.moneda||'RD$'} ${d.monto_pago ? fmtNum(d.monto_pago) : '—'}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);">Cédula</td><td style="padding:6px 0;">${esc(d.cedula||'—')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);">Posición</td><td style="padding:6px 0;">${esc(ROL_LABEL[d.rol]||d.rol||'—')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);">Recinto</td><td style="padding:6px 0;">${esc(d.recinto_codigo||'')} — ${esc(rec?.nombre||'')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);">Estructura</td><td style="padding:6px 0;">${esc(d.zona||'—')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--mute);">Mesa</td><td style="padding:6px 0;">${esc(d.mesa||'—')}</td></tr>
+      <tr><td style="padding:10px 0 6px;color:var(--mute);border-top:1px solid var(--line);">Monto a pagar</td><td style="padding:10px 0 6px;font-weight:800;font-size:16px;color:var(--prm);border-top:1px solid var(--line);">${esc(d.moneda||'RD$')} ${d.monto_pago ? fmtNum(d.monto_pago) : '—'}</td></tr>
     </table>
 
     <p style="font-size:12px;color:var(--text);margin-bottom:40px;">
-      Yo, <b>${esc(d.nombre||'________________________')}</b>, portador(a) de la cédula <b>${d.cedula||'____________________'}</b>,
+      Yo, <b>${esc(d.nombre||'________________________')}</b>, portador(a) de la cédula <b>${esc(d.cedula||'____________________')}</b>,
       certifico haber recibido el monto arriba indicado como pago por mi trabajo en la posición de
-      <b>${ROL_LABEL[d.rol]||d.rol||'____________'}</b> el día de las elecciones, en el recinto <b>${d.recinto_codigo||''} ${rec?.nombre||''}</b>.
+      <b>${esc(ROL_LABEL[d.rol]||d.rol||'____________')}</b> el día de las elecciones, en el recinto <b>${esc(d.recinto_codigo||'')} ${esc(rec?.nombre||'')}</b>.
     </p>
 
     <div style="display:flex;justify-content:space-between;margin-top:60px;">
@@ -8244,18 +8246,18 @@ function renderPresupuestos() {
   if (!presData.presupuestos.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--mute)">Sin presupuestos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.presupuestos.map(r => `<tr>
     <td class="bold">${esc(r.descripcion||'—')}</td>
-    <td style="font-size:12px;">${r.categoria||'—'}</td>
-    <td style="font-size:12px;color:var(--mute);">${r.actividad||'—'}</td>
+    <td style="font-size:12px;">${esc(r.categoria||'—')}</td>
+    <td style="font-size:12px;color:var(--mute);">${esc(r.actividad||'—')}</td>
     <td class="num" style="color:#0047AB;font-weight:700;">${fmtMonto(r.monto,r.moneda)}</td>
-    <td style="font-size:12px;color:var(--mute);">${r.fecha||'—'}</td>
+    <td style="font-size:12px;color:var(--mute);">${esc(r.fecha||'—')}</td>
     <td>${r.estado === 'aplicado'
         ? '<span class="pill pill-good">Aplicado</span>'
         : '<span class="pill pill-warn">Pendiente</span>'}</td>
     <td style="display:flex;gap:6px;">
       ${r.estado === 'aplicado'
         ? ''
-        : `<button class="btn-qr" onclick="aplicarPresupuestoItem('${r.id}')" style="color:var(--seguro);">Aplicar a gasto</button>`}
-      <button class="btn-qr" onclick="editarPres('presupuesto','${r.id}')">Editar</button>
+        : `<button class="btn-qr" onclick="aplicarPresupuestoItem('${esc(r.id)}')" style="color:var(--seguro);">Aplicar a gasto</button>`}
+      <button class="btn-qr" onclick="editarPres('presupuesto','${esc(r.id)}')">Editar</button>
     </td>
   </tr>`).join('');
 }
@@ -8317,7 +8319,7 @@ function renderResumen() {
     <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);">
       <div>
         <div style="font-size:12px;font-weight:600;color:var(--text);">${esc(m.descripcion||m.nombre||'—')}</div>
-        <div style="font-size:11px;color:var(--mute);">${m.fecha||''} · ${m.categoria||m.fuente||''}</div>
+        <div style="font-size:11px;color:var(--mute);">${esc(m.fecha||'')} · ${esc(m.categoria||m.fuente||'')}</div>
       </div>
       <div style="font-size:13px;font-weight:700;color:${m._tipo==='ingreso'?'var(--seguro)':'var(--dudoso)'};">
         ${m._tipo==='ingreso'?'+':'−'} ${fmtMonto(m.monto, m.moneda)}
@@ -8330,11 +8332,11 @@ function renderIngresos() {
   if (!presData.ingresos.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--mute)">Sin ingresos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.ingresos.map(r => `<tr>
     <td class="bold">${esc(r.descripcion||'—')}</td>
-    <td style="font-size:12px;">${r.fuente||'—'}</td>
-    <td><span class="pill pill-info" style="font-size:10px;">${r.moneda||'RD$'}</span></td>
+    <td style="font-size:12px;">${esc(r.fuente||'—')}</td>
+    <td><span class="pill pill-info" style="font-size:10px;">${esc(r.moneda||'RD$')}</span></td>
     <td class="num" style="color:var(--seguro);font-weight:700;">${fmtMonto(r.monto,r.moneda)}</td>
-    <td style="font-size:12px;color:var(--mute);">${r.fecha||'—'}</td>
-    <td><button class="btn-qr" onclick="editarPres('ingreso','${r.id}')">Editar</button></td>
+    <td style="font-size:12px;color:var(--mute);">${esc(r.fecha||'—')}</td>
+    <td><button class="btn-qr" onclick="editarPres('ingreso','${esc(r.id)}')">Editar</button></td>
   </tr>`).join('');
 }
 
@@ -8343,12 +8345,12 @@ function renderGastos() {
   if (!presData.gastos.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--mute)">Sin gastos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.gastos.map(r => `<tr>
     <td class="bold">${esc(r.descripcion||'—')}</td>
-    <td style="font-size:12px;">${r.categoria||'—'}</td>
-    <td style="font-size:12px;color:var(--mute);">${r.actividad||'—'}</td>
-    <td><span class="pill pill-mute" style="font-size:10px;">${r.moneda||'RD$'}</span></td>
+    <td style="font-size:12px;">${esc(r.categoria||'—')}</td>
+    <td style="font-size:12px;color:var(--mute);">${esc(r.actividad||'—')}</td>
+    <td><span class="pill pill-mute" style="font-size:10px;">${esc(r.moneda||'RD$')}</span></td>
     <td class="num" style="color:var(--dudoso);font-weight:700;">${fmtMonto(r.monto,r.moneda)}</td>
-    <td style="font-size:12px;color:var(--mute);">${r.fecha||'—'}</td>
-    <td><button class="btn-qr" onclick="editarPres('gasto','${r.id}')">Editar</button></td>
+    <td style="font-size:12px;color:var(--mute);">${esc(r.fecha||'—')}</td>
+    <td><button class="btn-qr" onclick="editarPres('gasto','${esc(r.id)}')">Editar</button></td>
   </tr>`).join('');
 }
 
@@ -8359,12 +8361,12 @@ function renderVehiculos() {
   if (!presData.vehiculos.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--mute)">Sin vehículos registrados.</td></tr>'; return; }
   tb.innerHTML = presData.vehiculos.map(r => `<tr>
     <td class="bold">${esc(r.placa||'—')}</td>
-    <td style="font-size:12px;">${r.tipo||'—'}</td>
+    <td style="font-size:12px;">${esc(r.tipo||'—')}</td>
     <td style="font-size:12px;">${esc(r.chofer||'—')}</td>
-    <td style="font-size:12px;color:var(--mute);">${r.telefono_chofer||'—'}</td>
+    <td style="font-size:12px;color:var(--mute);">${esc(r.telefono_chofer||'—')}</td>
     <td>${r.zona ? '<span class="pill pill-info">Estructura '+r.zona+'</span>' : '—'}</td>
-    <td><span class="pill ${EST[r.estado]||'pill-mute'}">${ESTL[r.estado]||r.estado||'—'}</span></td>
-    <td><button class="btn-qr" onclick="editarPres('vehiculo','${r.id}')">Editar</button></td>
+    <td><span class="pill ${esc(EST[r.estado]||'pill-mute')}">${esc(ESTL[r.estado]||r.estado||'—')}</span></td>
+    <td><button class="btn-qr" onclick="editarPres('vehiculo','${esc(r.id)}')">Editar</button></td>
   </tr>`).join('');
 }
 
@@ -8544,7 +8546,7 @@ function exportarPresupuesto() {
     ['Tipo','Descripción/Nombre','Categoría/Fuente','Monto','Moneda','Fecha','Notas'],
     ...presData.ingresos.map(r  => ['Ingreso', r.descripcion||'', r.fuente||'', r.monto||'', r.moneda||'RD$', r.fecha||'', r.notas||'']),
     ...presData.gastos.map(r    => ['Gasto',   r.descripcion||'', r.categoria||'', r.monto||'', r.moneda||'RD$', r.fecha||'', r.notas||'']),
-    ...presData.vehiculos.map(r => ['Vehículo', r.placa||'', r.tipo||'', '', '', '', `Chofer: ${r.chofer||'—'} · Estado: ${r.estado||'—'}`]),
+    ...presData.vehiculos.map(r => ['Vehículo', r.placa||'', r.tipo||'', '', '', '', `Chofer: ${esc(r.chofer||'—')} · Estado: ${esc(r.estado||'—')}`]),
   ];
   const csv = rows.map(r => r.map(c=>`"${String(c).replace(/"/g,"'")}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
@@ -8620,9 +8622,9 @@ function renderSolicitudesDirigente() {
   if (!wrap) return;
   if (!solicitudesDirData.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
   wrap.style.display = 'block';
-  const ops = rolesDirigente.map(r => `<option value="${r.id}">${esc(r.nombre)}</option>`).join('');
+  const ops = rolesDirigente.map(r => `<option value="${esc(r.id)}">${esc(r.nombre)}</option>`).join('');
   cont.innerHTML = solicitudesDirData.map(s => `
-    <div class="panel" id="sold-card-${s.id}"><div class="panel-b" style="padding:18px;">
+    <div class="panel" id="sold-card-${esc(s.id)}"><div class="panel-b" style="padding:18px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div style="width:42px;height:42px;border-radius:50%;background:var(--prm);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;flex-shrink:0;">${esc((s.nombre[0]||'')+(s.apellido[0]||''))}</div>
         <div style="flex:1;"><div style="font-weight:700;font-size:14px;">${esc(s.nombre)} ${esc(s.apellido)}</div>
@@ -8634,18 +8636,18 @@ function renderSolicitudesDirigente() {
         <div><span style="color:var(--mute);display:block;font-size:10px;text-transform:uppercase;font-weight:700;">Teléfono</span>${esc(s.telefono_celular)}</div>
         <div><span style="color:var(--mute);display:block;font-size:10px;text-transform:uppercase;font-weight:700;">Cuenta Google</span>${esc(s.correo)}</div>
       </div>
-      <div id="sold-error-${s.id}" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:10px;display:none;"></div>
+      <div id="sold-error-${esc(s.id)}" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:10px;display:none;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
         <div><label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Rol</label>
-          <select class="mf-input" id="sold-rol-${s.id}" style="font-size:13px;padding:8px 10px;">${ops}</select></div>
+          <select class="mf-input" id="sold-rol-${esc(s.id)}" style="font-size:13px;padding:8px 10px;">${ops}</select></div>
         <div><label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Cargo / función</label>
-          <input class="mf-input" id="sold-cargo-${s.id}" placeholder="Ej: Delegado de colegio" style="font-size:13px;padding:8px 10px;"></div>
+          <input class="mf-input" id="sold-cargo-${esc(s.id)}" placeholder="Ej: Delegado de colegio" style="font-size:13px;padding:8px 10px;"></div>
         <div><label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Estructura (opcional)</label>
-          <input class="mf-input" id="sold-zona-${s.id}" placeholder="Ej: E" maxlength="3" style="font-size:13px;padding:8px 10px;"></div>
+          <input class="mf-input" id="sold-zona-${esc(s.id)}" placeholder="Ej: E" maxlength="3" style="font-size:13px;padding:8px 10px;"></div>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn-modal-ok" style="flex:1;padding:10px;" onclick="resolverSolicitudDirigente('${s.id}','aceptar')">✓ Aceptar y crear dirigente</button>
-        <button class="btn-modal-cancel" style="flex:0 0 auto;padding:10px 18px;" onclick="resolverSolicitudDirigente('${s.id}','rechazar')">Rechazar</button>
+        <button class="btn-modal-ok" style="flex:1;padding:10px;" onclick="resolverSolicitudDirigente('${esc(s.id)}','aceptar')">✓ Aceptar y crear dirigente</button>
+        <button class="btn-modal-cancel" style="flex:0 0 auto;padding:10px 18px;" onclick="resolverSolicitudDirigente('${esc(s.id)}','rechazar')">Rechazar</button>
       </div>
     </div></div>`).join('');
 }
@@ -8681,12 +8683,12 @@ function renderSolicitudes() {
   }
 
   const catLabel = { militante: 'Militante', simpatizante: 'Simpatizante' };
-  const opcionesRol = rolesDisponibles.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+  const opcionesRol = rolesDisponibles.map(r => `<option value="${esc(r.id)}">${esc(r.nombre)}</option>`).join('');
 
   cont.innerHTML = solicitudesData.map(s => {
     const rolSugeridoId = rolesDisponibles.find(r => r.nombre.toLowerCase() === s.categoria_solicitada)?.id || '';
     return `
-    <div class="panel" id="sol-card-${s.id}">
+    <div class="panel" id="sol-card-${esc(s.id)}">
       <div class="panel-b" style="padding:18px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
           <div style="width:42px;height:42px;border-radius:50%;background:var(--prm);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:14px;flex-shrink:0;">${esc((s.nombre[0]||'')+(s.apellido[0]||''))}</div>
@@ -8694,7 +8696,7 @@ function renderSolicitudes() {
             <div style="font-weight:700;font-size:14px;">${esc(s.nombre)} ${esc(s.apellido)}</div>
             <div style="font-size:12px;color:var(--mute);">Solicitó unirse a <b>${esc(s.organizaciones?.nombre||'—')}</b> · ${new Date(s.created_at).toLocaleDateString('es-DO')}</div>
           </div>
-          <span class="pill pill-info">${catLabel[s.categoria_solicitada]||s.categoria_solicitada}</span>
+          <span class="pill pill-info">${esc(catLabel[s.categoria_solicitada]||s.categoria_solicitada)}</span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-bottom:14px;">
@@ -8704,22 +8706,22 @@ function renderSolicitudes() {
           <div><span style="color:var(--mute);display:block;font-size:10px;text-transform:uppercase;font-weight:700;">Aviso preferido</span>${s.aviso_preferido==='llamada'?'📞 Llamada':'📧 Correo'}</div>
         </div>
 
-        <div id="sol-error-${s.id}" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:10px;display:none;"></div>
+        <div id="sol-error-${esc(s.id)}" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:10px;display:none;"></div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
           <div>
             <label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Rol a asignar</label>
-            <select class="mf-input" id="sol-rol-${s.id}" style="font-size:13px;padding:8px 10px;">${opcionesRol}</select>
+            <select class="mf-input" id="sol-rol-${esc(s.id)}" style="font-size:13px;padding:8px 10px;">${opcionesRol}</select>
           </div>
           <div>
             <label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Estructura a confirmar</label>
-            <input class="mf-input" id="sol-estructura-${s.id}" value="${esc(s.estructura_sugerida||'')}" placeholder="Ej: Zona E" style="font-size:13px;padding:8px 10px;">
+            <input class="mf-input" id="sol-estructura-${esc(s.id)}" value="${esc(s.estructura_sugerida||'')}" placeholder="Ej: Zona E" style="font-size:13px;padding:8px 10px;">
           </div>
         </div>
 
         <div style="display:flex;gap:8px;">
-          <button class="btn-modal-ok" style="flex:1;padding:10px;" onclick="resolverSolicitud('${s.id}','aceptar')">✓ Aceptar solicitud</button>
-          <button class="btn-modal-cancel" style="flex:0 0 auto;padding:10px 18px;" onclick="resolverSolicitud('${s.id}','rechazar')">Rechazar</button>
+          <button class="btn-modal-ok" style="flex:1;padding:10px;" onclick="resolverSolicitud('${esc(s.id)}','aceptar')">✓ Aceptar solicitud</button>
+          <button class="btn-modal-cancel" style="flex:0 0 auto;padding:10px 18px;" onclick="resolverSolicitud('${esc(s.id)}','rechazar')">Rechazar</button>
         </div>
       </div>
     </div>`;
@@ -8774,7 +8776,7 @@ async function loadCandidatos() {
 
   const { data, error } = await db.from('candidatos').select('*').order('created_at', { ascending: false });
   if (error) {
-    grid.innerHTML = `<div style="color:#dc2626;font-size:13px;">Error cargando candidatos: ${error.message}</div>`;
+    grid.innerHTML = `<div style="color:#dc2626;font-size:13px;">Error cargando candidatos: ${esc(error.message)}</div>`;
     return;
   }
   candidatosData = data || [];
@@ -8790,15 +8792,15 @@ async function loadCandidatos() {
     <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;text-align:center;">
       <div style="width:72px;height:72px;border-radius:12px;background:#f1f5f9;margin:0 auto 10px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
         ${c.foto_url
-          ? `<img src="${c.foto_url}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=&quot;color:#94a3b8;font-size:20px;font-weight:700;&quot;>${ini(c.nombre)}</span>'">`
+          ? `<img src="${safeUrl(c.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=&quot;color:#94a3b8;font-size:20px;font-weight:700;&quot;>${ini(c.nombre)}</span>'">`
           : `<span style="color:#94a3b8;font-size:20px;font-weight:700;">${ini(c.nombre)}</span>`}
       </div>
       <div style="font-weight:700;font-size:13px;color:var(--text);">${esc(c.nombre)}</div>
       <div style="font-size:12px;color:var(--mute);margin-top:2px;">${esc(c.cargo || '—')}</div>
       ${c.activo === false ? '<div style="margin-top:6px;"><span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Inactivo</span></div>' : ''}
       <div style="display:flex;gap:6px;margin-top:10px;">
-        <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;" onclick="abrirModalCandidato('${c.id}')">Editar</button>
-        <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;color:#dc2626;" onclick="eliminarCandidato('${c.id}')">Eliminar</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;" onclick="abrirModalCandidato('${esc(c.id)}')">Editar</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;color:#dc2626;" onclick="eliminarCandidato('${esc(c.id)}')">Eliminar</button>
       </div>
     </div>
   `).join('');
@@ -8819,7 +8821,7 @@ function abrirModalCandidato(id) {
 
   const preview = document.getElementById('cand-foto-preview');
   preview.innerHTML = c?.foto_url
-    ? `<img src="${c.foto_url}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${safeUrl(c.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
     : `<span style="color:#94a3b8;font-size:10px;text-align:center;">Sin foto</span>`;
 
   document.getElementById('modal-candidato').classList.add('show');
@@ -8835,7 +8837,7 @@ function previsualizarFotoCandidato(input) {
   candidatoFotoFile = file;
   const preview = document.getElementById('cand-foto-preview');
   const reader = new FileReader();
-  reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="" style="width:100%;height:100%;object-fit:cover;">`; };
+  reader.onload = e => { preview.innerHTML = `<img src="${esc(e.target.result)}" alt="" style="width:100%;height:100%;object-fit:cover;">`; };
   reader.readAsDataURL(file);
 }
 
@@ -8917,7 +8919,7 @@ async function loadAspiraciones() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#dc2626">Error: ${error.message}</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#dc2626">Error: ${esc(error.message)}</td></tr>`;
     return;
   }
 
@@ -8968,7 +8970,7 @@ function renderComparativo() {
             </div>
             <div>
               <div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.2;">${esc(a.nombre.split(' ').slice(0,2).join(' '))}</div>
-              <span class="pill ${ESTADO_PILL[a.estado] || 'pill-mute'}" style="font-size:10px;padding:1px 6px;">${ESTADO_LABEL[a.estado] || a.estado}</span>
+              <span class="pill ${esc(ESTADO_PILL[a.estado] || 'pill-mute')}" style="font-size:10px;padding:1px 6px;">${esc(ESTADO_LABEL[a.estado] || a.estado)}</span>
             </div>
           </div>
         `).join('')}
@@ -9004,15 +9006,15 @@ function renderAspirantes() {
   tb.innerHTML = aspirantesFiltrados.map(a => `
     <tr>
       <td class="bold">${esc(a.nombre)}</td>
-      <td style="font-family:monospace;font-size:12px;">${a.cedula || '—'}</td>
-      <td><span class="pill pill-mute" style="font-size:11px;">${POSICION_LABEL[a.posicion] || a.posicion || '—'}</span></td>
-      <td>${a.zona || '—'}</td>
-      <td><span class="pill ${ESTADO_PILL[a.estado] || 'pill-mute'}">${ESTADO_LABEL[a.estado] || a.estado || '—'}</span></td>
+      <td style="font-family:monospace;font-size:12px;">${esc(a.cedula || '—')}</td>
+      <td><span class="pill pill-mute" style="font-size:11px;">${esc(POSICION_LABEL[a.posicion] || a.posicion || '—')}</span></td>
+      <td>${esc(a.zona || '—')}</td>
+      <td><span class="pill ${esc(ESTADO_PILL[a.estado] || 'pill-mute')}">${esc(ESTADO_LABEL[a.estado] || a.estado || '—')}</span></td>
       <td class="num">${a.apoyo_estimado ? fmtNum(a.apoyo_estimado) : '—'}</td>
-      <td>${a.telefono || '—'}</td>
+      <td>${esc(a.telefono || '—')}</td>
       <td>
-        <button class="btn-qr" onclick="editarAspirante('${a.id}')">Editar</button>
-        <button class="btn-qr" onclick="cambiarEstadoAspirante('${a.id}', '${a.estado}')" style="margin-left:4px;">Estado</button>
+        <button class="btn-qr" onclick="editarAspirante('${esc(a.id)}')">Editar</button>
+        <button class="btn-qr" onclick="cambiarEstadoAspirante('${esc(a.id)}', '${esc(a.estado)}')" style="margin-left:4px;">Estado</button>
       </td>
     </tr>
   `).join('');
@@ -9059,7 +9061,7 @@ async function cambiarEstadoAspirante(id, estadoActual) {
   const estados = ['interesado','evaluado','precandidato','candidato','retirado'];
   const labels  = ['Interesado','Evaluado','Precandidato','Candidato oficial','Retirado'];
   const idx     = estados.indexOf(estadoActual);
-  const opciones = estados.map((e,i) => `${i === idx ? '✓ ' : ''}${labels[i]}`).join('\n');
+  const opciones = estados.map((e,i) => `${i === idx ? '✓ ' : ''}${esc(labels[i])}`).join('\n');
   const nuevo = prompt(`Estado actual: ${labels[idx] || estadoActual}\n\nSelecciona nuevo estado (0-4):\n0 Interesado\n1 Evaluado\n2 Precandidato\n3 Candidato oficial\n4 Retirado\n\nEscribe el número:`);
   if (nuevo === null || isNaN(nuevo) || nuevo < 0 || nuevo > 4) return;
   const { error } = await db.from('aspirantes').update({ estado: estados[parseInt(nuevo)] }).eq('id', id);
@@ -9255,15 +9257,15 @@ function renderAfiliados() {
   tb.innerHTML = slice.map(a => `
     <tr>
       <td class="bold">${esc(a.nombre)}</td>
-      <td style="font-family:monospace;font-size:12px;">${a.cedula}</td>
-      <td><span class="pill ${tipoBadge[a.tipo] || 'pill-mute'}">${tipoLabel[a.tipo] || a.tipo}</span></td>
-      <td>${a.zona}</td>
-      <td>${a.sector_laboral ? `<span class="pill ${sectorLabBadge[a.sector_laboral]}">${sectorLabLabel[a.sector_laboral]}</span>${a.institucion ? `<div style="font-size:10px;color:var(--mute);margin-top:2px;">${esc(a.institucion)}</div>` : ''}` : '<span style="font-size:11px;color:var(--mute)">—</span>'}</td>
-      <td>${a.telefono}</td>
+      <td style="font-family:monospace;font-size:12px;">${esc(a.cedula)}</td>
+      <td><span class="pill ${tipoBadge[a.tipo] || 'pill-mute'}">${esc(tipoLabel[a.tipo] || a.tipo)}</span></td>
+      <td>${esc(a.zona)}</td>
+      <td>${a.sector_laboral ? `<span class="pill ${sectorLabBadge[a.sector_laboral]}">${esc(sectorLabLabel[a.sector_laboral])}</span>${a.institucion ? `<div style="font-size:10px;color:var(--mute);margin-top:2px;">${esc(a.institucion)}</div>` : ''}` : '<span style="font-size:11px;color:var(--mute)">—</span>'}</td>
+      <td>${esc(a.telefono)}</td>
       <td><span class="pill ${a.fuente === 'padron' ? 'pill-info' : 'pill-good'}">${a.fuente === 'padron' ? 'Padrón' : 'Directo'}</span></td>
-      <td style="font-size:11px;color:var(--mute)">${a.fecha}</td>
+      <td style="font-size:11px;color:var(--mute)">${esc(a.fecha)}</td>
       <td>
-        ${a.fuente === 'directo' ? `<button class="btn-qr" onclick="editarAfiliado('${a.id}')">Editar</button>` : '<span style="font-size:11px;color:var(--mute)">Padrón</span>'}
+        ${a.fuente === 'directo' ? `<button class="btn-qr" onclick="editarAfiliado('${esc(a.id)}')">Editar</button>` : '<span style="font-size:11px;color:var(--mute)">Padrón</span>'}
       </td>
     </tr>
   `).join('');
@@ -9533,7 +9535,7 @@ async function loadRoles() {
   rolesData = data || [];
 
   if (error) {
-    cont.innerHTML = `<div style="color:#dc2626;font-size:13px;">Error cargando roles: ${error.message}</div>`;
+    cont.innerHTML = `<div style="color:#dc2626;font-size:13px;">Error cargando roles: ${esc(error.message)}</div>`;
     return;
   }
   if (!rolesData.length) {
@@ -9544,22 +9546,22 @@ async function loadRoles() {
   cont.innerHTML = rolesData.map(r => {
     const permisosActivos = PERMISOS_DEFINICION.filter(p => r.permisos?.[p.key]);
     return `
-    <div class="panel" style="border-left:4px solid ${r.color};">
+    <div class="panel" style="border-left:4px solid ${esc(r.color)};">
       <div class="panel-b" style="padding:14px 16px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
           <div>
             <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--text);">${esc(r.nombre)}</div>
-            <div style="font-size:11px;color:var(--mute);">Nivel ${r.nivel_jerarquico}${r.es_sistema?' · Rol base':''}</div>
+            <div style="font-size:11px;color:var(--mute);">Nivel ${esc(r.nivel_jerarquico)}${r.es_sistema?' · Rol base':''}</div>
           </div>
           <div style="display:flex;gap:6px;">
-            <button class="btn-qr" onclick="abrirModalRol('${r.id}')" style="padding:5px 10px;">Editar</button>
-            ${!r.es_sistema ? `<button class="btn-qr" onclick="eliminarRol('${r.id}','${esc(r.nombre.replace(/'/g,"\\'"))}')" style="padding:5px 10px;">Borrar</button>` : ''}
+            <button class="btn-qr" onclick="abrirModalRol('${esc(r.id)}')" style="padding:5px 10px;">Editar</button>
+            ${!r.es_sistema ? `<button class="btn-qr" onclick="eliminarRol('${esc(r.id)}','${jsq(r.nombre)}')" style="padding:5px 10px;">Borrar</button>` : ''}
           </div>
         </div>
         ${r.descripcion ? `<div style="font-size:12px;color:var(--mute);margin-bottom:8px;">${esc(r.descripcion)}</div>` : ''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;">
           ${permisosActivos.length
-            ? permisosActivos.map(p => `<span class="pill pill-info" style="font-size:10px;">${p.label}</span>`).join('')
+            ? permisosActivos.map(p => `<span class="pill pill-info" style="font-size:10px;">${esc(p.label)}</span>`).join('')
             : '<span style="font-size:11px;color:var(--mute);">Sin permisos asignados</span>'}
         </div>
       </div>
@@ -9581,7 +9583,7 @@ function abrirModalRol(rolId) {
   const grid = document.getElementById('rol-permisos-grid');
   grid.innerHTML = PERMISOS_DEFINICION.map(p => `
     <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);cursor:pointer;">
-      <input type="checkbox" class="rol-permiso-check" data-key="${p.key}" ${rol?.permisos?.[p.key] ? 'checked' : ''} style="width:15px;height:15px;">
+      <input type="checkbox" class="rol-permiso-check" data-key="${esc(p.key)}" ${rol?.permisos?.[p.key] ? 'checked' : ''} style="width:15px;height:15px;">
       ${p.label}
     </label>
   `).join('');
@@ -9660,7 +9662,7 @@ async function ogInit() {
     const { data } = await db.from('zonas_organizacion').select('id,nombre').eq('organizacion_id', currentOrg.id).order('nombre');
     ogZonasCache = data || [];
     document.getElementById('og-select-zona').innerHTML = '<option value="">Selecciona zona…</option>' +
-      ogZonasCache.map(z => `<option value="${z.id}">Zona ${esc(z.nombre)}</option>`).join('');
+      ogZonasCache.map(z => `<option value="${esc(z.id)}">Zona ${esc(z.nombre)}</option>`).join('');
   }
   ogCambiarNivel(ogNivel);
 }
@@ -9768,7 +9770,7 @@ function ogAvatarHtml(d, size, color) {
   const fontSize = Math.round(size * 0.34);
   if (d.foto_url) {
     return `
-      <img src="${esc(d.foto_url)}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:3px solid ${color};display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <img src="${safeUrl(d.foto_url)}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:3px solid ${color};display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
       <div style="display:none;width:${size}px;height:${size}px;border-radius:50%;background:${color};color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;">${initials}</div>`;
   }
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;">${initials}</div>`;
@@ -9780,7 +9782,7 @@ function ogPersonCard(a, cargo, color, size) {
   const esDirigente = !!p.dirigente_id;
   size = size || 76;
   const badge = !auto
-    ? `<button type="button" onclick="ogQuitarAsignacion('${a.id}')" title="Quitar" style="position:absolute;top:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid var(--line);color:var(--dudoso);font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.18);">✕</button>`
+    ? `<button type="button" onclick="ogQuitarAsignacion('${esc(a.id)}')" title="Quitar" style="position:absolute;top:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid var(--line);color:var(--dudoso);font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.18);">✕</button>`
     : `<span title="Se gestiona desde la Zona correspondiente" style="position:absolute;top:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 1px 3px rgba(0,0,0,.18);">🔒</span>`;
   return `
     <div style="display:flex;flex-direction:column;align-items:center;text-align:center;width:${size + 34}px;">
@@ -9789,7 +9791,7 @@ function ogPersonCard(a, cargo, color, size) {
       ${auto ? `<div style="font-size:9.5px;color:${color};margin-top:2px;">🔗 Automático</div>` : ''}
       ${esDirigente
         ? `<div style="font-size:9.5px;color:var(--seguro);margin-top:3px;font-weight:700;">✓ Dirigente activo</div>`
-        : `<button type="button" onclick="ogAgregarComoDirigente('${p.id}','${esc(cargo.nombre).replace(/'/g,"\\'")}')" title="Registrarlo como dirigente en funciones" style="margin-top:5px;background:#f1f5f9;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:2px 9px;font-size:9.5px;font-weight:700;cursor:pointer;">+ Agregar como dirigente</button>`}
+        : `<button type="button" onclick="ogAgregarComoDirigente('${esc(p.id)}','${jsq(cargo.nombre)}')" title="Registrarlo como dirigente en funciones" style="margin-top:5px;background:#f1f5f9;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:2px 9px;font-size:9.5px;font-weight:700;cursor:pointer;">+ Agregar como dirigente</button>`}
     </div>`;
 }
 
@@ -9850,9 +9852,9 @@ function ogCargoCardHtml(cargo, asigs, color, avatarSize) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px;">
         <div style="font-size:11.5px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.02em;">${esc(cargo.nombre)}</div>
         <div style="display:flex;gap:2px;align-items:center;flex-shrink:0;">
-          ${cargo.multiple ? `<button class="btn-qr" onclick="ogAbrirModalAsignar('${cargo.id}')" title="Agregar persona" style="padding:2px 7px;font-size:10.5px;">+</button>` : ''}
-          <button type="button" onclick="ogMoverCargo('${cargo.id}',-1)" title="Subir cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▲</button>
-          <button type="button" onclick="ogMoverCargo('${cargo.id}',1)" title="Bajar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▼</button>
+          ${cargo.multiple ? `<button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" title="Agregar persona" style="padding:2px 7px;font-size:10.5px;">+</button>` : ''}
+          <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',-1)" title="Subir cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▲</button>
+          <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',1)" title="Bajar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▼</button>
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;">${personas}</div>
@@ -9933,7 +9935,7 @@ function ogVacanteCardHtml(cargo) {
         <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(cargo.nombre)}</div>
         <div style="font-size:10.5px;color:var(--mute);">${esc(cargo.categoria)}</div>
       </div>
-      <button class="btn-qr" onclick="ogAbrirModalAsignar('${cargo.id}')" style="padding:5px 10px;font-size:11px;flex-shrink:0;">+ Asignar</button>
+      <button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" style="padding:5px 10px;font-size:11px;flex-shrink:0;">+ Asignar</button>
     </div>`;
 }
 
@@ -10004,7 +10006,7 @@ async function ogBuscarDirigenteAsignar() {
       .or(`nombre.ilike.%${qtext}%,cedula.ilike.%${qtext}%`)
       .order('nombre').limit(8);
     cont.innerHTML = (data || []).map(d => `
-      <div onclick="ogSeleccionarDirigente('${d.id}', this)" style="padding:7px 10px;cursor:pointer;border-radius:6px;font-size:12.5px;" data-nombre="${esc(d.nombre)}" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+      <div onclick="ogSeleccionarDirigente('${esc(d.id)}', this)" style="padding:7px 10px;cursor:pointer;border-radius:6px;font-size:12.5px;" data-nombre="${esc(d.nombre)}" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
         <div style="font-weight:600;color:var(--text);">${esc(d.nombre)}</div>
         <div style="font-size:11px;color:var(--mute);">${esc(d.cedula || '')}</div>
       </div>`).join('') || '<div style="padding:8px;color:var(--mute);font-size:12px;">Sin resultados.</div>';
@@ -10150,7 +10152,7 @@ async function cargarOrganigrama() {
         <div style="background:var(--bg);border:2px solid ${color};border-radius:10px;padding:8px 14px;min-width:150px;text-align:center;${!nodo.activo?'opacity:0.5;':''}">
           <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;">${esc(nodo.nombre)}</div>
           <div style="font-size:10px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:.03em;">${rolNombre}</div>
-          ${nodo.zona ? `<div style="font-size:10px;color:var(--mute);">Estructura ${nodo.zona}</div>` : ''}
+          ${nodo.zona ? `<div style="font-size:10px;color:var(--mute);">Estructura ${esc(nodo.zona)}</div>` : ''}
         </div>
         ${nodo.hijos.length ? `
           <div style="width:2px;height:16px;background:var(--line);"></div>
@@ -10259,7 +10261,7 @@ async function eqCargarRoles() {
   eqRoles = data || [];
 }
 function eqOpcionesRol(sel) {
-  return '<option value="">Selecciona rol</option>' + eqRoles.map(r => `<option value="${r.id}" ${r.id === sel ? 'selected' : ''}>${esc(r.nombre)}</option>`).join('');
+  return '<option value="">Selecciona rol</option>' + eqRoles.map(r => `<option value="${esc(r.id)}" ${r.id === sel ? 'selected' : ''}>${esc(r.nombre)}</option>`).join('');
 }
 function eqFmtCed(v) {
   const d = (v || '').replace(/\D/g, '').slice(0, 11);
@@ -10353,10 +10355,10 @@ async function cargarSolicitudesEquipo() {
   document.getElementById('eq-solic-count').textContent = lista.length + ' pendiente(s)';
   document.getElementById('eq-solic-lista').innerHTML = lista.map(x => `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);">
     <div style="flex:1;min-width:180px;"><b>${esc(x.nombre)}</b>${x.es_dirigente ? ' <span class="pill pill-info" style="font-size:10px;">Dirigente</span>' : ''}<div style="font-size:12px;color:var(--mute);">${esc(x.cedula || 'Sin cédula')} ${x.telefono ? '· ' + esc(x.telefono) : ''}</div></div>
-    <select class="mf-input" id="eqs-rol-${x.id}" style="width:150px;">${eqOpcionesRol('')}</select>
-    <input class="mf-input" id="eqs-cargo-${x.id}" placeholder="Cargo / función" style="width:160px;">
-    <button class="btn-qr" onclick="resolverSolEquipo('${x.id}','aceptar')" style="color:var(--seguro);">Aceptar</button>
-    <button class="btn-qr" onclick="resolverSolEquipo('${x.id}','rechazar')">Rechazar</button>
+    <select class="mf-input" id="eqs-rol-${esc(x.id)}" style="width:150px;">${eqOpcionesRol('')}</select>
+    <input class="mf-input" id="eqs-cargo-${esc(x.id)}" placeholder="Cargo / función" style="width:160px;">
+    <button class="btn-qr" onclick="resolverSolEquipo('${esc(x.id)}','aceptar')" style="color:var(--seguro);">Aceptar</button>
+    <button class="btn-qr" onclick="resolverSolEquipo('${esc(x.id)}','rechazar')">Rechazar</button>
   </div>`).join('');
 }
 
@@ -10474,14 +10476,14 @@ function renderDirigentes() {
     const color = NIVEL_COLOR[nivel] || '#64748b';
     const pctMeta = d.meta ? Math.min(100, Math.round(d.stats.total / d.meta * 100)) : 0;
     return `<tr>
-      <td><div style="font-weight:700;color:var(--text);">${esc(d.nombre)}</div><div style="font-size:11px;color:var(--mute);">${d.cedula||''} ${d.telefono?'· '+d.telefono:''}</div></td>
+      <td><div style="font-weight:700;color:var(--text);">${esc(d.nombre)}</div><div style="font-size:11px;color:var(--mute);">${esc(d.cedula||'')} ${d.telefono?'· '+d.telefono:''}</div></td>
       <td><span style="background:${color}20;color:${color};border:1px solid ${color}40;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">${NIVEL_LABEL[nivel]||nivel}</span><div style="font-size:11px;color:var(--mute);margin-top:2px;">${esc(d.cargo||'')}</div></td>
       <td>${d.zona ? '<span class="pill pill-info">Estructura '+d.zona+'</span>' : '—'}</td>
-      <td style="font-size:12px;color:var(--mute);">${d.territorio||'—'}</td>
-      <td style="font-size:12px;color:var(--mute);">${d.superior_nombre||'—'}</td>
-      <td class="num"><a href="#" onclick="verListaDirigente('${d.id}');return false;" title="Ver lista" style="font-weight:700;color:var(--prm);text-decoration:underline;">${fmtNum(d.stats.total)}</a>${d.meta ? '<div style="font-size:10px;color:'+(pctMeta>=100?'var(--seguro)':'var(--mute)')+';">'+pctMeta+'% meta</div>' : ''}</td>
+      <td style="font-size:12px;color:var(--mute);">${esc(d.territorio||'—')}</td>
+      <td style="font-size:12px;color:var(--mute);">${esc(d.superior_nombre||'—')}</td>
+      <td class="num"><a href="#" onclick="verListaDirigente('${esc(d.id)}');return false;" title="Ver lista" style="font-weight:700;color:var(--prm);text-decoration:underline;">${fmtNum(d.stats.total)}</a>${d.meta ? '<div style="font-size:10px;color:'+(pctMeta>=100?'var(--seguro)':'var(--mute)')+';">'+pctMeta+'% meta</div>' : ''}</td>
       <td>${d.activo !== false ? '<span class="pill pill-good">Activo</span>' : '<span class="pill pill-mute">Inactivo</span>'}</td>
-      <td><button class="btn-qr" onclick="editarDirigente('${d.id}')">Editar</button></td>
+      <td><button class="btn-qr" onclick="editarDirigente('${esc(d.id)}')">Editar</button></td>
     </tr>`;
   }).join('');
 }
@@ -10497,12 +10499,12 @@ function renderDesempeno() {
     const label = pct >= 100 ? 'Excelente' : pct >= 60 ? 'En progreso' : 'Bajo';
     return `<tr>
       <td class="bold">${esc(d.nombre)}</td>
-      <td style="font-size:12px;">${NIVEL_LABEL[d.nivel]||d.nivel||'—'}</td>
+      <td style="font-size:12px;">${esc(NIVEL_LABEL[d.nivel]||d.nivel||'—')}</td>
       <td>${d.zona ? '<span class="pill pill-info">Estructura '+d.zona+'</span>' : '—'}</td>
       <td class="num" style="font-weight:700;">${fmtNum(d.stats.total)}</td>
       <td class="num" style="color:var(--mute);">${fmtNum(meta)}</td>
       <td class="num"><div style="background:var(--line);border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle;"><div style="background:${pct>=100?'var(--seguro)':pct>=60?'var(--probable)':'var(--dudoso)'};height:6px;border-radius:4px;width:${pct}%;"></div></div><span style="margin-left:6px;font-size:11px;">${pct}%</span></td>
-      <td class="num">${d.encuestas || 0}</td>
+      <td class="num">${esc(d.encuestas || 0)}</td>
       <td><span class="pill ${badge}">${label}</span></td>
     </tr>`;
   }).join('');
@@ -10526,13 +10528,13 @@ function renderVacantes() {
     const bords  = { sin_cobertura: '#fca5a5', sin_coordinador: '#fcd34d', ok: '#86efac' };
     const icons  = { sin_cobertura: '🔴', sin_coordinador: '🟡', ok: '🟢' };
     const labels = { sin_cobertura: 'Sin cobertura', sin_coordinador: 'Sin coordinador', ok: 'Cubierta' };
-    html += `<div style="background:${bgs[status]};border:1.5px solid ${bords[status]};border-radius:10px;padding:12px 14px;">
+    html += `<div style="background:${esc(bgs[status])};border:1.5px solid ${esc(bords[status])};border-radius:10px;padding:12px 14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--text);">Estructura ${z}</span>
-        <span style="font-size:11px;font-weight:600;">${icons[status]} ${labels[status]}</span>
+        <span style="font-size:11px;font-weight:600;">${icons[status]} ${esc(labels[status])}</span>
       </div>
-      <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${zonaLabels[z]||''}</div>
-      ${dirs.length > 0 ? dirs.slice(0,3).map(d => `<div style="font-size:12px;color:var(--text);margin-bottom:3px;"><span style="color:${NIVEL_COLOR[d.nivel]||'#64748b'};font-weight:600;">•</span> ${esc(d.nombre.split(' ').slice(0,2).join(' '))} — ${NIVEL_LABEL[d.nivel]||'Dirigente'}</div>`).join('') : '<div style="font-size:12px;color:#dc2626;font-weight:600;">⚠️ Ningún dirigente asignado</div>'}
+      <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${esc(zonaLabels[z]||'')}</div>
+      ${dirs.length > 0 ? dirs.slice(0,3).map(d => `<div style="font-size:12px;color:var(--text);margin-bottom:3px;"><span style="color:${esc(NIVEL_COLOR[d.nivel]||'#64748b')};font-weight:600;">•</span> ${esc(d.nombre.split(' ').slice(0,2).join(' '))} — ${esc(NIVEL_LABEL[d.nivel]||'Dirigente')}</div>`).join('') : '<div style="font-size:12px;color:#dc2626;font-weight:600;">⚠️ Ningún dirigente asignado</div>'}
       ${dirs.length > 3 ? `<div style="font-size:11px;color:var(--mute);margin-top:4px;">+${dirs.length-3} más…</div>` : ''}
       ${status !== 'ok' ? `<button class="btn-qr" onclick="abrirModalNuevoDirigente('${z}')" style="margin-top:8px;width:100%;text-align:center;">+ Asignar dirigente</button>` : ''}
     </div>`;
@@ -10555,7 +10557,7 @@ async function cargarRecintosPorZona(recintoSeleccionado) {
     .eq('zona', zona)
     .order('nombre');
   sel.innerHTML = '<option value="">Sin recinto específico</option>' +
-    (data||[]).map(r => `<option value="${r.codigo}" ${r.codigo === recintoSeleccionado ? 'selected' : ''}>${r.codigo} — ${(r.nombre||'').substring(0,35)}</option>`).join('');
+    (data||[]).map(r => `<option value="${esc(r.codigo)}" ${r.codigo === recintoSeleccionado ? 'selected' : ''}>${esc(r.codigo)} — ${(r.nombre||'').substring(0,35)}</option>`).join('');
 }
 
 function abrirModalNuevoDirigente(zonaPreset) {
@@ -10619,7 +10621,7 @@ function poblarSuperior(excluirId, selectedId) {
   const sel = document.getElementById('nd-superior');
   sel.innerHTML = '<option value="">Ninguno (nivel raíz)</option>' +
     dirigentesData.filter(d => d.id !== excluirId)
-      .map(d => `<option value="${d.id}" ${d.id === selectedId ? 'selected' : ''}>${esc(d.nombre)} (${NIVEL_LABEL[d.nivel]||'Dirigente'})</option>`)
+      .map(d => `<option value="${esc(d.id)}" ${d.id === selectedId ? 'selected' : ''}>${esc(d.nombre)} (${esc(NIVEL_LABEL[d.nivel]||'Dirigente')})</option>`)
       .join('');
 }
 
@@ -10645,7 +10647,7 @@ async function cambiarNivelTerritorial() {
     sel.innerHTML = '<option value="">No hay ninguno cargado todavía</option>';
     return;
   }
-  sel.innerHTML = '<option value="">Selecciona</option>' + data.map(n => `<option value="${n.id}">${esc(n.nombre)}</option>`).join('');
+  sel.innerHTML = '<option value="">Selecciona</option>' + data.map(n => `<option value="${esc(n.id)}">${esc(n.nombre)}</option>`).join('');
 }
 
 async function crearDirigente() {
@@ -10738,7 +10740,7 @@ async function loadRecintos() {
     const pillClass = ganador === 'PRM' ? 'pill-good' : ganador === 'PLD' ? 'pill-alert' : 'pill-mute';
     return `
       <tr>
-        <td class="mono bold">${r.codigo}</td>
+        <td class="mono bold">${esc(r.codigo)}</td>
         <td class="bold">${esc(r.nombre)}</td>
         <td>${r.zona ? 'Estructura ' + r.zona : '—'}</td>
         <td class="num">${fmtNum(r.total_electores)}</td>
@@ -10767,7 +10769,7 @@ async function loadTienda() {
   const grid = document.getElementById('tienda-grid');
   grid.innerHTML = '<div class="loading-row">Cargando catálogo…</div>';
   const { data, error } = await db.from('tienda_productos').select('*').eq('activo', true).order('orden');
-  if (error) { grid.innerHTML = `<div style="color:#dc2626;font-size:12px;">Error cargando catálogo: ${error.message}</div>`; return; }
+  if (error) { grid.innerHTML = `<div style="color:#dc2626;font-size:12px;">Error cargando catálogo: ${esc(error.message)}</div>`; return; }
   tiendaProductos = data || [];
   renderTiendaGrid();
 }
@@ -10815,16 +10817,16 @@ function renderTiendaGrid() {
     <div class="panel">
       <div class="panel-b" style="padding:0;">
         <div style="height:90px;background:var(--bg);color:var(--prm);display:flex;align-items:center;justify-content:center;border-radius:12px 12px 0 0;overflow:hidden;">
-          ${p.imagen_url ? `<img src="${p.imagen_url}" alt="${esc(p.nombre)}" style="width:100%;height:100%;object-fit:cover;">` : prodIconSVG(p)}
+          ${p.imagen_url ? `<img src="${esc(p.imagen_url)}" alt="${esc(p.nombre)}" style="width:100%;height:100%;object-fit:cover;">` : prodIconSVG(p)}
         </div>
         <div style="padding:12px 14px 14px;">
           <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:13px;margin-bottom:2px;">${esc(p.nombre)}</div>
           <div style="font-size:11px;color:var(--mute);margin-bottom:8px;">${esc(p.categoria||'')}</div>
           <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--prm);margin-bottom:10px;">${fmtMonto(p.precio, p.moneda)}</div>
           <div style="display:flex;gap:6px;">
-            ${(p.variantes&&p.variantes.length) ? `<select class="mf-input" id="tvar-${p.id}" style="font-size:11px;padding:6px;">${p.variantes.map(v=>`<option>${esc(v)}</option>`).join('')}</select>` : ''}
-            <input class="mf-input" id="tcant-${p.id}" type="number" value="1" min="1" style="width:52px;font-size:11px;padding:6px;">
-            <button class="btn-primary" style="font-size:11px;padding:6px 10px;white-space:nowrap;" onclick="agregarAlCarrito('${p.id}')">Añadir</button>
+            ${(p.variantes&&p.variantes.length) ? `<select class="mf-input" id="tvar-${esc(p.id)}" style="font-size:11px;padding:6px;">${p.variantes.map(v=>`<option>${esc(v)}</option>`).join('')}</select>` : ''}
+            <input class="mf-input" id="tcant-${esc(p.id)}" type="number" value="1" min="1" style="width:52px;font-size:11px;padding:6px;">
+            <button class="btn-primary" style="font-size:11px;padding:6px 10px;white-space:nowrap;" onclick="agregarAlCarrito('${esc(p.id)}')">Añadir</button>
           </div>
         </div>
       </div>
@@ -10864,7 +10866,7 @@ function renderCarrito() {
 
   cont.innerHTML = carrito.map((it,idx) => `
     <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:7px 0;border-bottom:1px solid var(--line);">
-      <span><b>${esc(it.nombre)}${it.variante?' ('+esc(it.variante)+')':''} ×${it.cantidad}</b></span>
+      <span><b>${esc(it.nombre)}${it.variante?' ('+esc(it.variante)+')':''} ×${esc(it.cantidad)}</b></span>
       <span style="display:flex;align-items:center;gap:8px;">
         ${fmtMonto(it.precio*it.cantidad, it.moneda)}
         <button onclick="quitarDelCarrito(${idx})" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:14px;line-height:1;">×</button>
@@ -10957,7 +10959,7 @@ async function loadMisPedidos() {
   const tb = document.getElementById('pedidos-tb');
   tb.innerHTML = '<tr><td colspan="6" class="loading-row">Cargando…</td></tr>';
   const { data: pedidos, error } = await db.from('tienda_pedidos').select('*').order('created_at', { ascending: false });
-  if (error) { tb.innerHTML = `<tr><td colspan="6" style="color:#dc2626;">Error: ${error.message}</td></tr>`; return; }
+  if (error) { tb.innerHTML = `<tr><td colspan="6" style="color:#dc2626;">Error: ${esc(error.message)}</td></tr>`; return; }
   tiendaPedidosData = pedidos || [];
   if (!tiendaPedidosData.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--mute)">Todavía no has hecho ningún pedido.</td></tr>'; return; }
 
@@ -10971,7 +10973,7 @@ async function loadMisPedidos() {
 
   tb.innerHTML = tiendaPedidosData.map(p => {
     const its = itemsPorPedido[p.id] || [];
-    const resumen = its.map(i => `${i.nombre_producto}${i.variante?' ('+i.variante+')':''} ×${i.cantidad}`).join(', ');
+    const resumen = its.map(i => `${esc(i.nombre_producto)}${i.variante?' ('+i.variante+')':''} ×${esc(i.cantidad)}`).join(', ');
     const entrega = p.metodo_entrega === 'courier'
       ? `📦 Courier${p.courier_empresa ? ' · '+esc(p.courier_empresa) : ''}${p.courier_guia ? '<br><span style="color:var(--mute);font-size:11px;">Guía: '+esc(p.courier_guia)+'</span>' : ''}`
       : `🚚 Puerta a puerta`;
@@ -10981,7 +10983,7 @@ async function loadMisPedidos() {
       <td style="font-size:12px;">${entrega}</td>
       <td class="num" style="font-weight:700;">${fmtMonto(p.total, p.moneda)}</td>
       <td style="font-size:12px;color:var(--mute);">${new Date(p.created_at).toLocaleDateString('es-DO')}</td>
-      <td><span class="pill ${ESTADO_PILL[p.estado]||'pill-mute'}">${ESTADO_LABEL[p.estado]||p.estado}</span></td>
+      <td><span class="pill ${esc(ESTADO_PILL[p.estado]||'pill-mute')}">${esc(ESTADO_LABEL[p.estado]||p.estado)}</span></td>
     </tr>`;
   }).join('');
 }
@@ -11004,7 +11006,7 @@ async function loadServicios() {
   if (error) { sel.innerHTML = `<option value="">Error cargando servicios</option>`; return; }
   serviciosTipos = data || [];
   sel.innerHTML = '<option value="">Selecciona un servicio</option>' +
-    serviciosTipos.map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('');
+    serviciosTipos.map(t => `<option value="${esc(t.id)}">${esc(t.nombre)}</option>`).join('');
 }
 
 async function enviarSolicitudServicio() {
@@ -11053,7 +11055,7 @@ async function loadMisSolicitudesServicio() {
   const tb = document.getElementById('servicios-tb');
   tb.innerHTML = '<tr><td colspan="6" class="loading-row">Cargando…</td></tr>';
   const { data, error } = await db.from('servicios_solicitudes').select('*, servicios_tipos(nombre)').order('created_at', { ascending: false });
-  if (error) { tb.innerHTML = `<tr><td colspan="6" style="color:#dc2626;">Error: ${error.message}</td></tr>`; return; }
+  if (error) { tb.innerHTML = `<tr><td colspan="6" style="color:#dc2626;">Error: ${esc(error.message)}</td></tr>`; return; }
   serviciosSolicitudesData = data || [];
   if (!serviciosSolicitudesData.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--mute)">Todavía no has solicitado ningún servicio.</td></tr>'; return; }
 
@@ -11064,10 +11066,10 @@ async function loadMisSolicitudesServicio() {
     <tr>
       <td class="mono bold">#${String(s.folio).padStart(4,'0')}</td>
       <td style="font-size:12px;">${esc(s.servicios_tipos?.nombre || '—')}</td>
-      <td class="num">${s.cantidad}</td>
+      <td class="num">${esc(s.cantidad)}</td>
       <td style="font-size:12px;">${new Date(s.fecha_evento+'T00:00:00').toLocaleDateString('es-DO')}</td>
       <td style="font-size:12px;max-width:220px;">${esc(s.direccion)}</td>
-      <td><span class="pill ${ESTADO_PILL[s.estado]||'pill-mute'}">${ESTADO_LABEL[s.estado]||s.estado}</span></td>
+      <td><span class="pill ${esc(ESTADO_PILL[s.estado]||'pill-mute')}">${esc(ESTADO_LABEL[s.estado]||s.estado)}</span></td>
     </tr>`).join('');
 }
 
