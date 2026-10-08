@@ -1693,7 +1693,7 @@ button { background: none; border: none; cursor: pointer; }
 
     <div class="login-field">
       <label class="login-label" for="nueva-pass-1">Nueva contraseña</label>
-      <input class="login-input" type="password" id="nueva-pass-1" placeholder="Mínimo 6 caracteres">
+      <input class="login-input" type="password" id="nueva-pass-1" placeholder="Mínimo 8 caracteres">
     </div>
     <div class="login-field">
       <label class="login-label" for="nueva-pass-2">Confirmar contraseña</label>
@@ -4596,8 +4596,8 @@ async function guardarNuevaPassPanel() {
   const btn = document.getElementById('nueva-pass-btn');
   err.style.display = 'none';
 
-  if (!p1 || p1.length < 6) {
-    err.textContent = 'La contraseña debe tener al menos 6 caracteres';
+  if (!p1 || p1.length < 8) {
+    err.textContent = 'La contraseña debe tener al menos 8 caracteres';
     err.style.display = 'block';
     return;
   }

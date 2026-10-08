@@ -181,7 +181,7 @@ select.fi{appearance:none;-webkit-appearance:none}
     <div class="lc-sub">Escribe tu nueva contraseña de acceso</div>
     <div class="login-err" id="nueva-pass-err"></div>
     <label class="fl">Nueva contraseña</label>
-    <input class="fi" id="nueva-pass-1" type="password" placeholder="Mínimo 6 caracteres">
+    <input class="fi" id="nueva-pass-1" type="password" placeholder="Mínimo 8 caracteres">
     <label class="fl">Confirmar contraseña</label>
     <input class="fi" id="nueva-pass-2" type="password" placeholder="Repite la contraseña">
     <button class="btn-login" onclick="guardarNuevaPass()" id="nueva-pass-btn">Guardar y entrar</button>
@@ -479,7 +479,7 @@ async function guardarNuevaPass(){
   const p2=document.getElementById('nueva-pass-2').value;
   const err=document.getElementById('nueva-pass-err');const btn=document.getElementById('nueva-pass-btn');
   err.style.display='none';
-  if(!p1||p1.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres';err.style.display='block';return;}
+  if(!p1||p1.length<8){err.textContent='La contraseña debe tener al menos 8 caracteres';err.style.display='block';return;}
   if(p1!==p2){err.textContent='Las contraseñas no coinciden';err.style.display='block';return;}
   btn.textContent='Guardando...';btn.disabled=true;
   const {error}=await db.auth.updateUser({password:p1});
