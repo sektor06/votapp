@@ -4340,6 +4340,29 @@ const SB_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
 const SB_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
 const db = supabase.createClient(SB_URL, SB_KEY, { auth: { storageKey: 'atenas-panel-auth' } });
 
+// ── Fotos del padrón: bucket privado, se muestran con URL firmada temporal ──
+const _pfCache = new Map();
+async function _pfResolver(ceds) {
+  const need = ceds.filter(c => { const v = _pfCache.get(c); return !v || v.exp < Date.now(); });
+  for (let i = 0; i < need.length; i += 100) {
+    const lote = need.slice(i, i + 100);
+    const { data } = await db.storage.from('padron-fotos').createSignedUrls(lote.map(c => c + '.jpg'), 3600);
+    const porRuta = new Map((data || []).map(r => [r.path, r.signedUrl || null]));
+    lote.forEach(c => _pfCache.set(c, { url: porRuta.get(c + '.jpg') || null, exp: Date.now() + 50 * 60 * 1000 }));
+  }
+}
+async function _pfHidratar() {
+  const imgs = [...document.querySelectorAll('img[data-pf]:not([data-pf-ok])')];
+  if (!imgs.length) return;
+  imgs.forEach(i => i.setAttribute('data-pf-ok', '1'));
+  try { await _pfResolver([...new Set(imgs.map(i => i.dataset.pf))]); } catch (e) { /* sin foto */ }
+  imgs.forEach(i => { const v = _pfCache.get(i.dataset.pf); if (v && v.url) i.src = v.url; else i.remove(); });
+}
+let _pfTimer = null;
+new MutationObserver(() => { clearTimeout(_pfTimer); _pfTimer = setTimeout(_pfHidratar, 40); })
+  .observe(document.documentElement, { childList: true, subtree: true });
+
+
 let currentUser = null;
 let searchTimer = null;
 let currentFilter = 'todos';
@@ -5391,7 +5414,7 @@ async function doSearchPadron(q) {
 
   list.innerHTML = data.map(e => `
     <button type="button" class="elector-row" onclick="openFicha('${e.id}')" aria-label="Ver ficha de ${esc(e.nombre)}">
-      <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}${e.cedula ? `<img class="elector-avatar-img" src="${SB_URL}/storage/v1/object/public/padron-fotos/${e.cedula}.jpg" alt="" onerror="this.remove()">` : ''}</div>
+      <div class="elector-avatar ${e.comprometido ? 'committed' : ''}">${ini(e.nombre)}${e.cedula ? `<img class="elector-avatar-img" data-pf="${e.cedula}" alt="" onerror="this.remove()">` : ''}</div>
       <div class="elector-info">
         <div class="elector-name">${esc(e.nombre)}</div>
         <div class="elector-meta">${e.cedula} · ${e.zona ? 'Estructura ' + e.zona : 'Sin estructura'}</div>
@@ -5444,7 +5467,7 @@ async function openFicha(id) {
 
   body.innerHTML = `
     <div class="ficha-hero" data-afil="${e.afiliacion || ''}">
-      <div class="ficha-av">${ini(e.nombre)}${e.cedula ? `<img class="ficha-av-img" src="${SB_URL}/storage/v1/object/public/padron-fotos/${e.cedula}.jpg" alt="" onerror="this.remove()">` : ''}</div>
+      <div class="ficha-av">${ini(e.nombre)}${e.cedula ? `<img class="ficha-av-img" data-pf="${e.cedula}" alt="" onerror="this.remove()">` : ''}</div>
       <div class="ficha-name">${esc(e.nombre)}</div>
       <div class="ficha-ced">${e.cedula}</div>
     </div>
