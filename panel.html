@@ -4430,7 +4430,15 @@ function toast(type, msg) {
 
 function jsq(s){return esc(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '));}
 function safeUrl(u){u=String(u==null?'':u).trim();return /^(https?:\/\/|data:image\/(png|jpe?g|gif|webp);base64,)/i.test(u)?esc(u):'';}
-function ini(nombre) {
+
+async function verComprobante(ruta){
+  ruta=String(ruta||'');
+  if(/^https?:\/\//i.test(ruta)){ if(safeUrl(ruta)) window.open(ruta,'_blank','noopener'); return; } // enlaces antiguos
+  const w=window.open('about:blank','_blank');
+  const { data, error } = await db.storage.from('comprobantes-montaje').createSignedUrl(ruta, 300);
+  if(error||!data||!data.signedUrl){ if(w) w.close(); alert('No se pudo abrir el comprobante.'); return; }
+  if(w) w.location.href=data.signedUrl; else window.location.href=data.signedUrl;
+}function ini(nombre) {
   if (!nombre) return '?';
   return nombre.split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
 }
@@ -7991,7 +7999,7 @@ function editarDelegado(id) {
   document.getElementById('del-estado-pago').value = d.estado_pago||'pendiente';
   document.getElementById('del-comprobante').value = '';
   document.getElementById('del-comprobante-actual').innerHTML = d.comprobante_url
-    ? `<a href="${safeUrl(d.comprobante_url)}" target="_blank" style="color:var(--prm);">📎 Ver comprobante ya subido</a>`
+    ? `<a href="#" onclick="verComprobante('${jsq(d.comprobante_url)}');return false;" style="color:var(--prm);">📎 Ver comprobante ya subido</a>`
     : '';
   document.getElementById('del-edit-id').value  = id;
   document.getElementById('del-modal-title').textContent = 'Editar miembro del recinto';
@@ -8054,16 +8062,16 @@ async function guardarDelegado() {
   // Subir comprobante si se seleccionó un archivo
   if (archivo) {
     btn.textContent = 'Subiendo comprobante…';
-    const path = `${Date.now()}_${archivo.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
-    const { error: upErr } = await db.storage.from('comprobantes-montaje').upload(path, archivo, { upsert: true });
+    const path = `${currentOrg?.id||'sin-org'}/${Date.now()}_${archivo.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+    const { error: upErr } = await db.storage.from('comprobantes-montaje').upload(path, archivo, { upsert: false });
     if (upErr) {
       errEl.textContent = 'Error subiendo comprobante: ' + upErr.message;
       errEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Guardar';
       return;
     }
-    const { data: urlData } = db.storage.from('comprobantes-montaje').getPublicUrl(path);
-    payload.comprobante_url = urlData.publicUrl;
+    // El bucket es privado: se guarda la ruta del archivo y se abre con un enlace temporal (verComprobante)
+    payload.comprobante_url = path;
   }
 
   btn.textContent = editId ? 'Guardando cambios…' : 'Guardando…';
