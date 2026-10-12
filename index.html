@@ -42,9 +42,9 @@
   .hero-glow { position:absolute; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle, rgba(129,205,53,0.16), transparent 68%); top:-220px; right:-160px; pointer-events:none; }
 
   .nav-top { position:relative; z-index:2; display:flex; justify-content:space-between; align-items:center; max-width:1160px; margin:0 auto; padding:26px 24px 0; }
-  .nav-brand { display:flex; align-items:center; gap:10px; }
-  .nav-brand svg { width:44px; height:44px; }
-  .nav-brand span { font-family:'Sora',sans-serif; font-weight:800; color:#fff; letter-spacing:2px; font-size:15px; }
+  .nav-brand { display:flex; align-items:center; }
+  .nav-brand img { height:108px; width:auto; display:block; }
+  @media (max-width:760px){ .nav-brand img { height:84px; } }
   .nav-links { display:flex; align-items:center; gap:34px; }
   .nav-links a:not(.nav-cta) { color:#C3CEE3; font-size:13.5px; font-weight:600; transition:color .15s; }
   .nav-links a:not(.nav-cta):hover { color:#fff; }
@@ -156,8 +156,7 @@
   .footer-grid { max-width:1160px; margin:0 auto; padding:48px 24px; display:grid; grid-template-columns:2fr 1fr 1fr; gap:30px; }
   @media (max-width:640px){ .footer-grid { grid-template-columns:1fr; } }
   .footer-brand { display:flex; align-items:center; gap:9px; margin-bottom:14px; }
-  .footer-brand svg { width:20px; height:20px; }
-  .footer-brand span { font-family:'Sora',sans-serif; font-weight:800; color:#fff; letter-spacing:2px; font-size:14px; }
+  .footer-brand img { height:120px; width:auto; display:block; }
   .footer-desc { font-size:12.5px; color:#9AACC9; line-height:1.7; max-width:280px; }
   .footer-col-title { font-family:'Sora',sans-serif; font-weight:700; font-size:12.5px; color:#fff; margin-bottom:14px; }
   .footer-link { display:block; font-size:12.5px; color:#9AACC9; margin-bottom:10px; transition:color .15s; }
@@ -192,10 +191,9 @@
     <div class="hero-glow"></div>
 
     <div class="nav-top">
-      <div class="nav-brand">
-        <svg viewBox="309 46 598 566"><path d="M607 66 L887 592 L784 592 L607 258 L430 592 L329 592 Z" fill="#FFFFFF"/><path d="M607 388 L706 580 L508 580 Z" fill="#81CD35"/></svg>
-        <span>ATENAS</span>
-      </div>
+      <a class="nav-brand" href="#" aria-label="ATENAS — Inteligencia para liderar">
+        <img src="logo/logo-completo-web.png" alt="ATENAS — Inteligencia para liderar" width="520" height="448">
+      </a>
       <div class="nav-links">
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#directorio">Nuestras organizaciones</a>
@@ -216,11 +214,11 @@
         </div>
         <div class="app-cta-text">
           <p class="eyebrow">Atenas Aliados</p>
-          <h4>Descarga la app y conéctate</h4>
-          <p class="sub">Regístrate al instante a tu partido, movimiento o candidato.</p>
+          <h4>Pronto en tu celular</h4>
+          <p class="sub">Mientras tanto, regístrate desde aquí a tu partido, movimiento o candidato.</p>
         </div>
       </div>
-      <div class="play-badge" style="margin-top:14px;" title="Próximamente — app en revisión en Google Play">
+      <div class="play-badge" style="margin-top:14px;" title="Próximamente en Google Play">
         <svg viewBox="0 0 24 24"><polygon points="6,3 6,21 20,12" fill="#81CD35"/></svg>
         <span class="txt"><small>Próximamente en</small><strong>Google Play</strong></span>
       </div>
@@ -294,7 +292,7 @@
         <div class="why-num">02</div>
         <div class="why-divider"></div>
         <div class="why-title">Todo en un solo lugar</div>
-        <div class="why-text">Padrón, dirigentes, encuestas, montaje electoral y afiliados — sin saltar entre cinco herramientas distintas.</div>
+        <div class="why-text">Padrón, estructura territorial, dirigentes, montaje electoral, seguimiento y conteo del día de las elecciones — sin saltar entre cinco herramientas distintas.</div>
       </div>
       <div class="why-card reveal">
         <div class="why-num">03</div>
@@ -359,8 +357,7 @@
     <div class="footer-grid">
       <div class="reveal">
         <div class="footer-brand">
-          <svg viewBox="309 46 598 566"><path d="M607 66 L887 592 L784 592 L607 258 L430 592 L329 592 Z" fill="#FFFFFF"/><path d="M607 388 L706 580 L508 580 Z" fill="#81CD35"/></svg>
-          <span>ATENAS</span>
+          <img src="logo/logo-completo-web.png" alt="ATENAS — Inteligencia para liderar" width="520" height="448">
         </div>
         <p class="footer-desc">Inteligencia para liderar. La plataforma de gestión electoral para partidos, movimientos y candidatos en República Dominicana.</p>
       </div>
