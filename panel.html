@@ -5399,11 +5399,13 @@ async function doSearchPadron(q) {
   } else if (/^\d/.test(q)) {
     ({ data, error } = await db.rpc('buscar_padron_cedula_flexible', { p_query: q, p_filtro: currentFilter }));
   } else {
-    let query = db.from('padron_prm').select('*').limit(50).ilike('nombre', `%${q.toUpperCase()}%`);
-    if (currentFilter === 'prm') query = query.eq('afiliacion', 'PRM');
-    if (currentFilter === 'comp') query = query.eq('comprometido', true);
-    if (currentFilter === 'duros') query = query.eq('clasificacion', 'Voto Duro');
-    ({ data, error } = await query);
+    // Búsqueda por nombre vía RPC: usa el índice trigram (con .ilike() + RLS recorría todo el padrón).
+    // Aplica los mismos filtros (todos/prm/comp/duros) y los mismos permisos del panel.
+    ({ data, error } = await db.rpc('buscar_padron_por_nombre', {
+      p_texto: q.toUpperCase(),
+      p_filtro: currentFilter,
+      p_limite: 50
+    }));
   }
 
   if (error) {
