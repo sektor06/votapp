@@ -1162,6 +1162,25 @@ button { background: none; border: none; cursor: pointer; }
       <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.5 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.4 18.9 12 24 12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.5 6 29.6 4 24 4c-7.4 0-13.8 4.1-17.1 10.1z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.3-1.9 14-5.1l-6.5-5.5C29.4 35.1 26.8 36 24 36c-5.2 0-9.6-3.3-11.2-8l-6.6 5.1C9.9 39.6 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.5C39.9 37 44 31 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
       <span id="btn-login-google-texto">Continuar con Google</span>
     </button>
+        <div id="em-wrap" style="margin-top:14px;">
+          <button type="button" id="em-open" onclick="emAbrir()" style="width:100%;background:none;border:none;color:#bfdbfe;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;text-decoration:underline;">Entrar o registrarme con correo y contraseña</button>
+          <div id="em-form" style="display:none;text-align:left;">
+            <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px;color:rgba(255,255,255,0.65);font-size:12px;"><span style="flex:1;height:1px;background:rgba(255,255,255,0.25)"></span>correo y contraseña<span style="flex:1;height:1px;background:rgba(255,255,255,0.25)"></span></div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <button type="button" id="em-tab-login" onclick="emModo('login')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:none;color:inherit;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">Ya tengo cuenta</button>
+              <button type="button" id="em-tab-signup" onclick="emModo('signup')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:none;color:inherit;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">Crear cuenta</button>
+            </div>
+            <div class="field-label">Correo electrónico</div>
+            <input class="field-input" id="em-email" style="width:100%;box-sizing:border-box;" type="email" autocomplete="email" inputmode="email" placeholder="tucorreo@ejemplo.com">
+            <div class="field-label" style="margin-top:10px;">Contraseña</div>
+            <input class="field-input" id="em-pass" style="width:100%;box-sizing:border-box;" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
+            <div id="em-ts" style="margin-top:12px;min-height:65px;"></div>
+            <button type="button" class="btn btn-prm btn-block" id="em-submit" style="margin-top:12px;background:white;color:var(--prm);" onclick="emEnviar()">Entrar</button>
+            <button type="button" id="em-forgot" onclick="emOlvide()" style="display:block;margin:10px auto 0;background:none;border:none;color:#bfdbfe;font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:underline;">Olvidé mi contraseña</button>
+            <p id="em-msg" style="display:none;font-size:13px;line-height:1.45;margin:12px 0 0;"></p>
+          </div>
+        </div>
+
   </div>
   <p class="brand-sub" id="login-err" style="color:#fca5a5;display:none;margin-top:14px;"></p>
 </div>
@@ -3665,5 +3684,110 @@ setupSearch();
 initApp();
 </script>
 
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=emTsListo&render=explicit" async defer></script>
+<script>
+/* ── Entrada y registro con correo y contraseña (+ captcha Turnstile) ── */
+(function(){
+  var SK='0x4AAAAAAFWDA9yzVnvZCASG', ts={token:'',wid:null}, modo='login';
+  var C={err:'#fca5a5',ok:'#bbf7d0'};
+  function $(i){return document.getElementById(i);}
+  function tsRender(){
+    if(!window.turnstile||ts.wid!==null)return; var el=$('em-ts'); if(!el)return;
+    ts.wid=turnstile.render(el,{sitekey:SK,theme:'auto',
+      callback:function(t){ts.token=t;},
+      'expired-callback':function(){ts.token='';},
+      'error-callback':function(){ts.token='';}});
+  }
+  window.emTsListo=function(){ if($('em-form')&&$('em-form').style.display!=='none')tsRender(); };
+  function tsReset(){ts.token=''; if(ts.wid!==null&&window.turnstile){try{turnstile.reset(ts.wid);}catch(e){}}}
+  function redir(){return location.origin+location.pathname+location.search;}
+  function msg(t,ok){var m=$('em-msg'); m.textContent=t; m.style.color=ok?C.ok:C.err; m.style.display='block';}
+  function traducir(e){
+    var s=((e&&e.message)||'')+''; var l=s.toLowerCase();
+    if(l.indexOf('invalid login')>-1)return 'Correo o contraseña incorrectos.';
+    if(l.indexOf('not confirmed')>-1)return 'Aún no has confirmado tu correo. Revisa tu bandeja de entrada (y la carpeta de spam).';
+    if(l.indexOf('rate limit')>-1||l.indexOf('too many')>-1||l.indexOf('security purposes')>-1)return 'Demasiados intentos. Espera unos minutos e intenta de nuevo.';
+    if(l.indexOf('captcha')>-1)return 'No se pudo verificar la seguridad. Espera el check verde e intenta de nuevo.';
+    if(l.indexOf('password')>-1)return 'La contraseña es muy débil. Usa 8 o más caracteres, con letras y números.';
+    if(l.indexOf('valid email')>-1||l.indexOf('invalid email')>-1)return 'Escribe un correo válido.';
+    if(l.indexOf('signups not allowed')>-1)return 'El registro con correo no está disponible por ahora.';
+    return 'No se pudo completar. Intenta de nuevo.';
+  }
+  window.emAbrir=function(){ $('em-open').style.display='none'; $('em-form').style.display='block'; emModo('login'); tsRender(); };
+  window.emModo=function(m){
+    modo=m;
+    $('em-submit').textContent=(m==='signup')?'Crear mi cuenta':'Entrar';
+    $('em-forgot').style.display=(m==='signup')?'none':'block';
+    $('em-pass').setAttribute('autocomplete',(m==='signup')?'new-password':'current-password');
+    $('em-tab-login').style.opacity=(m==='login')?'1':'.55';
+    $('em-tab-signup').style.opacity=(m==='signup')?'1':'.55';
+    $('em-msg').style.display='none';
+  };
+  function datos(necesitaPass){
+    var email=($('em-email').value||'').trim().toLowerCase(), pass=$('em-pass').value||'';
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){msg('Escribe un correo válido.');return null;}
+    if(necesitaPass&&pass.length<8){msg('La contraseña debe tener al menos 8 caracteres.');return null;}
+    if(!ts.token){msg('Espera a que la verificación de seguridad termine (check verde) y vuelve a intentar.');return null;}
+    return {email:email,pass:pass};
+  }
+  window.emEnviar=async function(){
+    var d=datos(true); if(!d)return;
+    var b=$('em-submit'); b.disabled=true; $('em-msg').style.display='none';
+    try{
+      if(modo==='signup'){
+        var r=await db.auth.signUp({email:d.email,password:d.pass,options:{captchaToken:ts.token,emailRedirectTo:redir()}});
+        if(r.error)throw r.error;
+        if(r.data&&r.data.session){location.reload();return;}
+        if(r.data&&r.data.user&&r.data.user.identities&&r.data.user.identities.length===0){
+          msg('Ese correo ya tiene una cuenta. Usa "Ya tengo cuenta" o recupera tu contraseña.');
+        }else{
+          msg('Te enviamos un correo a '+d.email+'. Ábrelo y toca el enlace para activar tu cuenta. Si no lo ves, revisa spam.',true);
+        }
+      }else{
+        var r2=await db.auth.signInWithPassword({email:d.email,password:d.pass,options:{captchaToken:ts.token}});
+        if(r2.error)throw r2.error;
+        location.reload();return;
+      }
+    }catch(e){ msg(traducir(e)); }
+    finally{ b.disabled=false; tsReset(); }
+  };
+  window.emOlvide=async function(){
+    var d=datos(false); if(!d)return;
+    $('em-msg').style.display='none';
+    try{
+      var r=await db.auth.resetPasswordForEmail(d.email,{redirectTo:redir(),captchaToken:ts.token});
+      if(r.error)throw r.error;
+      msg('Si ese correo tiene cuenta, te enviamos un enlace para cambiar la contraseña. Revisa también spam.',true);
+    }catch(e){ msg(traducir(e)); }
+    finally{ tsReset(); }
+  };
+  /* Pantalla para elegir contraseña nueva cuando se llega desde el enlace de recuperación */
+  function pantallaNueva(){
+    if($('em-nueva'))return;
+    var o=document.createElement('div'); o.id='em-nueva';
+    o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+    o.innerHTML='<div style="background:#0f172a;color:#fff;border-radius:16px;padding:22px;max-width:380px;width:100%;font-family:inherit;">'
+      +'<div style="font-weight:700;font-size:17px;margin-bottom:6px;">Elige tu contraseña nueva</div>'
+      +'<div style="font-size:13px;opacity:.75;margin-bottom:12px;">Mínimo 8 caracteres.</div>'
+      +'<input id="em-n1" type="password" autocomplete="new-password" placeholder="Contraseña nueva" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1.5px solid #94a3b8;font-size:15px;margin-bottom:8px;">'
+      +'<input id="em-n2" type="password" autocomplete="new-password" placeholder="Repite la contraseña" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1.5px solid #94a3b8;font-size:15px;">'
+      +'<p id="em-nmsg" style="display:none;font-size:13px;margin:10px 0 0;"></p>'
+      +'<button id="em-nbtn" style="width:100%;margin-top:14px;padding:13px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Guardar contraseña</button></div>';
+    document.body.appendChild(o);
+    $('em-nbtn').onclick=async function(){
+      var a=$('em-n1').value,b2=$('em-n2').value,m=$('em-nmsg'); m.style.display='block'; m.style.color=C.err;
+      if(a.length<8){m.textContent='Debe tener al menos 8 caracteres.';return;}
+      if(a!==b2){m.textContent='Las contraseñas no coinciden.';return;}
+      this.disabled=true;
+      var r=await db.auth.updateUser({password:a});
+      if(r.error){m.textContent=traducir(r.error);this.disabled=false;return;}
+      m.style.color=C.ok; m.textContent='Contraseña actualizada.';
+      setTimeout(function(){location.href=location.origin+location.pathname+location.search;},900);
+    };
+  }
+  try{ db.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY')pantallaNueva(); }); }catch(e){}
+})();
+</script>
 </body>
 </html>

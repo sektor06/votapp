@@ -113,12 +113,31 @@
 
       <div class="step-content" id="content-1">
         <div class="card-title">Creá tu cuenta</div>
-        <div class="card-sub">Usá tu cuenta de Google para solicitar tu organización en ATENAS — es gratis y toma un minuto.</div>
+        <div class="card-sub">Usá tu cuenta de Google o tu correo para solicitar tu organización en ATENAS — es gratis y toma un minuto.</div>
         <div class="error-box" id="err-1"></div>
         <button class="google-btn" id="btn-google" onclick="loginGoogle()">
           <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.78-2.4 3.63v3.02h3.88c2.27-2.09 3.57-5.17 3.57-8.84z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.62H1.27a12 12 0 0 0 0 10.76z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.62l4 3.11C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
           Continuar con Google
         </button>
+        <div id="em-wrap" style="margin-top:14px;">
+          <button type="button" id="em-open" onclick="emAbrir()" style="width:100%;background:none;border:none;color:#2563eb;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;text-decoration:underline;">Entrar o registrarme con correo y contraseña</button>
+          <div id="em-form" style="display:none;text-align:left;">
+            <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px;color:var(--mute);font-size:12px;"><span style="flex:1;height:1px;background:var(--line)"></span>correo y contraseña<span style="flex:1;height:1px;background:var(--line)"></span></div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <button type="button" id="em-tab-login" onclick="emModo('login')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--line);background:none;color:inherit;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">Ya tengo cuenta</button>
+              <button type="button" id="em-tab-signup" onclick="emModo('signup')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--line);background:none;color:inherit;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">Crear cuenta</button>
+            </div>
+            <div class="f-label">Correo electrónico</div>
+            <input class="f-input" id="em-email" style="width:100%;box-sizing:border-box;" type="email" autocomplete="email" inputmode="email" placeholder="tucorreo@ejemplo.com">
+            <div class="f-label" style="margin-top:10px;">Contraseña</div>
+            <input class="f-input" id="em-pass" style="width:100%;box-sizing:border-box;" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
+            <div id="em-ts" style="margin-top:12px;min-height:65px;"></div>
+            <button type="button" class="btn btn-primary" id="em-submit" style="width:100%;margin-top:10px;" onclick="emEnviar()">Entrar</button>
+            <button type="button" id="em-forgot" onclick="emOlvide()" style="display:block;margin:10px auto 0;background:none;border:none;color:#2563eb;font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:underline;">Olvidé mi contraseña</button>
+            <p id="em-msg" style="display:none;font-size:13px;line-height:1.45;margin:12px 0 0;"></p>
+          </div>
+        </div>
+
         <div class="account-pill" id="account-pill">
           <div class="account-avatar" id="account-avatar">--</div>
           <div class="account-info"><b id="account-name">--</b><span id="account-email">--</span></div>
@@ -202,6 +221,7 @@ function mostrarCuentaConectada(user) {
   document.getElementById('account-email').textContent = user.email;
   document.getElementById('account-pill').classList.add('show');
   document.getElementById('btn-google').style.display = 'none';
+  var _em=document.getElementById('em-wrap'); if(_em)_em.style.display='none';
   document.getElementById('btn-next-1').disabled = false;
   document.getElementById('f-contacto').value = nombre;
 }
@@ -298,6 +318,111 @@ async function enviarSolicitud() {
 }
 
 init();
+</script>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=emTsListo&render=explicit" async defer></script>
+<script>
+/* ── Entrada y registro con correo y contraseña (+ captcha Turnstile) ── */
+(function(){
+  var SK='0x4AAAAAAFWDA9yzVnvZCASG', ts={token:'',wid:null}, modo='login';
+  var C={err:'#b91c1c',ok:'#15803d'};
+  function $(i){return document.getElementById(i);}
+  function tsRender(){
+    if(!window.turnstile||ts.wid!==null)return; var el=$('em-ts'); if(!el)return;
+    ts.wid=turnstile.render(el,{sitekey:SK,theme:'auto',
+      callback:function(t){ts.token=t;},
+      'expired-callback':function(){ts.token='';},
+      'error-callback':function(){ts.token='';}});
+  }
+  window.emTsListo=function(){ if($('em-form')&&$('em-form').style.display!=='none')tsRender(); };
+  function tsReset(){ts.token=''; if(ts.wid!==null&&window.turnstile){try{turnstile.reset(ts.wid);}catch(e){}}}
+  function redir(){return location.origin+location.pathname+location.search;}
+  function msg(t,ok){var m=$('em-msg'); m.textContent=t; m.style.color=ok?C.ok:C.err; m.style.display='block';}
+  function traducir(e){
+    var s=((e&&e.message)||'')+''; var l=s.toLowerCase();
+    if(l.indexOf('invalid login')>-1)return 'Correo o contraseña incorrectos.';
+    if(l.indexOf('not confirmed')>-1)return 'Aún no has confirmado tu correo. Revisa tu bandeja de entrada (y la carpeta de spam).';
+    if(l.indexOf('rate limit')>-1||l.indexOf('too many')>-1||l.indexOf('security purposes')>-1)return 'Demasiados intentos. Espera unos minutos e intenta de nuevo.';
+    if(l.indexOf('captcha')>-1)return 'No se pudo verificar la seguridad. Espera el check verde e intenta de nuevo.';
+    if(l.indexOf('password')>-1)return 'La contraseña es muy débil. Usa 8 o más caracteres, con letras y números.';
+    if(l.indexOf('valid email')>-1||l.indexOf('invalid email')>-1)return 'Escribe un correo válido.';
+    if(l.indexOf('signups not allowed')>-1)return 'El registro con correo no está disponible por ahora.';
+    return 'No se pudo completar. Intenta de nuevo.';
+  }
+  window.emAbrir=function(){ $('em-open').style.display='none'; $('em-form').style.display='block'; emModo('login'); tsRender(); };
+  window.emModo=function(m){
+    modo=m;
+    $('em-submit').textContent=(m==='signup')?'Crear mi cuenta':'Entrar';
+    $('em-forgot').style.display=(m==='signup')?'none':'block';
+    $('em-pass').setAttribute('autocomplete',(m==='signup')?'new-password':'current-password');
+    $('em-tab-login').style.opacity=(m==='login')?'1':'.55';
+    $('em-tab-signup').style.opacity=(m==='signup')?'1':'.55';
+    $('em-msg').style.display='none';
+  };
+  function datos(necesitaPass){
+    var email=($('em-email').value||'').trim().toLowerCase(), pass=$('em-pass').value||'';
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){msg('Escribe un correo válido.');return null;}
+    if(necesitaPass&&pass.length<8){msg('La contraseña debe tener al menos 8 caracteres.');return null;}
+    if(!ts.token){msg('Espera a que la verificación de seguridad termine (check verde) y vuelve a intentar.');return null;}
+    return {email:email,pass:pass};
+  }
+  window.emEnviar=async function(){
+    var d=datos(true); if(!d)return;
+    var b=$('em-submit'); b.disabled=true; $('em-msg').style.display='none';
+    try{
+      if(modo==='signup'){
+        var r=await db.auth.signUp({email:d.email,password:d.pass,options:{captchaToken:ts.token,emailRedirectTo:redir()}});
+        if(r.error)throw r.error;
+        if(r.data&&r.data.session){location.reload();return;}
+        if(r.data&&r.data.user&&r.data.user.identities&&r.data.user.identities.length===0){
+          msg('Ese correo ya tiene una cuenta. Usa "Ya tengo cuenta" o recupera tu contraseña.');
+        }else{
+          msg('Te enviamos un correo a '+d.email+'. Ábrelo y toca el enlace para activar tu cuenta. Si no lo ves, revisa spam.',true);
+        }
+      }else{
+        var r2=await db.auth.signInWithPassword({email:d.email,password:d.pass,options:{captchaToken:ts.token}});
+        if(r2.error)throw r2.error;
+        location.reload();return;
+      }
+    }catch(e){ msg(traducir(e)); }
+    finally{ b.disabled=false; tsReset(); }
+  };
+  window.emOlvide=async function(){
+    var d=datos(false); if(!d)return;
+    $('em-msg').style.display='none';
+    try{
+      var r=await db.auth.resetPasswordForEmail(d.email,{redirectTo:redir(),captchaToken:ts.token});
+      if(r.error)throw r.error;
+      msg('Si ese correo tiene cuenta, te enviamos un enlace para cambiar la contraseña. Revisa también spam.',true);
+    }catch(e){ msg(traducir(e)); }
+    finally{ tsReset(); }
+  };
+  /* Pantalla para elegir contraseña nueva cuando se llega desde el enlace de recuperación */
+  function pantallaNueva(){
+    if($('em-nueva'))return;
+    var o=document.createElement('div'); o.id='em-nueva';
+    o.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+    o.innerHTML='<div style="background:#fff;color:#111;border-radius:16px;padding:22px;max-width:380px;width:100%;font-family:inherit;">'
+      +'<div style="font-weight:700;font-size:17px;margin-bottom:6px;">Elige tu contraseña nueva</div>'
+      +'<div style="font-size:13px;opacity:.75;margin-bottom:12px;">Mínimo 8 caracteres.</div>'
+      +'<input id="em-n1" type="password" autocomplete="new-password" placeholder="Contraseña nueva" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1.5px solid #94a3b8;font-size:15px;margin-bottom:8px;">'
+      +'<input id="em-n2" type="password" autocomplete="new-password" placeholder="Repite la contraseña" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1.5px solid #94a3b8;font-size:15px;">'
+      +'<p id="em-nmsg" style="display:none;font-size:13px;margin:10px 0 0;"></p>'
+      +'<button id="em-nbtn" style="width:100%;margin-top:14px;padding:13px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Guardar contraseña</button></div>';
+    document.body.appendChild(o);
+    $('em-nbtn').onclick=async function(){
+      var a=$('em-n1').value,b2=$('em-n2').value,m=$('em-nmsg'); m.style.display='block'; m.style.color=C.err;
+      if(a.length<8){m.textContent='Debe tener al menos 8 caracteres.';return;}
+      if(a!==b2){m.textContent='Las contraseñas no coinciden.';return;}
+      this.disabled=true;
+      var r=await db.auth.updateUser({password:a});
+      if(r.error){m.textContent=traducir(r.error);this.disabled=false;return;}
+      m.style.color=C.ok; m.textContent='Contraseña actualizada.';
+      setTimeout(function(){location.href=location.origin+location.pathname+location.search;},900);
+    };
+  }
+  try{ db.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY')pantallaNueva(); }); }catch(e){}
+})();
 </script>
 </body>
 </html>
