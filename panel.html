@@ -2053,7 +2053,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <p class="content-sub" id="padron-sub">Cargando…</p>
         </div>
         <div class="content-h-r">
-          <button type="button" class="topbar-btn">
+          <button type="button" class="topbar-btn" onclick="exportarPadronResultados()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Exportar</span>
           </button>
@@ -2089,7 +2089,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <p class="content-sub" id="dir-sub">Cargando…</p>
         </div>
         <div class="content-h-r" style="display:flex;gap:8px;">
-          <button class="btn-secondary" onclick="descargarListaDirigente(null)" style="font-size:12px;padding:8px 14px;">⬇ Todas las listas (CSV)</button>
+          <button class="btn-secondary" onclick="descargarListaDirigente(null)" style="font-size:12px;padding:8px 14px;">⬇ Todas las listas</button>
           <button class="btn-secondary" onclick="mostrarVacantes()" style="font-size:12px;padding:8px 14px;">
             ⚠️ Vacantes
           </button>
@@ -2290,7 +2290,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
           <button class="btn-secondary" onclick="document.getElementById('modal-lista-dir').classList.remove('show')">Cerrar</button>
-          <button class="btn-primary" onclick="descargarListaDirigente(ldDirId)">⬇ Descargar CSV</button>
+          <button class="btn-primary" onclick="descargarListaDirigente(ldDirId)">⬇ Descargar</button>
         </div>
       </div>
     </div>
@@ -2646,7 +2646,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         <div class="content-h-r" style="display:flex;gap:8px;">
           <button class="btn-secondary" onclick="exportarAfiliados()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11v2h10v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Exportar CSV
+            Exportar
           </button>
           <button class="btn-primary" onclick="abrirModalAfiliado()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -2815,7 +2815,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         <div class="content-h-r" style="display:flex;gap:8px;">
           <button class="btn-secondary" onclick="exportarAspirantes()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11v2h10v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Exportar CSV
+            Exportar
           </button>
           <button class="btn-primary" onclick="abrirModalAspirante()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -3632,7 +3632,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         </div>
         <div class="content-h-r" style="display:flex;gap:8px;">
           <button class="btn-secondary" onclick="exportarPresupuesto()" style="font-size:12px;padding:8px 14px;">
-            ↓ Exportar CSV
+            ↓ Exportar
           </button>
         </div>
       </div>
@@ -3764,7 +3764,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <p class="content-sub" id="mont-sub">Miembros del recinto por puesto y mesa</p>
         </div>
         <div class="content-h-r" style="display:flex;gap:8px;">
-          <button class="btn-secondary" onclick="exportarMontaje()" style="font-size:12px;padding:8px 14px;">↓ Exportar CSV</button>
+          <button class="btn-secondary" onclick="exportarMontaje()" style="font-size:12px;padding:8px 14px;">↓ Exportar</button>
           <button class="btn-primary" onclick="abrirModalDelegado()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             Agregar miembro
@@ -4267,7 +4267,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
       <div id="spanel-actas" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div style="font-size:12px;color:var(--mute);">Actas recibidas de los delegados — revisa y confirma los números.</div>
-          <button class="btn-secondary" onclick="exportarActas()" style="font-size:12px;padding:8px 14px;">↓ Exportar CSV</button>
+          <button class="btn-secondary" onclick="exportarActas()" style="font-size:12px;padding:8px 14px;">↓ Exportar</button>
         </div>
         <div class="panel"><div class="panel-b tight">
           <table class="dt">
@@ -4386,6 +4386,15 @@ let currentUser = null;
 let searchTimer = null;
 let currentFilter = 'todos';
 let padronCache = {};
+let padronUltimosResultados = [];
+function exportarPadronResultados() {
+  if (!padronUltimosResultados.length) { alert('Primero busca electores; se exportan los resultados que ves en pantalla.'); return; }
+  exportarDatos({
+    archivo: 'padron_resultados', titulo: 'Padrón electoral · resultados de búsqueda',
+    headers: ['Nombre','Cédula','Estructura','Afiliación','Clasificación','Comprometido'],
+    rows: padronUltimosResultados.map(e => [e.nombre||'', e.cedula||'', e.zona||'', e.afiliacion||'', e.clasificacion||'', e.comprometido ? 'Sí' : 'No'])
+  });
+}
 
 // ═══ AUTOCOMPLETADO POR CÉDULA (Dirigentes, Afiliados, Aspirantes, Montaje) ═══
 function formatearCedula(valor) {
@@ -5388,6 +5397,115 @@ async function loadTopDirigentes() {
   `).join('');
 }
 
+// ═══ EXPORTACIÓN UNIFICADA (CSV / Excel / PDF) ═══
+// Uso: exportarDatos({ archivo:'nombre_base', titulo:'Título', headers:[...], rows:[[...],[...]] })
+let _expOpts = null;
+function _expFecha() { return new Date().toISOString().slice(0, 10); }
+function _expDescargar(blob, nombre) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+function exportarDatos(opts) {
+  if (!opts || !opts.rows || !opts.rows.length) { alert('No hay datos para exportar.'); return; }
+  _expOpts = opts;
+  let ov = document.getElementById('modal-exportar');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'modal-exportar';
+    ov.className = 'modal-overlay';
+    ov.addEventListener('click', e => { if (e.target === ov) cerrarExportar(); });
+    ov.innerHTML = `<div class="modal-sheet" style="max-width:380px;">
+      <div style="font-size:17px;font-weight:700;color:var(--ink);" id="exp-titulo">Exportar</div>
+      <div style="font-size:13px;color:#71717a;margin:4px 0 16px;" id="exp-info"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" class="btn-secondary" id="exp-btn-xlsx" onclick="_expEjecutar('xlsx')" style="padding:12px;font-size:14px;">📊 Excel (.xlsx)</button>
+        <button type="button" class="btn-secondary" id="exp-btn-pdf" onclick="_expEjecutar('pdf')" style="padding:12px;font-size:14px;">📄 PDF</button>
+        <button type="button" class="btn-secondary" id="exp-btn-csv" onclick="_expEjecutar('csv')" style="padding:12px;font-size:14px;">🧾 CSV</button>
+      </div>
+      <button type="button" onclick="cerrarExportar()" style="margin-top:12px;width:100%;background:none;border:none;color:#71717a;font-size:13px;cursor:pointer;padding:8px;">Cancelar</button>
+    </div>`;
+    document.body.appendChild(ov);
+  }
+  document.getElementById('exp-titulo').textContent = opts.titulo || 'Exportar';
+  document.getElementById('exp-info').textContent = opts.rows.length + ' registros';
+  ov.classList.add('show');
+}
+function cerrarExportar() {
+  const ov = document.getElementById('modal-exportar');
+  if (ov) ov.classList.remove('show');
+}
+async function _expEjecutar(fmt) {
+  const o = _expOpts;
+  if (!o) return;
+  const btn = document.getElementById('exp-btn-' + fmt);
+  const txt = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Generando…'; }
+  try {
+    const base = `${o.archivo || 'exportacion'}_${_expFecha()}`;
+    const headers = o.headers;
+    const rows = o.rows.map(r => r.map(v => v == null ? '' : v));
+    if (fmt === 'csv') {
+      const c = v => '"' + String(v).replace(/"/g, '""') + '"';
+      const csv = [headers.map(c).join(','), ...rows.map(r => r.map(c).join(','))].join('\r\n');
+      _expDescargar(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }), base + '.csv');
+    } else if (fmt === 'xlsx') {
+      if (!window.ExcelJS) throw new Error('La librería de Excel no cargó. Recarga la página.');
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'ATENAS · Inteligencia Electoral';
+      wb.created = new Date();
+      const nombreHoja = String(o.titulo || 'Datos').replace(/[\\\/\?\*\[\]:]/g, ' ').substring(0, 31) || 'Datos';
+      const ws = wb.addWorksheet(nombreHoja);
+      ws.addRow(headers);
+      rows.forEach(r => ws.addRow(r));
+      const hr = ws.getRow(1);
+      hr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      hr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0047AB' } };
+      hr.alignment = { vertical: 'middle' };
+      ws.columns.forEach((col, i) => {
+        let max = String(headers[i] ?? '').length;
+        rows.forEach(r => { const l = String(r[i] ?? '').length; if (l > max) max = l; });
+        col.width = Math.min(Math.max(max + 2, 10), 50);
+      });
+      ws.views = [{ state: 'frozen', ySplit: 1 }];
+      ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+      const buf = await wb.xlsx.writeBuffer();
+      _expDescargar(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), base + '.xlsx');
+    } else if (fmt === 'pdf') {
+      if (!window.jspdf) throw new Error('La librería de PDF no cargó. Recarga la página.');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF(headers.length > 6 ? 'l' : 'p', 'pt', 'a4');
+      if (typeof doc.autoTable !== 'function') throw new Error('El módulo de tablas PDF no cargó. Recarga la página.');
+      doc.setFontSize(15); doc.setTextColor(9, 9, 11);
+      doc.text(String(o.titulo || 'Exportación'), 40, 42);
+      doc.setFontSize(9); doc.setTextColor(113, 113, 122);
+      doc.text(`ATENAS · ${_expFecha()} · ${rows.length} registros`, 40, 58);
+      doc.autoTable({
+        head: [headers.map(String)],
+        body: rows.map(r => r.map(String)),
+        startY: 72,
+        margin: { left: 40, right: 40, bottom: 36 },
+        styles: { fontSize: headers.length > 10 ? 6.5 : headers.length > 7 ? 7.5 : 9, cellPadding: 3, overflow: 'linebreak' },
+        headStyles: { fillColor: [0, 71, 171], textColor: 255 },
+        alternateRowStyles: { fillColor: [244, 247, 252] }
+      });
+      const n = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= n; i++) {
+        doc.setPage(i); doc.setFontSize(8); doc.setTextColor(113, 113, 122);
+        doc.text(`Página ${i} de ${n}`, doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 18, { align: 'right' });
+      }
+      doc.save(base + '.pdf');
+    }
+    cerrarExportar();
+  } catch (e) {
+    alert('No se pudo exportar: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = txt; }
+  }
+}
+
 // ═══ PADRÓN ═══
 function searchPadron(q) {
   clearTimeout(searchTimer);
@@ -5445,6 +5563,7 @@ async function doSearchPadron(q) {
   }
 
   const afilP = { 'PRM': 'pill-good', 'PLD': 'pill-mute', 'FP': 'pill-mute' };
+  padronUltimosResultados = data;
 
   list.innerHTML = data.map(e => `
     <button type="button" class="elector-row" onclick="openFicha('${esc(e.id)}')" aria-label="Ver ficha de ${esc(e.nombre)}">
@@ -7403,19 +7522,17 @@ function exportarActas() {
   db.from('actas_mesa').select('*').order('zona').order('recinto_codigo').order('mesa')
     .then(({ data }) => {
       if (!data?.length) { alert('Sin actas para exportar'); return; }
-      const h = ['Delegado','Recinto','Zona','Mesa','PRM','PLD','FP','Otros','Nulos','Blancos','Total','Estado','Foto','Fecha'];
-      const rows = data.map(a => [
-        `"${a.dirigente_nombre||''}"`, a.recinto_codigo||'', a.zona||'', a.mesa||'',
-        a.votos_prm||0, a.votos_pld||0, a.votos_fp||0, a.votos_otros||0,
-        a.votos_nulos||0, a.votos_blancos||0, a.total_votantes||0,
-        a.estado||'', a.foto_url||'',
-        a.created_at ? new Date(a.created_at).toLocaleString('es-DO') : ''
-      ].join(','));
-      const csv = [h.join(','), ...rows].join('\n');
-      const blob = new Blob(['\uFEFF'+csv], {type:'text/csv'});
-      const el = document.createElement('a');
-      el.download = `actas_electorales_${new Date().toISOString().slice(0,10)}.csv`;
-      el.href = URL.createObjectURL(blob); el.click();
+      exportarDatos({
+        archivo: 'actas_electorales', titulo: 'Actas electorales',
+        headers: ['Delegado','Recinto','Zona','Mesa','PRM','PLD','FP','Otros','Nulos','Blancos','Total','Estado','Foto','Fecha'],
+        rows: data.map(a => [
+          a.dirigente_nombre||'', a.recinto_codigo||'', a.zona||'', a.mesa||'',
+          a.votos_prm||0, a.votos_pld||0, a.votos_fp||0, a.votos_otros||0,
+          a.votos_nulos||0, a.votos_blancos||0, a.total_votantes||0,
+          a.estado||'', a.foto_url||'',
+          a.created_at ? new Date(a.created_at).toLocaleString('es-DO') : ''
+        ])
+      });
     });
 }
 
@@ -7707,15 +7824,11 @@ function renderAlertas() {
 }
 
 function exportarSeguimiento() {
-  const rows = [
-    ['Cédula','Zona','Recinto','Hora voto'],
-    ...segData.votos.map(v => [v.cedula||'', v.zona||'', v.recinto_codigo||'', v.created_at?new Date(v.created_at).toLocaleTimeString('es-DO'):''])
-  ];
-  const csv = rows.map(r=>r.join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.download = `seguimiento_voto_${new Date().toISOString().slice(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob); a.click();
+  exportarDatos({
+    archivo: 'seguimiento_voto', titulo: 'Seguimiento de votación',
+    headers: ['Cédula','Zona','Recinto','Hora voto'],
+    rows: segData.votos.map(v => [v.cedula||'', v.zona||'', v.recinto_codigo||'', v.created_at ? new Date(v.created_at).toLocaleTimeString('es-DO') : ''])
+  });
 }
 
 // ═══ MONTAJE ELECTORAL ═══
@@ -8145,19 +8258,17 @@ async function sincronizarColegioDirigente({ nombre, cedula, telefono, rol, reci
 
 function exportarMontaje() {
   if (!montajeData.length) { alert('Sin datos para exportar.'); return; }
-  const headers = ['Nombre','Cédula','Cargo','Recinto','Nombre recinto','Zona','Colegio','Estado','Teléfono','Correo','Monto pago','Moneda','Estado de pago','Fecha de pago','Notas'];
-  const rows = montajeData.map(d => [
-    `"${esc(d.nombre||'')}"`, d.cedula||'', ROL_LABEL[d.rol]||d.rol||'',
-    d.recinto_codigo||'', `"${(recintosMap[d.recinto_codigo]?.nombre||'').replace(/"/g,"'")}"`,
-    d.zona||'', d.mesa||'', EST_LMONT[d.estado]||d.estado||'',
-    d.telefono||'', d.correo||'', d.monto_pago ?? '', d.moneda||'RD$', d.estado_pago||'pendiente', d.fecha_pago||'',
-    `"${(d.notas||'').replace(/"/g,"'")}"`
-  ].join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.download = `montaje_electoral_${new Date().toISOString().slice(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob); a.click();
+  exportarDatos({
+    archivo: 'montaje_electoral', titulo: 'Montaje electoral',
+    headers: ['Nombre','Cédula','Cargo','Recinto','Nombre recinto','Zona','Colegio','Estado','Teléfono','Correo','Monto pago','Moneda','Estado de pago','Fecha de pago','Notas'],
+    rows: montajeData.map(d => [
+      d.nombre||'', d.cedula||'', ROL_LABEL[d.rol]||d.rol||'',
+      d.recinto_codigo||'', recintosMap[d.recinto_codigo]?.nombre||'',
+      d.zona||'', d.mesa||'', EST_LMONT[d.estado]||d.estado||'',
+      d.telefono||'', d.correo||'', d.monto_pago ?? '', d.moneda||'RD$', d.estado_pago||'pendiente', d.fecha_pago||'',
+      d.notas||''
+    ])
+  });
 }
 
 function imprimirConstancia(id) {
@@ -8575,17 +8686,15 @@ async function guardarPresupuesto() {
 
 function exportarPresupuesto() {
   const rows = [
-    ['Tipo','Descripción/Nombre','Categoría/Fuente','Monto','Moneda','Fecha','Notas'],
     ...presData.ingresos.map(r  => ['Ingreso', r.descripcion||'', r.fuente||'', r.monto||'', r.moneda||'RD$', r.fecha||'', r.notas||'']),
     ...presData.gastos.map(r    => ['Gasto',   r.descripcion||'', r.categoria||'', r.monto||'', r.moneda||'RD$', r.fecha||'', r.notas||'']),
-    ...presData.vehiculos.map(r => ['Vehículo', r.placa||'', r.tipo||'', '', '', '', `Chofer: ${esc(r.chofer||'—')} · Estado: ${esc(r.estado||'—')}`]),
+    ...presData.vehiculos.map(r => ['Vehículo', r.placa||'', r.tipo||'', '', '', '', `Chofer: ${r.chofer||'—'} · Estado: ${r.estado||'—'}`]),
   ];
-  const csv = rows.map(r => r.map(c=>`"${String(c).replace(/"/g,"'")}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.download = `presupuesto_prm_${new Date().toISOString().slice(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob);
-  a.click();
+  exportarDatos({
+    archivo: 'presupuesto_prm', titulo: 'Logística y presupuesto',
+    headers: ['Tipo','Descripción/Nombre','Categoría/Fuente','Monto','Moneda','Fecha','Notas'],
+    rows
+  });
 }
 
 document.getElementById('modal-presupuesto').addEventListener('click', function(e) {
@@ -9159,18 +9268,15 @@ async function guardarAspirante() {
 function exportarAspirantes() {
   const datos = aspirantesFiltrados.length > 0 ? aspirantesFiltrados : aspirantesData;
   if (datos.length === 0) { alert('No hay aspirantes para exportar.'); return; }
-  const headers = ['Nombre','Cédula','Posición','Estado','Zona','Apoyo estimado','Teléfono','Partido','Perfil','Notas'];
-  const rows = datos.map(a => [
-    `"${esc(a.nombre)}"`, a.cedula||'', POSICION_LABEL[a.posicion]||a.posicion,
-    ESTADO_LABEL[a.estado]||a.estado, a.zona||'', a.apoyo_estimado||'',
-    a.telefono||'', a.partido||'', `"${(a.perfil||'').replace(/"/g,"'")}"`, `"${(a.notas||'').replace(/"/g,"'")}"`
-  ].join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.download = `aspirantes_prm_spm_${new Date().toISOString().substring(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob);
-  a.click();
+  exportarDatos({
+    archivo: 'aspirantes_prm_spm', titulo: 'Aspirantes',
+    headers: ['Nombre','Cédula','Posición','Estado','Zona','Apoyo estimado','Teléfono','Partido','Perfil','Notas'],
+    rows: datos.map(a => [
+      a.nombre||'', a.cedula||'', POSICION_LABEL[a.posicion]||a.posicion||'',
+      ESTADO_LABEL[a.estado]||a.estado||'', a.zona||'', a.apoyo_estimado||'',
+      a.telefono||'', a.partido||'', a.perfil||'', a.notas||''
+    ])
+  });
 }
 
 document.getElementById('modal-aspirante').addEventListener('click', function(e) {
@@ -9483,19 +9589,11 @@ async function promoverAfiliadoADirigente({ nombre, cedula, telefono, zona, carg
 function exportarAfiliados() {
   const datos = afiliadosFiltrados.length > 0 ? afiliadosFiltrados : afiliadosData;
   if (datos.length === 0) { alert('No hay afiliados para exportar.'); return; }
-
-  const headers = ['Nombre','Cédula','Tipo','Zona','Sector','Cargo','Teléfono','Email','Fuente','Fecha'];
-  const rows = datos.map(a => [
-    `"${esc(a.nombre)}"`, a.cedula, a.tipo, a.zona, a.sector,
-    a.cargo, a.telefono, a.email, a.fuente, a.fecha
-  ].join(','));
-
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.download = `afiliados_prm_spm_${new Date().toISOString().substring(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob);
-  a.click();
+  exportarDatos({
+    archivo: 'afiliados_prm_spm', titulo: 'Afiliados',
+    headers: ['Nombre','Cédula','Tipo','Zona','Sector','Cargo','Teléfono','Email','Fuente','Fecha'],
+    rows: datos.map(a => [a.nombre, a.cedula, a.tipo, a.zona, a.sector, a.cargo, a.telefono, a.email, a.fuente, a.fecha])
+  });
 }
 
 // Cerrar modal al click fuera
@@ -10456,14 +10554,12 @@ async function descargarListaDirigente(id) {
   if (!id && miCandidato) { const ids = new Set(dirigentesData.map(d => d.id)); datos = datos.filter(r => ids.has(r.dirigente_asignado)); }
   if (!datos.length) { alert('No hay personas en la lista.'); return; }
   const nom = {}; dirigentesData.forEach(d => nom[d.id] = d.nombre);
-  const c = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const head = ['Dirigente','Nombre','Cédula','Teléfono','Celular','Nivel','Afiliación','Colegio','N.º en colegio','Recinto','Fecha'];
-  const rows = datos.map(r => [nom[r.dirigente_asignado] || '', r.nombre, r.cedula, r.telefono, r.celular, r.nivel_compromiso, r.afiliacion, r.colegio_numero, r.numero_orden, r.recinto_nombre, r.fecha_compromiso ? new Date(r.fecha_compromiso).toLocaleDateString('es-DO') : ''].map(c).join(','));
-  const blob = new Blob(['\uFEFF' + [head.map(c).join(','), ...rows].join('\n')], { type:'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
   const base = id ? 'lista_' + (nom[id] || 'dirigente').replace(/[^\w]+/g, '_') : 'listas_todos_los_dirigentes';
-  a.download = `${base}_${new Date().toISOString().slice(0,10)}.csv`;
-  a.href = URL.createObjectURL(blob); a.click();
+  exportarDatos({
+    archivo: base, titulo: id ? 'Lista de ' + (nom[id] || 'dirigente') : 'Listas de todos los dirigentes',
+    headers: ['Dirigente','Nombre','Cédula','Teléfono','Celular','Nivel','Afiliación','Colegio','N.º en colegio','Recinto','Fecha'],
+    rows: datos.map(r => [nom[r.dirigente_asignado] || '', r.nombre, r.cedula, r.telefono, r.celular, r.nivel_compromiso, r.afiliacion, r.colegio_numero, r.numero_orden, r.recinto_nombre, r.fecha_compromiso ? new Date(r.fecha_compromiso).toLocaleDateString('es-DO') : ''])
+  });
 }
 
 function actualizarKPIsDirigentes(dirs, encResp) {
