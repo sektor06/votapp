@@ -5098,24 +5098,17 @@ async function initMapaZonas() {
 
   mapZonas = L.map('map-zonas', { zoomControl: true }).setView([18.4539, -69.3086], 13);
 
-  // Fondo estilo OpenStreetMap (OpenFreeMap), con todas las etiquetas de texto apagadas.
-  // Si no carga, se usa un fondo de respaldo también sin etiquetas.
+  // Fondo estilo OpenStreetMap (OpenFreeMap), con nombres de calles, barrios y lugares.
+  // Si no carga, se usa un fondo de respaldo (también con nombres).
   let glFondo = null, fondoRespaldoOn = false;
   const fondoRespaldo = () => {
     if (fondoRespaldoOn) return; fondoRespaldoOn = true;
     if (glFondo) { try { mapZonas.removeLayer(glFondo); } catch (e) {} }
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© OpenStreetMap · © CARTO' }).addTo(mapZonas);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© OpenStreetMap · © CARTO' }).addTo(mapZonas);
   };
   try {
     glFondo = L.maplibreGL({ style: 'https://tiles.openfreemap.org/styles/liberty', attribution: '© OpenStreetMap · OpenFreeMap' }).addTo(mapZonas);
     const mg = glFondo.getMaplibreMap();
-    const ocultarTexto = () => {
-      if (!mg.isStyleLoaded()) return;
-      (mg.getStyle().layers || []).forEach(l => {
-        if (l.type === 'symbol' && mg.getLayoutProperty(l.id, 'visibility') !== 'none') mg.setLayoutProperty(l.id, 'visibility', 'none');
-      });
-    };
-    mg.on('styledata', ocultarTexto); mg.on('load', ocultarTexto);
     mg.on('error', e => { const t = String((e && e.error && e.error.message) || ''); if (/style|fetch|network|load/i.test(t) && !mg.isStyleLoaded()) fondoRespaldo(); });
     setTimeout(() => { if (!mg.isStyleLoaded()) fondoRespaldo(); }, 6000);
   } catch (e) { fondoRespaldo(); }
