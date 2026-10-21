@@ -2539,6 +2539,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <div style="display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:4px;">
             <button type="button" id="og-tab-municipal" onclick="ogCambiarNivel('municipal')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--prm);color:#fff;">Municipal</button>
             <button type="button" id="og-tab-zonal" onclick="ogCambiarNivel('zonal')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Zonal</button>
+            <button type="button" id="og-tab-provincial" onclick="ogCambiarNivel('provincial')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Provincial</button>
           </div>
           <select class="mf-input" id="og-select-zona" onchange="ogCambiarZona()" style="width:170px;display:none;">
             <option value="">Selecciona estructura…</option>
@@ -9826,9 +9827,12 @@ function ogCambiarNivel(nivel) {
   btnM.style.color = nivel === 'municipal' ? '#fff' : 'var(--mute)';
   btnZ.style.background = nivel === 'zonal' ? 'var(--prm)' : 'transparent';
   btnZ.style.color = nivel === 'zonal' ? '#fff' : 'var(--mute)';
+  const btnP = document.getElementById('og-tab-provincial');
+  btnP.style.background = nivel === 'provincial' ? 'var(--prm)' : 'transparent';
+  btnP.style.color = nivel === 'provincial' ? '#fff' : 'var(--mute)';
   document.getElementById('og-select-zona').style.display = nivel === 'zonal' ? 'block' : 'none';
 
-  if (nivel === 'municipal') {
+  if (nivel === 'municipal' || nivel === 'provincial') {
     ogZonaId = '';
     ogCargarInstancia();
   } else if (ogZonaId) {
@@ -9885,7 +9889,9 @@ async function ogCargarInstancia() {
     const nombreZona = document.getElementById('og-select-zona').selectedOptions[0]?.textContent || '';
     const nombreInst = ogNivel === 'municipal'
       ? `Comité Municipal ${currentOrg.nombre || ''}`.trim()
-      : `Comité ${nombreZona}`;
+      : ogNivel === 'provincial'
+        ? `Comité Provincial ${currentOrg.nombre || ''}`.trim()
+        : `Comité ${nombreZona}`;
     const { data: nueva, error } = await db.from('organigrama_instancias')
       .insert({ organizacion_id: currentOrg.id, nivel: ogNivel, zona_id: ogNivel === 'zonal' ? ogZonaId : null, nombre: nombreInst })
       .select('id,nombre').single();
@@ -9997,12 +10003,14 @@ async function ogAgregarTodosComoDirigentes() {
 }
 
 function ogCargoCardHtml(cargo, asigs, color, avatarSize) {
-  const size = avatarSize || (cargo.multiple ? 64 : 76);
+  const muchos = asigs.length > 1;
+  const size = avatarSize || (muchos ? 56 : 64);
   const personas = asigs.map(a => ogPersonCard(a, cargo, color, size)).join('');
+  const forma = muchos ? 'grid-column:span 2;min-height:190px;' : 'aspect-ratio:1/1;';
   return `
-    <div style="border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px;">
-        <div style="font-size:11.5px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.02em;">${esc(cargo.nombre)}</div>
+    <div style="${forma}width:100%;box-sizing:border-box;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:6px;">
+        <div style="font-size:10.5px;line-height:1.25;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.02em;">${esc(cargo.nombre)}</div>
         <div style="display:flex;gap:2px;align-items:center;flex-shrink:0;">
           ${cargo.multiple ? `<button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" title="Agregar persona" style="padding:2px 7px;font-size:10.5px;">+</button>` : ''}
           <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',-1)" title="Subir cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▲</button>
@@ -10011,7 +10019,7 @@ function ogCargoCardHtml(cargo, asigs, color, avatarSize) {
           <button type="button" onclick="ogEliminarCargo('${esc(cargo.id)}')" title="Quitar este cargo del organigrama" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✕</button>
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;">${personas}</div>
+      <div style="flex:1;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;">${personas}</div>
     </div>`;
 }
 
@@ -10054,18 +10062,18 @@ function ogRender() {
         const resto = cargosFilled.filter((_, i) => i !== presIdx);
         bodyHtml = `
           <div style="display:flex;flex-direction:column;align-items:center;">
-            ${ogItemHtml(pres, color, 96)}
+            <div style="width:210px;">${ogItemHtml(pres, color, 80)}</div>
             ${resto.length ? `
               <div style="width:2px;height:18px;background:var(--line);"></div>
               <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">
-                ${resto.map(x => ogItemHtml(x, color)).join('')}
+                ${resto.map(x => `<div style="flex:0 0 190px;">${ogItemHtml(x, color)}</div>`).join('')}
               </div>` : ''}
           </div>`;
       } else {
-        bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${cargosFilled.map(x => ogItemHtml(x, color)).join('')}</div>`;
+        bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">${cargosFilled.map(x => ogItemHtml(x, color)).join('')}</div>`;
       }
     } else {
-      bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${cargosFilled.map(x => ogItemHtml(x, color)).join('')}</div>`;
+      bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">${cargosFilled.map(x => ogItemHtml(x, color)).join('')}</div>`;
     }
 
     contentHtml += `
@@ -10088,18 +10096,19 @@ function ogRender() {
 
 function ogVacanteCardHtml(cargo) {
   return `
-    <div style="border:1px dashed var(--line);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
-      <div style="min-width:0;">
-        <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(cargo.nombre)}</div>
-        <div style="font-size:10.5px;color:var(--mute);">${esc(cargo.categoria)}</div>
-      </div>
-      <div style="display:flex;gap:2px;align-items:center;flex-shrink:0;">
-        <button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" style="padding:5px 10px;font-size:11px;">+ Asignar</button>
+    <div style="aspect-ratio:1/1;width:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;border:1px dashed var(--line);border-radius:12px;padding:10px;background:#fff;">
+      <div style="display:flex;justify-content:flex-end;gap:2px;align-items:center;">
+        <button type="button" onclick="ogEditarCargo('${esc(cargo.id)}')" title="Editar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✎</button>
         <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',-1)" title="Subir cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▲</button>
         <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',1)" title="Bajar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▼</button>
-        <button type="button" onclick="ogEditarCargo('${esc(cargo.id)}')" title="Editar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✎</button>
-          <button type="button" onclick="ogEliminarCargo('${esc(cargo.id)}')" title="Quitar este cargo del organigrama" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✕</button>
+        <button type="button" onclick="ogEliminarCargo('${esc(cargo.id)}')" title="Quitar este cargo del organigrama" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✕</button>
       </div>
+      <div style="text-align:center;min-width:0;">
+        <div style="width:48px;height:48px;border-radius:50%;border:1px dashed var(--line);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:20px;">+</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.25;">${esc(cargo.nombre)}</div>
+        <div style="font-size:10.5px;color:var(--mute);">Vacante</div>
+      </div>
+      <button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" style="padding:6px 10px;font-size:11px;width:100%;">+ Asignar</button>
     </div>`;
 }
 
