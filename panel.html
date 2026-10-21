@@ -1835,10 +1835,6 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Dirigentes
       </button>
-      <button type="button" class="sb-item" data-view="montaje" onclick="navTo('montaje')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-        Montaje Electoral
-      </button>
       <button type="button" class="sb-item" data-view="afiliados" onclick="navTo('afiliados')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2"/><path d="M15 12h2"/><path d="M7 16h10"/></svg>
         Afiliados
@@ -1861,10 +1857,10 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         Encuestas
       </button>
 
-      <div class="sb-section">Campaña</div>
-      <button type="button" class="sb-item" data-view="logistica" onclick="navTo('logistica')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        Logística y Finanzas
+      <div class="sb-section">Montaje electoral</div>
+      <button type="button" class="sb-item" data-view="montaje" onclick="navTo('montaje')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        Estructura electoral
       </button>
       <button type="button" class="sb-item" data-view="seguimiento" onclick="navTo('seguimiento')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
@@ -1872,7 +1868,13 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
       </button>
       <button type="button" class="sb-item" data-view="conteo" onclick="navTo('conteo')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Conteo Final
+        Cómputo electoral
+      </button>
+
+      <div class="sb-section">Campaña</div>
+      <button type="button" class="sb-item" data-view="logistica" onclick="navTo('logistica')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Logística y Finanzas
       </button>
 
       <div class="sb-section">Marketplace</div>
@@ -2465,6 +2467,14 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         </div>
       </div>
 
+      <div class="panel" style="margin-bottom:12px;">
+        <div class="panel-b" style="padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <input class="mf-input" id="rec-q" type="search" placeholder="Buscar recinto por nombre o código…" oninput="renderRecintosPanel()" style="flex:1;min-width:220px;max-width:360px;">
+          <select class="mf-input" id="rec-f-circ" onchange="renderRecintosPanel()" style="width:200px;"><option value="">Todas las circunscripciones</option></select>
+          <select class="mf-input" id="rec-f-zona" onchange="renderRecintosPanel()" style="width:180px;"><option value="">Todas las estructuras</option></select>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-b tight">
           <table class="dt">
@@ -2472,6 +2482,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
               <tr>
                 <th>Código</th>
                 <th>Nombre</th>
+                <th>Circunscripción</th>
                 <th>Estructura</th>
                 <th class="num">Electores</th>
                 <th class="num">Colegios</th>
@@ -2479,7 +2490,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
               </tr>
             </thead>
             <tbody id="rec-tb">
-              <tr><td colspan="6" class="loading-row">Cargando…</td></tr>
+              <tr><td colspan="7" class="loading-row">Cargando…</td></tr>
             </tbody>
           </table>
         </div>
@@ -2613,7 +2624,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
     <div class="modal-overlay" id="modal-og-cargo">
       <div class="modal-sheet" style="max-width:480px;">
         <div class="modal-handle"></div>
-        <div class="modal-title">Nuevo cargo</div>
+        <div class="modal-title" id="og-cargo-title">Nuevo cargo</div>
         <div class="mf-group">
           <label class="mf-label">Nombre del cargo *</label>
           <input class="mf-input" id="og-cargo-nombre" placeholder="Ej. Secretario de Prensa">
@@ -3760,7 +3771,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
       <!-- HEADER -->
       <div class="content-h">
         <div class="content-h-l">
-          <h1 class="content-title">Montaje Electoral</h1>
+          <h1 class="content-title">Estructura electoral</h1>
           <p class="content-sub" id="mont-sub">Miembros del recinto por puesto y mesa</p>
         </div>
         <div class="content-h-r" style="display:flex;gap:8px;">
@@ -4303,7 +4314,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
 
     <main class="content" id="view-conteo" data-view-content style="display:none">
       <div class="content-h">
-        <div class="content-h-l"><h1 class="content-title">Conteo y Reporte Final</h1><p class="content-sub">Resultados en vivo, el día de las elecciones</p></div>
+        <div class="content-h-l"><h1 class="content-title">Cómputo electoral</h1><p class="content-sub">Resultados en vivo, el día de las elecciones</p></div>
         <div class="content-h-r"><button class="btn-qr" onclick="loadConteoFinal()">↻ Actualizar</button></div>
       </div>
 
@@ -4828,11 +4839,15 @@ async function verificarSolicitudesPendientes() {
 }
 
 // ═══ NAV ═══
+window._vistaActual = 'dashboard';
 function navTo(view) {
   if (modulosPermitidos && view !== 'dashboard' && !modulosPermitidos.includes(view)) {
     toast('err', 'No tienes acceso a este módulo.');
     view = 'dashboard';
   }
+  window._vistaActual = view;
+  const _gs = document.getElementById('global-search');
+  if (_gs) _gs.placeholder = view === 'recintos' ? 'Buscar recinto por nombre o código...' : 'Buscar cédula, nombre o dirigente...';
   document.querySelectorAll('[data-view-content]').forEach(v => v.style.display = 'none');
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
 
@@ -4966,10 +4981,10 @@ let modulosPermitidos = null; // null = acceso completo (administrador)
 const MODULOS_PANEL = [
   { key:'padron', label:'Padrón Electoral' }, { key:'recintos', label:'Recintos' },
   { key:'territorial', label:'Ubicación de Recintos' }, { key:'organigrama', label:'Organigrama' },
-  { key:'dirigencial', label:'Dirigentes' }, { key:'montaje', label:'Montaje Electoral' },
+  { key:'dirigencial', label:'Dirigentes' }, { key:'montaje', label:'Estructura electoral' },
   { key:'afiliados', label:'Afiliados' }, { key:'candidatos', label:'Candidatos' },
   { key:'solicitudes', label:'Solicitudes' }, { key:'logistica', label:'Logística y Finanzas' },
-  { key:'seguimiento', label:'Seguimiento' }, { key:'conteo', label:'Conteo Final' },
+  { key:'seguimiento', label:'Seguimiento' }, { key:'conteo', label:'Cómputo electoral' },
   { key:'tienda', label:'Tienda' }, { key:'servicios', label:'Servicios' },
 ];
 let paquetesAcceso = [];
@@ -8816,11 +8831,8 @@ function renderSolicitudes() {
     return;
   }
 
-  const catLabel = { militante: 'Militante', simpatizante: 'Simpatizante' };
-  const opcionesRol = rolesDisponibles.map(r => `<option value="${esc(r.id)}">${esc(r.nombre)}</option>`).join('');
 
   cont.innerHTML = solicitudesData.map(s => {
-    const rolSugeridoId = rolesDisponibles.find(r => r.nombre.toLowerCase() === s.categoria_solicitada)?.id || '';
     return `
     <div class="panel" id="sol-card-${esc(s.id)}">
       <div class="panel-b" style="padding:18px;">
@@ -8830,7 +8842,6 @@ function renderSolicitudes() {
             <div style="font-weight:700;font-size:14px;">${esc(s.nombre)} ${esc(s.apellido)}</div>
             <div style="font-size:12px;color:var(--mute);">Solicitó unirse a <b>${esc(s.organizaciones?.nombre||'—')}</b> · ${new Date(s.created_at).toLocaleDateString('es-DO')}</div>
           </div>
-          <span class="pill pill-info">${esc(catLabel[s.categoria_solicitada]||s.categoria_solicitada)}</span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-bottom:14px;">
@@ -8842,15 +8853,19 @@ function renderSolicitudes() {
 
         <div id="sol-error-${esc(s.id)}" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:10px;display:none;"></div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-          <div>
-            <label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Rol a asignar</label>
-            <select class="mf-input" id="sol-rol-${esc(s.id)}" style="font-size:13px;padding:8px 10px;">${opcionesRol}</select>
-          </div>
-          <div>
-            <label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Estructura a confirmar</label>
-            <input class="mf-input" id="sol-estructura-${esc(s.id)}" value="${esc(s.estructura_sugerida||'')}" placeholder="Ej: Zona E" style="font-size:13px;padding:8px 10px;">
-          </div>
+        <div style="font-size:12px;color:var(--mute);margin-bottom:10px;">Al aceptar, la persona entra directo a <b>Afiliados</b>. Después puedes convertirla en dirigente y ubicarla en el organigrama.</div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Si la rechazas, ¿por qué?</label>
+          <select class="mf-input" id="sol-motivo-${esc(s.id)}" style="font-size:13px;padding:8px 10px;">
+            <option value="">Selecciona un motivo (solo si rechazas)</option>
+            <option>Datos incompletos o incorrectos</option>
+            <option>La cédula no coincide con los datos</option>
+            <option>No pertenece a esta organización</option>
+            <option>Ya está afiliado en esta organización</option>
+            <option>Solicitud duplicada</option>
+            <option>No se pudo contactar a la persona</option>
+            <option>Otro motivo</option>
+          </select>
         </div>
 
         <div style="display:flex;gap:8px;">
@@ -8860,23 +8875,21 @@ function renderSolicitudes() {
       </div>
     </div>`;
   }).join('');
-
-  // Preseleccionar el rol sugerido según lo que pidió cada persona
-  solicitudesData.forEach(s => {
-    const sel = document.getElementById(`sol-rol-${s.id}`);
-    const match = rolesDisponibles.find(r => r.nombre.toLowerCase() === s.categoria_solicitada);
-    if (sel && match) sel.value = match.id;
-  });
 }
 
 async function resolverSolicitud(id, accion) {
   const errEl = document.getElementById(`sol-error-${id}`);
   errEl.style.display = 'none';
 
-  let rolId = null, estructura = null;
+  let rolId = null, estructura = null, motivo = null;
   if (accion === 'aceptar') {
-    rolId = document.getElementById(`sol-rol-${id}`).value;
-    estructura = document.getElementById(`sol-estructura-${id}`).value.trim() || null;
+    // La categoría ya no se pregunta: entra como afiliado (rol base) y luego se promueve a dirigente.
+    const base = rolesDisponibles.find(r => r.nombre.toLowerCase() === 'simpatizante') || rolesDisponibles.find(r => r.nombre.toLowerCase() === 'militante');
+    rolId = base ? base.id : null;
+    if (!rolId) { errEl.textContent = 'No se encontró el rol base para aceptar la solicitud.'; errEl.style.display = 'block'; return; }
+  } else {
+    motivo = document.getElementById(`sol-motivo-${id}`).value;
+    if (!motivo) { errEl.textContent = 'Selecciona el motivo del rechazo.'; errEl.style.display = 'block'; return; }
   }
 
   const { error } = await db.rpc('resolver_solicitud_afiliacion', {
@@ -8884,7 +8897,7 @@ async function resolverSolicitud(id, accion) {
     p_accion: accion,
     p_rol_asignado_id: rolId,
     p_estructura_asignada: estructura,
-    p_motivo_rechazo: null
+    p_motivo_rechazo: motivo
   });
 
   if (error) {
@@ -9396,7 +9409,7 @@ function renderAfiliados() {
       <td><span class="pill ${a.fuente === 'padron' ? 'pill-info' : 'pill-good'}">${a.fuente === 'padron' ? 'Padrón' : 'Directo'}</span></td>
       <td style="font-size:11px;color:var(--mute)">${esc(a.fecha)}</td>
       <td>
-        ${a.fuente === 'directo' ? `<button class="btn-qr" onclick="editarAfiliado('${esc(a.id)}')">Editar</button>` : '<span style="font-size:11px;color:var(--mute)">Padrón</span>'}
+        ${a.fuente === 'directo' ? `<button class="btn-qr" onclick="editarAfiliado('${esc(a.id)}')">Editar</button>${(a.tipo !== 'dirigente' && a.tipo !== 'coordinador') ? ` <button class="btn-qr" onclick="convertirADirigente('${esc(a.id)}')" title="Convertir en dirigente" style="margin-left:4px;">→ Dirigente</button>` : ''}` : '<span style="font-size:11px;color:var(--mute)">Padrón</span>'}
       </td>
     </tr>
   `).join('');
@@ -9408,6 +9421,22 @@ function renderAfiliados() {
     <button class="btn-qr" onclick="afilPagina(-1)" ${afilPage===0?'disabled':''} style="margin-left:8px;">← Ant</button>
     <button class="btn-qr" onclick="afilPagina(1)" ${afilPage>=totalPags-1?'disabled':''} style="margin-left:4px;">Sig →</button>
   ` : `${fmtNum(total)} afiliados`;
+}
+
+async function convertirADirigente(id) {
+  const a = afiliadosData.find(x => x.id == id);
+  if (!a) return;
+  const cedula = a.cedula !== '—' ? a.cedula : '';
+  const telefono = a.telefono !== '—' ? a.telefono : '';
+  if (!cedula || !telefono) {
+    toast('err', 'Para hacerlo dirigente necesita cédula y teléfono. Complétalos con "Editar".');
+    return;
+  }
+  if (!confirm('¿Convertir a ' + a.nombre + ' en dirigente?')) return;
+  const { error } = await db.from('afiliados').update({ tipo: 'dirigente' }).eq('id', id);
+  if (error) { toast('err', 'No se pudo actualizar: ' + error.message); return; }
+  await promoverAfiliadoADirigente({ nombre: a.nombre, cedula, telefono, zona: a.zona !== '—' ? a.zona : '', cargo: a.cargo !== '—' ? a.cargo : '' });
+  loadAfiliados();
 }
 
 function afilPagina(dir) {
@@ -9978,10 +10007,16 @@ function ogCargoCardHtml(cargo, asigs, color, avatarSize) {
           ${cargo.multiple ? `<button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" title="Agregar persona" style="padding:2px 7px;font-size:10.5px;">+</button>` : ''}
           <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',-1)" title="Subir cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▲</button>
           <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',1)" title="Bajar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▼</button>
+          <button type="button" onclick="ogEditarCargo('${esc(cargo.id)}')" title="Editar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✎</button>
+          <button type="button" onclick="ogEliminarCargo('${esc(cargo.id)}')" title="Quitar este cargo del organigrama" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✕</button>
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;">${personas}</div>
     </div>`;
+}
+
+function ogItemHtml(x, color, size) {
+  return x.vacante ? ogVacanteCardHtml(x.cargo) : ogCargoCardHtml(x.cargo, x.asigs, color, size);
 }
 
 function ogRender() {
@@ -10004,7 +10039,7 @@ function ogRender() {
     const cargosFilled = [];
     byCat[cat].forEach(c => {
       const asigs = (asigPorCargo[c.id] || []).slice().sort((a, b) => (a.orden || 0) - (b.orden || 0));
-      if (!asigs.length) { vacantesHtml.push(ogVacanteCardHtml(c)); return; }
+      if (!asigs.length) { vacantesHtml.push(ogVacanteCardHtml(c)); cargosFilled.push({ cargo: c, asigs: [], vacante: true }); return; }
       cubiertos++;
       cargosFilled.push({ cargo: c, asigs });
     });
@@ -10013,24 +10048,24 @@ function ogRender() {
     let bodyHtml;
     // La Mesa Directiva se dibuja como árbol: Presidente arriba, el resto conectado debajo.
     if (cat === 'Mesa Directiva') {
-      const presIdx = cargosFilled.findIndex(x => /presidente/i.test(x.cargo.nombre) && !/vice/i.test(x.cargo.nombre));
+      const presIdx = cargosFilled.findIndex(x => !x.vacante && /presidente/i.test(x.cargo.nombre) && !/vice/i.test(x.cargo.nombre));
       if (presIdx >= 0) {
         const pres = cargosFilled[presIdx];
         const resto = cargosFilled.filter((_, i) => i !== presIdx);
         bodyHtml = `
           <div style="display:flex;flex-direction:column;align-items:center;">
-            ${ogCargoCardHtml(pres.cargo, pres.asigs, color, 96)}
+            ${ogItemHtml(pres, color, 96)}
             ${resto.length ? `
               <div style="width:2px;height:18px;background:var(--line);"></div>
               <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">
-                ${resto.map(x => ogCargoCardHtml(x.cargo, x.asigs, color)).join('')}
+                ${resto.map(x => ogItemHtml(x, color)).join('')}
               </div>` : ''}
           </div>`;
       } else {
-        bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${cargosFilled.map(x => ogCargoCardHtml(x.cargo, x.asigs, color)).join('')}</div>`;
+        bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${cargosFilled.map(x => ogItemHtml(x, color)).join('')}</div>`;
       }
     } else {
-      bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${cargosFilled.map(x => ogCargoCardHtml(x.cargo, x.asigs, color)).join('')}</div>`;
+      bodyHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">${cargosFilled.map(x => ogItemHtml(x, color)).join('')}</div>`;
     }
 
     contentHtml += `
@@ -10058,7 +10093,13 @@ function ogVacanteCardHtml(cargo) {
         <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(cargo.nombre)}</div>
         <div style="font-size:10.5px;color:var(--mute);">${esc(cargo.categoria)}</div>
       </div>
-      <button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" style="padding:5px 10px;font-size:11px;flex-shrink:0;">+ Asignar</button>
+      <div style="display:flex;gap:2px;align-items:center;flex-shrink:0;">
+        <button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" style="padding:5px 10px;font-size:11px;">+ Asignar</button>
+        <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',-1)" title="Subir cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▲</button>
+        <button type="button" onclick="ogMoverCargo('${esc(cargo.id)}',1)" title="Bajar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">▼</button>
+        <button type="button" onclick="ogEditarCargo('${esc(cargo.id)}')" title="Editar cargo" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✎</button>
+          <button type="button" onclick="ogEliminarCargo('${esc(cargo.id)}')" title="Quitar este cargo del organigrama" style="all:unset;cursor:pointer;color:var(--mute);padding:0 3px;font-size:12px;">✕</button>
+      </div>
     </div>`;
 }
 
@@ -10192,6 +10233,21 @@ async function ogGuardarAsignacion() {
   ogCargarInstancia();
 }
 
+async function ogEliminarCargo(cargoId) {
+  const cargo = ogCargos.find(c => c.id === cargoId);
+  if (!cargo) return;
+  if (ogAsignaciones.some(a => a.cargo_id === cargoId)) {
+    toast('err', 'Este cargo tiene personas. Quítalas primero y luego puedes quitar el cargo.');
+    return;
+  }
+  if (!confirm('¿Quitar el cargo "' + cargo.nombre + '" del organigrama?')) return;
+  const { data: borrados, error } = await db.from('cargos_catalogo').delete().eq('id', cargoId).select('id');
+  if (error) { toast('err', 'No se pudo quitar el cargo: ' + error.message); return; }
+  if (!borrados || !borrados.length) { toast('err', 'Este cargo es parte del catálogo base y no se puede quitar desde aquí.'); return; }
+  toast('ok', 'Cargo quitado del organigrama.');
+  ogCargarInstancia();
+}
+
 async function ogQuitarAsignacion(asigId) {
   if (!confirm('¿Quitar a esta persona del cargo?')) return;
   const { error } = await db.from('organigrama_asignaciones').delete().eq('id', asigId);
@@ -10200,7 +10256,21 @@ async function ogQuitarAsignacion(asigId) {
   ogCargarInstancia();
 }
 
+let ogCargoEditId = null;
+function ogEditarCargo(cargoId) {
+  const c = ogCargos.find(x => x.id === cargoId);
+  if (!c) return;
+  ogAbrirModalCargo();
+  ogCargoEditId = cargoId;
+  document.getElementById('og-cargo-title').textContent = 'Editar cargo';
+  document.getElementById('og-cargo-nombre').value = c.nombre || '';
+  document.getElementById('og-cargo-categoria').value = c.categoria || '';
+  document.getElementById('og-cargo-multiple').checked = !!c.multiple;
+}
+
 function ogAbrirModalCargo() {
+  ogCargoEditId = null;
+  document.getElementById('og-cargo-title').textContent = 'Nuevo cargo';
   document.getElementById('og-cargo-nombre').value = '';
   document.getElementById('og-cargo-categoria').value = '';
   document.getElementById('og-cargo-multiple').checked = false;
@@ -10224,6 +10294,16 @@ async function ogGuardarCargo() {
   if (!ogInstanciaId) {
     errEl.textContent = 'Selecciona primero una instancia (Municipal o una zona).';
     errEl.style.display = 'block';
+    return;
+  }
+  if (ogCargoEditId) {
+    const { data: act, error: eU } = await db.from('cargos_catalogo').update({ nombre, categoria, multiple }).eq('id', ogCargoEditId).select('id');
+    if (eU) { errEl.textContent = 'Error: ' + eU.message; errEl.style.display = 'block'; return; }
+    if (!act || !act.length) { errEl.textContent = 'Este cargo es parte del catálogo base y no se puede editar desde aquí.'; errEl.style.display = 'block'; return; }
+    ogCargoEditId = null;
+    ogCerrarModalCargo();
+    toast('ok', 'Cargo actualizado.');
+    ogCargarInstancia();
     return;
   }
   const maxOrden = ogCargos.reduce((m, c) => Math.max(m, c.orden || 0), 0);
@@ -10775,7 +10855,7 @@ async function crearDirigente() {
   const nombre     = document.getElementById('nd-nombre').value.trim();
   const cedula     = document.getElementById('nd-cedula').value.trim();
   const telefono   = document.getElementById('nd-telefono').value.trim();
-  const nivel      = document.getElementById('nd-nivel').value;
+  const nivel      = document.getElementById('nd-nivel').value || 'dirigente';
   const cargo      = document.getElementById('nd-cargo').value.trim();
   const zona       = document.getElementById('nd-zona').value;
   const recinto    = document.getElementById('nd-recinto').value || null;
@@ -10791,8 +10871,8 @@ async function crearDirigente() {
   const errEl      = document.getElementById('nd-error');
   const btn        = document.getElementById('nd-btn');
 
-  if (!nombre || !nivel) {
-    errEl.textContent = 'Nombre y nivel jerárquico son obligatorios.';
+  if (!nombre) {
+    errEl.textContent = 'El nombre es obligatorio.';
     errEl.style.display = 'block';
     return;
   }
@@ -10842,35 +10922,72 @@ document.getElementById('modal-lista-dir').addEventListener('click', function(e)
 document.getElementById('modal-dirigente').addEventListener('click', function(e) {
   if (e.target === this) cerrarModalDirigente();
 });
+// Ficha simple: nombre, cédula, teléfono, meta, estado y vehículo. El cargo, la estructura y el rol se dan desde el organigrama.
+(function () {
+  ['nd-nivel','nd-cargo','nd-zona','nd-recinto','nd-territorio','nd-superior','nd-placa-vehiculo','nd-nivel-territorial'].forEach(id => {
+    const el = document.getElementById(id); const g = el && el.closest('.mf-group'); if (g) g.style.display = 'none';
+  });
+  document.querySelectorAll('#modal-dirigente .mf-row2').forEach(r => {
+    if ([...r.children].every(c => c.style.display === 'none')) r.style.display = 'none';
+  });
+})();
 
 
 // ═══ RECINTOS ═══
+let recData = [];
 async function loadRecintos() {
   const tb = document.getElementById('rec-tb');
-  tb.innerHTML = '<tr><td colspan="6" class="loading-row">Cargando…</td></tr>';
+  tb.innerHTML = '<tr><td colspan="7" class="loading-row">Cargando…</td></tr>';
 
   const { data } = await db.from('recintos_prm').select('*').order('zona, codigo');
+  recData = data || [];
 
-  if (!data || data.length === 0) {
-    tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
+  if (!recData.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
     return;
   }
+  // llenar los filtros con los valores que existen
+  const llenar = (id, valores, etiqueta) => {
+    const sel = document.getElementById(id), actual = sel.value;
+    sel.innerHTML = sel.options[0].outerHTML + valores.map(v => `<option value="${esc(v)}">${esc(etiqueta ? etiqueta(v) : v)}</option>`).join('');
+    sel.value = actual;
+  };
+  const uniq = k => [...new Set(recData.map(r => r[k]).filter(v => v != null && v !== ''))].sort((a,b) => String(a).localeCompare(String(b), 'es', {numeric:true}));
+  llenar('rec-f-circ', uniq('circunscripcion'), v => 'Circunscripción ' + v);
+  llenar('rec-f-zona', uniq('zona'), v => 'Estructura ' + v);
+  renderRecintosPanel();
+}
 
-  tb.innerHTML = data.map(r => {
-    const ganador = r.ganado_2020_por || '—';
-    const pillClass = ganador === 'PRM' ? 'pill-good' : ganador === 'PLD' ? 'pill-alert' : 'pill-mute';
-    return `
+function renderRecintosPanel() {
+  const tb = document.getElementById('rec-tb');
+  const q = (document.getElementById('rec-q').value || '').trim().toLowerCase();
+  const circ = document.getElementById('rec-f-circ').value;
+  const zona = document.getElementById('rec-f-zona').value;
+  const lista = recData.filter(r =>
+    (!circ || String(r.circunscripcion) === circ) &&
+    (!zona || String(r.zona) === zona) &&
+    (!q || String(r.nombre || '').toLowerCase().includes(q) || String(r.codigo || '').toLowerCase().includes(q)));
+
+  if (!lista.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--mute)">Ningún recinto coincide con la búsqueda</td></tr>';
+  } else {
+    tb.innerHTML = lista.map(r => {
+      const ganador = r.ganado_2020_por || '—';
+      const pillClass = ganador === 'PRM' ? 'pill-good' : ganador === 'PLD' ? 'pill-alert' : 'pill-mute';
+      return `
       <tr>
         <td class="mono bold">${esc(r.codigo)}</td>
         <td class="bold">${esc(r.nombre)}</td>
-        <td>${r.zona ? 'Estructura ' + r.zona : '—'}</td>
+        <td>${r.circunscripcion ? esc(r.circunscripcion) : '—'}</td>
+        <td>${r.zona ? 'Estructura ' + esc(r.zona) : '—'}</td>
         <td class="num">${fmtNum(r.total_electores)}</td>
         <td class="num">${fmtNum(r.total_colegios)}</td>
-        <td><span class="pill ${pillClass}">${ganador}</span></td>
+        <td><span class="pill ${pillClass}">${esc(ganador)}</span></td>
       </tr>`;
-  }).join('');
-
-  document.getElementById('rec-sub').textContent = `${data.length} recintos · ${data.reduce((s, r) => s + (r.total_electores || 0), 0).toLocaleString()} electores`;
+    }).join('');
+  }
+  const filtrado = lista.length !== recData.length;
+  document.getElementById('rec-sub').textContent = `${filtrado ? lista.length + ' de ' + recData.length : recData.length} recintos · ${lista.reduce((t, r) => t + (r.total_electores || 0), 0).toLocaleString()} electores`;
 }
 
 // ═══ TIENDA ═══
@@ -11197,6 +11314,11 @@ async function loadMisSolicitudesServicio() {
 // ═══ GLOBAL SEARCH ═══
 document.getElementById('global-search').addEventListener('input', e => {
   const v = e.target.value;
+  if (window._vistaActual === 'recintos') {   // en Recintos, el buscador de arriba busca recintos
+    document.getElementById('rec-q').value = v;
+    renderRecintosPanel();
+    return;
+  }
   if (v.length < 3) return;
   navTo('padron');
   document.getElementById('padron-search').value = v;

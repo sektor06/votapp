@@ -116,8 +116,8 @@
   <div class="stepper-wrap">
     <div class="stepper" id="stepper">
       <div class="step active" data-step="1"><div class="step-dot">1</div><div class="step-label">Cuenta</div></div>
-      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">A quién apoyás</div></div>
-      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">Tus datos</div></div>
+      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">Tus datos</div></div>
+      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">A quién apoyás</div></div>
       <div class="step" data-step="4"><div class="step-dot">4</div><div class="step-label">Confirmar</div></div>
     </div>
   </div>
@@ -160,24 +160,6 @@
       </div>
 
       <div class="step-content" id="content-2" style="display:none;">
-        <div class="card-title">¿A quién querés apoyar?</div>
-        <div class="card-sub">Elegí el partido, movimiento o candidato al que querés solicitar unirte.</div>
-        <input class="org-search" placeholder="Buscar por nombre…" oninput="filtrarOrgs(this.value)">
-        <div class="org-list" id="org-list"><div class="loading-txt">Cargando organizaciones…</div></div>
-        <div id="cat-section" style="display:none;">
-          <div class="f-label" style="margin-bottom:8px;">¿Con qué categoría querés solicitar entrar?</div>
-          <div class="cat-choice">
-            <div class="cat-btn" data-cat="simpatizante" onclick="elegirCategoria('simpatizante')">Simpatizante</div>
-            <div class="cat-btn" data-cat="militante" onclick="elegirCategoria('militante')">Militante</div>
-          </div>
-        </div>
-        <div class="nav-row">
-          <button class="btn btn-ghost" onclick="irPaso(1)">Atrás</button>
-          <button class="btn btn-primary" id="btn-next-2" onclick="irPaso(3)" disabled>Continuar</button>
-        </div>
-      </div>
-
-      <div class="step-content" id="content-3" style="display:none;">
         <div class="card-title">Tus datos</div>
         <div class="card-sub">Esta información queda vinculada a tu solicitud de afiliación.</div>
         <div class="form-grid">
@@ -206,7 +188,18 @@
           </div>
         </div>
         <div class="error-box" id="err-3"></div>
-        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(2)">Atrás</button><button class="btn btn-primary" onclick="validarPaso3()">Continuar</button></div>
+        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(1)">Atrás</button><button class="btn btn-primary" onclick="validarPaso3()">Continuar</button></div>
+      </div>
+
+      <div class="step-content" id="content-3" style="display:none;">
+        <div class="card-title">¿A quién querés apoyar?</div>
+        <div class="card-sub">Elegí el partido, movimiento o candidato al que querés solicitar unirte.</div>
+        <input class="org-search" placeholder="Buscar por nombre…" oninput="filtrarOrgs(this.value)">
+        <div class="org-list" id="org-list"><div class="loading-txt">Cargando organizaciones…</div></div>
+        <div class="nav-row">
+          <button class="btn btn-ghost" onclick="irPaso(2)">Atrás</button>
+          <button class="btn btn-primary" id="btn-next-2" onclick="irPaso(4)" disabled>Continuar</button>
+        </div>
       </div>
 
       <div class="step-content" id="content-4" style="display:none;">
@@ -214,7 +207,6 @@
         <div class="card-sub">Revisá los datos antes de enviar.</div>
         <div class="summary-box">
           <div class="summary-row"><span>Solicitás unirte a</span><span id="sum-org">—</span></div>
-          <div class="summary-row"><span>Categoría</span><span id="sum-cat">—</span></div>
           <div class="summary-row"><span>Nombre</span><span id="sum-nombre">—</span></div>
           <div class="summary-row"><span>Aviso de respuesta</span><span id="sum-notif">—</span></div>
         </div>
@@ -296,7 +288,7 @@ document.getElementById('f-cedula').addEventListener('input', () => {
   clearTimeout(window._cedulaTimeout);
   window._cedulaTimeout = setTimeout(autocompletarPorCedula, 400);
 });
-let categoriaSeleccionada = null;
+let categoriaSeleccionada = 'simpatizante'; // la categoría ya no se pregunta; la define la organización al aceptar
 let notifPreferida = 'correo';
 
 async function init() {
@@ -363,9 +355,9 @@ function renderOrgs(filtro = '') {
     </div>`).join('');
 }
 function filtrarOrgs(q) { renderOrgs(q); }
-function elegirOrg(id) { orgSeleccionada = id; renderOrgs(document.querySelector('.org-search').value); document.getElementById('cat-section').style.display = 'block'; actualizarBotonPaso2(); }
+function elegirOrg(id) { orgSeleccionada = id; renderOrgs(document.querySelector('.org-search').value); actualizarBotonPaso2(); }
 function elegirCategoria(cat) { categoriaSeleccionada = cat; document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.toggle('selected', b.dataset.cat===cat)); actualizarBotonPaso2(); }
-function actualizarBotonPaso2() { document.getElementById('btn-next-2').disabled = !(orgSeleccionada && categoriaSeleccionada); }
+function actualizarBotonPaso2() { document.getElementById('btn-next-2').disabled = !orgSeleccionada; }
 function elegirNotif(tipo) { notifPreferida = tipo; document.querySelectorAll('#notif-choice .cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.notif===tipo)); }
 
 function irPaso(n) {
@@ -376,7 +368,7 @@ function irPaso(n) {
     s.classList.toggle('active', num === n);
     s.classList.toggle('done', num < n);
   });
-  if (n === 2 && !organizaciones.length) cargarOrganizaciones();
+  if (n === 3 && !organizaciones.length) cargarOrganizaciones();
   if (n === 4) actualizarResumen();
 }
 
@@ -392,13 +384,12 @@ function validarPaso3() {
     return;
   }
   err.classList.remove('show');
-  irPaso(4);
+  irPaso(3);
 }
 
 function actualizarResumen() {
   const org = organizaciones.find(o => o.id === orgSeleccionada);
   document.getElementById('sum-org').textContent = org ? org.nombre : '—';
-  document.getElementById('sum-cat').textContent = categoriaSeleccionada === 'militante' ? 'Militante' : 'Simpatizante';
   document.getElementById('sum-nombre').textContent = document.getElementById('f-nombre').value + ' ' + document.getElementById('f-apellido').value;
   document.getElementById('sum-notif').textContent = notifPreferida === 'llamada' ? '📞 Por llamada' : '📧 Por correo';
 }
@@ -447,7 +438,7 @@ async function enviarSolicitud() {
   document.getElementById('content-confirm').style.display = 'block';
   const canal = notifPreferida === 'llamada' ? 'por llamada telefónica' : 'por correo';
   document.getElementById('confirm-text').innerHTML =
-    `Tu solicitud para unirte como <b>${categoriaSeleccionada==='militante'?'Militante':'Simpatizante'}</b> a <b>${org?org.nombre:''}</b> fue enviada. Te vamos a avisar ${canal} cuando la revisen.`;
+    `Tu solicitud para unirte a <b>${org?org.nombre:''}</b> fue enviada. Te vamos a avisar ${canal} cuando la revisen.`;
 }
 
 init();
