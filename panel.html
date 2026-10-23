@@ -9801,6 +9801,7 @@ document.getElementById('modal-rol').addEventListener('click', function(e) {
 
 // ═══ MÓDULO ORGANIGRAMA (Municipal / Zonal, cargos_catalogo) ═══
 let ogNivel = 'municipal';
+let ogReservasPorCargo = {};
 let ogZonaId = '';
 let ogInstanciaId = null;
 let ogCargos = [];
@@ -9907,6 +9908,11 @@ async function ogCargarInstancia() {
   ]);
   ogCargos = cargos || [];
   ogAsignaciones = asigs || [];
+  ogReservasPorCargo = {};
+  try {
+    const { data: res, error: eRes } = await db.from('organigrama_reservas').select('cargo_id,nombre,cedula').eq('instancia_id', ogInstanciaId);
+    if (!eRes) (res || []).forEach(r => { (ogReservasPorCargo[r.cargo_id] = ogReservasPorCargo[r.cargo_id] || []).push(r); });
+  } catch (e) {}
   ogRender();
 }
 
@@ -10106,7 +10112,9 @@ function ogVacanteCardHtml(cargo) {
       <div style="text-align:center;min-width:0;">
         <div style="width:48px;height:48px;border-radius:50%;border:1px dashed var(--line);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:20px;">+</div>
         <div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.25;">${esc(cargo.nombre)}</div>
-        <div style="font-size:10.5px;color:var(--mute);">Vacante</div>
+        ${(ogReservasPorCargo[cargo.id] || []).length
+          ? `<div style="font-size:10.5px;color:#B45309;font-weight:600;margin-top:2px;">Reservado: ${esc((ogReservasPorCargo[cargo.id])[0].nombre || '')}${ogReservasPorCargo[cargo.id].length > 1 ? ' +' + (ogReservasPorCargo[cargo.id].length - 1) : ''}</div><div style="font-size:10px;color:var(--mute);">Esperando que se registre</div>`
+          : `<div style="font-size:10.5px;color:var(--mute);">Vacante</div>`}
       </div>
       <button class="btn-qr" onclick="ogAbrirModalAsignar('${esc(cargo.id)}')" style="padding:6px 10px;font-size:11px;width:100%;">+ Asignar</button>
     </div>`;

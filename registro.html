@@ -328,7 +328,8 @@ async function loginGoogle() {
 }
 
 async function cargarOrganizaciones() {
-  const { data, error } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre');
+  let { data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto').eq('activa', true).order('nombre');
+  if (error) ({ data } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre'));
   organizaciones = data || [];
   renderOrgs();
 
@@ -349,7 +350,7 @@ function renderOrgs(filtro = '') {
   cont.innerHTML = lista.map(o => `
     <div class="org-card ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${esc(o.id)}')">
       <div class="org-logo" style="background:${esc(colores[o.tipo]||'#64748B')};">${o.nombre.substring(0,2).toUpperCase()}</div>
-      <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">Inscrito en ATENAS</div></div>
+      <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">${o.tipo==='candidato' && o.puesto ? 'Candidato a ' + esc(o.puesto) : 'Inscrito en ATENAS'}</div></div>
       <span class="org-type-badge badge-${esc(o.tipo)}">${badge[o.tipo]||o.tipo}</span>
       <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
     </div>`).join('');
@@ -372,7 +373,7 @@ function irPaso(n) {
   if (n === 4) actualizarResumen();
 }
 
-function validarPaso3() {
+async function validarPaso3() {
   const err = document.getElementById('err-3');
   const cedula = document.getElementById('f-cedula').value.trim();
   const nombre = document.getElementById('f-nombre').value.trim();
@@ -384,6 +385,18 @@ function validarPaso3() {
     return;
   }
   err.classList.remove('show');
+  // Una cédula = una cuenta. Se registra aquí; si ya pertenece a otra cuenta, se rechaza.
+  const btn = document.querySelector('#content-2 .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando…'; }
+  const { error: ePerfil } = await db.rpc('registrar_perfil', { p_cedula: cedula, p_nombre: nombre, p_apellido: apellido });
+  if (btn) { btn.disabled = false; btn.textContent = 'Continuar'; }
+  if (ePerfil) {
+    err.textContent = ePerfil.message.includes('otra cuenta')
+      ? 'Esa cédula ya está registrada con otra cuenta. Si es tuya, inicia sesión con esa cuenta o escríbenos.'
+      : ePerfil.message;
+    err.classList.add('show');
+    return;
+  }
   irPaso(3);
 }
 
