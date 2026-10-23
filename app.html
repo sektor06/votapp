@@ -2949,10 +2949,13 @@ async function loadMisComprometidos() {
   const div = document.getElementById('comp-content');
   div.innerHTML = '<div class="spinner" role="status" aria-label="Cargando"></div>';
   
-  const [{ data }, { data: vot }] = await Promise.all([
+  const [{ data }, { data: vot }, { data: lle }] = await Promise.all([
     db.rpc('mis_comprometidos', { p_dirigente_id: currentDirigente.id }),
-    db.rpc('mis_comprometidos_que_votaron', { p_dirigente_id: currentDirigente.id })
+    db.rpc('mis_comprometidos_que_votaron', { p_dirigente_id: currentDirigente.id }),
+    db.rpc('mis_llevados_a_votar', { p_dirigente_id: currentDirigente.id })
   ]);
+  misLlevados = {};
+  (lle || []).forEach(v => { misLlevados[v.cedula] = v.hora; });
   misVotaron = {};
   (vot || []).forEach(v => { misVotaron[v.cedula] = v.hora; });
   
@@ -2983,13 +2986,21 @@ async function loadMisComprometidos() {
   }
   
   const nVot = (data || []).filter(e => misVotaron[e.cedula]).length;
-  const votBar = `<div style="margin:0 14px 12px;background:#ecfdf5;border:1.5px solid #a7f3d0;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#065f46;"><span>✓ Ya votaron: ${nVot}</span><span style="color:#92400e;">Faltan: ${total - nVot}</span></div>`;
+  const votBar = `<div style="margin:0 14px 12px;background:#ecfdf5;border:1.5px solid #a7f3d0;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#065f46;"><span>✓ Ya votaron: ${nVot}</span><span style="color:#1d4ed8;">🚗 Llevé: ${(data || []).filter(e => misLlevados[e.cedula]).length}</span><span style="color:#92400e;">Faltan: ${total - nVot}</span></div>`;
   div.innerHTML = stats + votBar + '<div id="comp-lista"></div>';
   pintarMisComprometidos(data);
 }
 
 let misCompData = [];
 let misVotaron = {};
+let misLlevados = {};
+async function alternarLlevado(cedula) {
+  const ya = !!misLlevados[cedula];
+  const { error } = await db.rpc('marcar_llevado_a_votar', { p_dirigente_id: currentDirigente.id, p_cedula: cedula, p_marcar: !ya });
+  if (error) { alert('No se pudo guardar: ' + error.message); return; }
+  if (ya) delete misLlevados[cedula]; else misLlevados[cedula] = new Date().toISOString();
+  filtrarMisComprometidos();
+}
 function filtrarMisComprometidos() {
   const q = (document.getElementById('comp-q').value || '').trim().toLowerCase();
   const qd = q.replace(/\D/g, '');
@@ -3002,6 +3013,7 @@ function pintarMisComprometidos(data) {
   const nivelP = { 'seguro': 'pill-seguro', 'probable': 'pill-probable', 'dudoso': 'pill-dudoso' };
   const afilP = { 'PRM': 'pill-prm', 'PLD': 'pill-pld', 'FP': 'pill-fp' };
   box.innerHTML = '<div class="comp-list">' + data.map(e => `
+    <div>
     <button type="button" class="elector-card" onclick="abrirFicha('${esc(e.id)}')" aria-label="Abrir ficha de ${esc(e.nombre)}">
       <div class="ec-row">
         <div class="ec-av committed" aria-hidden="true">${ini(e.nombre)}${e.cedula ? `<img class="ec-av-img" data-pf="${esc(e.cedula)}" alt="" onerror="this.remove()">` : ''}</div>
@@ -3017,6 +3029,8 @@ function pintarMisComprometidos(data) {
         <span class="ec-arrow" aria-hidden="true">›</span>
       </div>
     </button>
+    <button type="button" onclick="alternarLlevado('${esc(e.cedula)}')" style="width:100%;margin:6px 0 14px;padding:9px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid ${misLlevados[e.cedula] ? '#1d4ed8' : '#cbd5e1'};background:${misLlevados[e.cedula] ? '#dbeafe' : '#fff'};color:${misLlevados[e.cedula] ? '#1d4ed8' : '#334155'};">${misLlevados[e.cedula] ? '🚗 Lo llevé a votar · ' + new Date(misLlevados[e.cedula]).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}) + ' (toca para quitar)' : '🚗 Lo llevé a votar'}</button>
+    </div>
   `).join('') + '</div>';
 }
 
