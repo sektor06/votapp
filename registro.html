@@ -174,6 +174,7 @@
           <div class="f-group"><label class="f-label">Correo electrónico</label><input class="f-input" id="f-correo" disabled style="background:#F4F4F4;color:var(--mute);"></div>
           <div class="f-group span2"><label class="f-label">Calle, avenida o carretera</label><input class="f-input" id="f-calle" placeholder="Calle Principal #12"></div>
           <div class="f-group"><label class="f-label">Barrio o sector</label><input class="f-input" id="f-barrio" list="barrios-lista" placeholder="Escribí para buscar…" autocomplete="off"><datalist id="barrios-lista"><option value="24 de Abril"><option value="30 de Mayo"><option value="Alto de Abraham"><option value="Alto de San Pedro"><option value="Bajo Manhattan"><option value="Barrio Azul"><option value="Barrio Blanco"><option value="Barrio Kilometro 3 1/2"><option value="Barrio Lindo"><option value="Barrio Lindo II"><option value="Barrio Mexico"><option value="Barrio Restauración"><option value="Brizas del Este"><option value="Buenos Aires"><option value="Cacarajicara"><option value="Campus UCE"><option value="Centro"><option value="Ciudad Codiana"><option value="El Batey Central"><option value="El Brisal"><option value="El Golfo"><option value="El Ocho"><option value="El Patio"><option value="El Retiro"><option value="El Silencio"><option value="El Toconal"><option value="Enrriquillo"><option value="Invi CEA"><option value="Jaime Brugal"><option value="Japón"><option value="Jardines del Este"><option value="José Blanche"><option value="Juan Pablo Duarte"><option value="Kennedy I"><option value="Kennedy II"><option value="La Arena"><option value="La Barca"><option value="La Belleza"><option value="La Piedra"><option value="La Puerta"><option value="La Roca"><option value="Las Caobas"><option value="Las Colinas I"><option value="Las Colinas II"><option value="Las Filipinas"><option value="Las Flores"><option value="Loma del Cochero"><option value="Los 4 Caminos"><option value="Los Bomberitos"><option value="Los Cajones"><option value="Los Guandules"><option value="Los Maestros"><option value="Los Multis"><option value="Los Profesionales"><option value="Los Transformadores"><option value="Lotificación CEA"><option value="Maranatha"><option value="Miramar"><option value="Nueva Esperanza"><option value="Palo de Azucar"><option value="Paraiso"><option value="Pedro Justo Carrión"><option value="Perez Marquez"><option value="Petropolis"><option value="Placer Bonito"><option value="Playa de Muerto"><option value="Proyecto Lotificación"><option value="Puerto Rico"><option value="Punta Pescadora"><option value="Punta de Garza"><option value="San Anton"><option value="Santa Clara"><option value="Santa Fe"><option value="Sarmiento I"><option value="Sarmiento II"><option value="Sin Nombre"><option value="Urb, Marina"><option value="Urb. Evangelina Rodriguez"><option value="Urb. Garden"><option value="Urb. Hazim"><option value="Urb. Independencia"><option value="Urb. La Bendición"><option value="Urb. Mallen"><option value="Urb. Naime"><option value="Urb. Oriental"><option value="Urb. Peréz Bernal"><option value="Urb. Vicini"><option value="Villa Azucarera"><option value="Villa Cañera"><option value="Villa Centro"><option value="Villa Cesarina"><option value="Villa Coral"><option value="Villa España"><option value="Villa Faro"><option value="Villa Magdalena"><option value="Villa Mexico"><option value="Villa Municipal"><option value="Villa Olimpica"><option value="Villa Orilla"><option value="Villa Progreso I"><option value="Villa Progreso II"><option value="Villa Providencia"><option value="Villa Providencia II"><option value="Villa Velasquez"><option value="Villa Vizan"><option value="Villla Hermosa"><option value="Vitania"></datalist></div>
+          <div class="f-group"><label class="f-label">Provincia</label><select class="f-input" id="f-provincia"><option>Azua</option><option>Bahoruco</option><option>Barahona</option><option>Dajabón</option><option>Distrito Nacional</option><option>Duarte</option><option>El Seibo</option><option>Elías Piña</option><option>Espaillat</option><option>Hato Mayor</option><option>Hermanas Mirabal</option><option>Independencia</option><option>La Altagracia</option><option>La Romana</option><option>La Vega</option><option>María Trinidad Sánchez</option><option>Monseñor Nouel</option><option>Monte Cristi</option><option>Monte Plata</option><option>Pedernales</option><option>Peravia</option><option>Puerto Plata</option><option>Samaná</option><option>San Cristóbal</option><option>San José de Ocoa</option><option>San Juan</option><option selected>San Pedro de Macorís</option><option>Sánchez Ramírez</option><option>Santiago</option><option>Santiago Rodríguez</option><option>Santo Domingo</option><option>Valverde</option></select></div>
           <div class="f-group"><label class="f-label">Ciudad / Municipio</label><input class="f-input" id="f-ciudad" value="San Pedro de Macorís"></div>
           <div class="f-group"><label class="f-label">Ocupación</label><input class="f-input" id="f-ocupacion" placeholder="Ej: Comerciante"></div>
           <div class="f-group"><label class="f-label">Frente sectorial <span style="text-transform:none;font-weight:500;">(opcional)</span></label>
@@ -414,7 +415,7 @@ async function enviarSolicitud() {
   const err = document.getElementById('err-4');
   btn.disabled = true; btn.textContent = 'Enviando…'; err.classList.remove('show');
 
-  const { data, error } = await db.rpc('crear_solicitud_afiliacion', {
+  const argsSolicitud = {
     p_organizacion_id: orgSeleccionada,
     p_categoria: categoriaSeleccionada,
     p_nombre: document.getElementById('f-nombre').value.trim(),
@@ -434,8 +435,14 @@ async function enviarSolicitud() {
     p_ocupacion: document.getElementById('f-ocupacion').value.trim() || null,
     p_frente_sectorial: document.getElementById('f-frente').value || null,
     p_aviso_preferido: notifPreferida,
-    p_estructura_sugerida: null
-  });
+    p_estructura_sugerida: null,
+    p_provincia: document.getElementById('f-provincia').value
+  };
+  let { data, error } = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
+  if (error && /p_provincia|schema cache/i.test(error.message)) {
+    delete argsSolicitud.p_provincia;
+    ({ data, error } = await db.rpc('crear_solicitud_afiliacion', argsSolicitud));
+  }
 
   if (error) {
     err.textContent = 'No se pudo enviar la solicitud: ' + error.message;
