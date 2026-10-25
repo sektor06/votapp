@@ -2067,6 +2067,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="search" id="padron-search" placeholder="Buscar por nombre o cédula" oninput="searchPadron(this.value)">
         </div>
+        <select class="mf-input" id="padron-mun" onchange="cambiarMunicipioPadron()" style="width:190px;" aria-label="Municipio"><option value="">Todos los municipios</option></select>
         <button type="button" class="filter-chip active" data-f="todos" onclick="filterPadron('todos', this)">Todos</button>
         <button type="button" class="filter-chip" data-f="prm" onclick="filterPadron('prm', this)">PRM</button>
         <button type="button" class="filter-chip" data-f="comp" onclick="filterPadron('comp', this)">✓ Comprometidos</button>
@@ -2487,12 +2488,13 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
                 <th>Circunscripción</th>
                 <th>Estructura</th>
                 <th class="num">Electores</th>
+                <th class="num">Militantes PRM</th>
                 <th class="num">Colegios</th>
                 <th>Ganado 2020</th>
               </tr>
             </thead>
             <tbody id="rec-tb">
-              <tr><td colspan="8" class="loading-row">Cargando…</td></tr>
+              <tr><td colspan="9" class="loading-row">Cargando…</td></tr>
             </tbody>
           </table>
         </div>
@@ -4892,6 +4894,7 @@ function navTo(view) {
   if (view === 'dirigencial') loadDirigentes();
   if (view === 'organigrama') ogInit();
   if (view === 'recintos') loadRecintos();
+  if (view === 'padron') cargarMunicipiosPadron();
   if (view === 'territorial') initMapaZonas();
   if (view === 'accesos') loadAccesos();
 }
@@ -5594,18 +5597,20 @@ async function doSearchPadron(q, page = 0) {
     padronCache = {}; (data || []).forEach(e => { padronCache[e.id] = e; });
   } else if (/^\d/.test(q)) {
     const off = page * PADRON_PAGINA;
+    const mun = (document.getElementById('padron-mun') || {}).value || null;
     const [r1, r2] = await Promise.all([
-      db.rpc('buscar_padron_cedula_flexible', { p_query: q, p_filtro: currentFilter, p_limite: PADRON_PAGINA, p_offset: off }),
-      db.rpc('contar_padron_cedula', { p_query: q, p_filtro: currentFilter })
+      db.rpc('buscar_padron_cedula_flexible', { p_query: q, p_filtro: currentFilter, p_limite: PADRON_PAGINA, p_offset: off, p_municipio: mun }),
+      db.rpc('contar_padron_cedula', { p_query: q, p_filtro: currentFilter, p_municipio: mun })
     ]);
     ({ data, error } = r1); padronTotal = Number(r2.data) || (data ? data.length : 0);
   } else {
     // Búsqueda por nombre vía RPC: usa el índice trigram (con .ilike() + RLS recorría todo el padrón).
     // Aplica los mismos filtros (todos/prm/comp/duros) y los mismos permisos del panel. Paginada de 50 en 50.
     const off = page * PADRON_PAGINA;
+    const mun = (document.getElementById('padron-mun') || {}).value || null;
     const [r1, r2] = await Promise.all([
-      db.rpc('buscar_padron_por_nombre', { p_texto: q.toUpperCase(), p_filtro: currentFilter, p_limite: PADRON_PAGINA, p_offset: off }),
-      db.rpc('contar_padron_por_nombre', { p_texto: q.toUpperCase(), p_filtro: currentFilter })
+      db.rpc('buscar_padron_por_nombre', { p_texto: q.toUpperCase(), p_filtro: currentFilter, p_limite: PADRON_PAGINA, p_offset: off, p_municipio: mun }),
+      db.rpc('contar_padron_por_nombre', { p_texto: q.toUpperCase(), p_filtro: currentFilter, p_municipio: mun })
     ]);
     ({ data, error } = r1); padronTotal = Number(r2.data) || (data ? data.length : 0);
   }
@@ -5617,10 +5622,12 @@ async function doSearchPadron(q, page = 0) {
   }
 
   if (!data || data.length === 0) {
+    const subE = document.getElementById('padron-sub'); if (subE) subE.textContent = '0 resultados';
+    const munSel = document.getElementById('padron-mun');
     list.innerHTML = `<div class="empty">
       <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
       <div class="empty-t">Sin resultados</div>
-      <p class="empty-d">No encontramos electores que coincidan con "${q}".</p>
+      <p class="empty-d">No encontramos electores que coincidan con "${esc(q)}"${munSel && munSel.value ? ' en ' + esc(munSel.value) : ''}.</p>
     </div>`;
     return;
   }
@@ -5649,6 +5656,21 @@ async function doSearchPadron(q, page = 0) {
     ? `Mostrando ${desde.toLocaleString()}–${hasta.toLocaleString()} de ${padronTotal.toLocaleString()} resultados`
     : `${data.length} resultados`;
   renderPagerPadron();
+}
+
+let padronMunCargados = false;
+async function cargarMunicipiosPadron() {
+  if (padronMunCargados) return;
+  const sel = document.getElementById('padron-mun'); if (!sel) return;
+  const { data } = await db.from('recintos_prm').select('municipio');
+  const muns = [...new Set((data || []).map(r => r.municipio).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+  if (!muns.length) return;
+  padronMunCargados = true;
+  sel.innerHTML = '<option value="">Todos los municipios</option>' + muns.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+}
+function cambiarMunicipioPadron() {
+  const q = (document.getElementById('padron-search').value || '').trim();
+  if (q.length >= 3) doSearchPadron(q, 0);
 }
 
 function filterPadron(f, btn) {
@@ -11160,13 +11182,18 @@ document.getElementById('modal-dirigente').addEventListener('click', function(e)
 let recData = [];
 async function loadRecintos() {
   const tb = document.getElementById('rec-tb');
-  tb.innerHTML = '<tr><td colspan="8" class="loading-row">Cargando…</td></tr>';
+  tb.innerHTML = '<tr><td colspan="9" class="loading-row">Cargando…</td></tr>';
 
-  const { data } = await db.from('recintos_prm').select('*').order('municipio').order('zona', { nullsFirst: false }).order('codigo');
+  const [{ data }, { data: mil }] = await Promise.all([
+    db.from('recintos_prm').select('*').order('municipio').order('zona', { nullsFirst: false }).order('codigo'),
+    db.rpc('militantes_por_recinto')
+  ]);
   recData = data || [];
+  const milMap = {}; (mil || []).forEach(m => { milMap[m.recinto_id] = Number(m.militantes); });
+  recData.forEach(r => { r._mil = milMap[r.id] || 0; });
 
   if (!recData.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
     return;
   }
   // llenar los filtros con los valores que existen
@@ -11195,7 +11222,7 @@ function renderRecintosPanel() {
     (!q || String(r.nombre || '').toLowerCase().includes(q) || String(r.codigo || '').toLowerCase().includes(q)));
 
   if (!lista.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--mute)">Ningún recinto coincide con la búsqueda</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--mute)">Ningún recinto coincide con la búsqueda</td></tr>';
   } else {
     tb.innerHTML = lista.map(r => {
       const ganador = r.ganado_2020_por || '—';
@@ -11207,14 +11234,15 @@ function renderRecintosPanel() {
         <td>${r.municipio ? esc(r.municipio) : '—'}${r.distrito && /\(DM\)/.test(r.distrito) ? `<div style="font-size:11px;color:var(--mute)">${esc(r.distrito)}</div>` : ''}</td>
         <td>${r.circunscripcion ? esc(r.circunscripcion) : '—'}</td>
         <td>${r.zona ? 'Estructura ' + esc(r.zona) : '—'}</td>
-        <td class="num">${fmtNum(r.total_electores)}</td>
+        <td class="num">${r.total_electores ? fmtNum(r.total_electores) : '<span title="Falta el padrón completo de este municipio" style="color:var(--mute)">Sin padrón</span>'}</td>
+        <td class="num">${fmtNum(r._mil)}</td>
         <td class="num">${fmtNum(r.total_colegios)}</td>
         <td><span class="pill ${pillClass}">${esc(ganador)}</span></td>
       </tr>`;
     }).join('');
   }
   const filtrado = lista.length !== recData.length;
-  document.getElementById('rec-sub').textContent = `${filtrado ? lista.length + ' de ' + recData.length : recData.length} recintos · ${lista.reduce((t, r) => t + (r.total_electores || 0), 0).toLocaleString()} electores`;
+  document.getElementById('rec-sub').textContent = `${filtrado ? lista.length + ' de ' + recData.length : recData.length} recintos · ${lista.reduce((t, r) => t + (r.total_electores || 0), 0).toLocaleString()} electores · ${lista.reduce((t, r) => t + (r._mil || 0), 0).toLocaleString()} militantes PRM`;
 }
 
 // ═══ TIENDA ═══
