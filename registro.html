@@ -194,9 +194,19 @@
 
       <div class="step-content" id="content-3" style="display:none;">
         <div class="card-title">¿A quién querés apoyar?</div>
-        <div class="card-sub">Elegí el partido, movimiento o candidato al que querés solicitar unirte.</div>
+        <div class="card-sub">Podés apoyar a un partido (y trabajar con sus candidatos) o apoyar candidatos sueltos, aunque sean de partidos distintos.</div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button type="button" id="modo-partido" class="btn btn-primary" style="flex:1;" onclick="setModo('partido')">Un partido</button>
+          <button type="button" id="modo-candidatos" class="btn btn-ghost" style="flex:1;" onclick="setModo('candidatos')">Candidatos</button>
+        </div>
+        <div id="modo-ayuda" style="font-size:12px;color:#64748B;margin-bottom:12px;"></div>
         <input class="org-search" placeholder="Buscar por nombre…" oninput="filtrarOrgs(this.value)">
         <div class="org-list" id="org-list"><div class="loading-txt">Cargando organizaciones…</div></div>
+        <div id="cand-wrap" style="display:none;margin-top:18px;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">¿A quién apoyas en este partido?</div>
+          <div style="font-size:12px;color:#64748B;margin-bottom:10px;">Marca los candidatos que vas a apoyar. Puedes marcar varios.</div>
+          <div class="org-list" id="cand-list"></div>
+        </div>
         <div class="nav-row">
           <button class="btn btn-ghost" onclick="irPaso(2)">Atrás</button>
           <button class="btn btn-primary" id="btn-next-2" onclick="irPaso(4)" disabled>Continuar</button>
@@ -238,6 +248,8 @@ const db = supabase.createClient(SB_URL, SB_KEY);
 
 let sesionActual = null;
 let organizaciones = [];
+let candidatosSel = [];
+let modo = 'partido';
 let orgSeleccionada = null;
 
 // Acepta la cédula con o sin guiones, y la reformatea a 000-0000000-0
@@ -329,9 +341,11 @@ async function loginGoogle() {
 }
 
 async function cargarOrganizaciones() {
-  let { data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto').eq('activa', true).order('nombre');
+  let { data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto, partido_id').eq('activa', true).order('nombre');
+  if (error) ({ data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto').eq('activa', true).order('nombre'));
   if (error) ({ data } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre'));
   organizaciones = data || [];
+  document.getElementById('modo-ayuda').textContent = 'Si te unes a un partido, trabajas con ese partido y con los candidatos que están en él.';
   renderOrgs();
 
   // Si venimos desde el directorio público con una organización elegida, preseleccionarla
@@ -344,9 +358,24 @@ async function cargarOrganizaciones() {
 function renderOrgs(filtro = '') {
   const cont = document.getElementById('org-list');
   if (!organizaciones.length) { cont.innerHTML = '<div class="loading-txt">No hay organizaciones disponibles todavía.</div>'; return; }
+  if (modo === 'partido' && !organizaciones.some(o => o.tipo !== 'candidato')) { cont.innerHTML = '<div class="loading-txt">No hay partidos disponibles todavía.</div>'; return; }
   const badge = { partido: 'Partido', movimiento: 'Movimiento', candidato: 'Candidato' };
   const colores = { partido: '#01173A', movimiento: '#B45309', candidato: '#5A9E2A' };
-  const lista = organizaciones.filter(o => o.nombre.toLowerCase().includes(filtro.toLowerCase()));
+  const q = filtro.toLowerCase();
+  if (modo === 'candidatos') {
+    const cands = organizaciones.filter(o => o.tipo === 'candidato' && o.nombre.toLowerCase().includes(q));
+    if (!cands.length) { cont.innerHTML = '<div class="loading-txt">No hay candidatos inscritos todavía.</div>'; return; }
+    const nomPartido = id => (organizaciones.find(x => x.id === id) || {}).nombre;
+    cont.innerHTML = cands.map(o => `
+      <div class="org-card ${candidatosSel.includes(o.id)?'selected':''}" onclick="toggleCandidato('${esc(o.id)}')">
+        <div class="org-logo" style="background:#5A9E2A;">${esc(o.nombre.substring(0,2).toUpperCase())}</div>
+        <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">${o.puesto ? 'Candidato a ' + esc(o.puesto) : 'Candidato'} · ${o.partido_id && nomPartido(o.partido_id) ? esc(nomPartido(o.partido_id)) : 'Independiente'}</div></div>
+        <span class="org-type-badge badge-candidato">Candidato</span>
+        <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>`).join('');
+    return;
+  }
+  const lista = organizaciones.filter(o => o.tipo !== 'candidato' && o.nombre.toLowerCase().includes(q));
   if (!lista.length) { cont.innerHTML = '<div class="loading-txt">Sin resultados.</div>'; return; }
   cont.innerHTML = lista.map(o => `
     <div class="org-card ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${esc(o.id)}')">
@@ -357,9 +386,44 @@ function renderOrgs(filtro = '') {
     </div>`).join('');
 }
 function filtrarOrgs(q) { renderOrgs(q); }
-function elegirOrg(id) { orgSeleccionada = id; renderOrgs(document.querySelector('.org-search').value); actualizarBotonPaso2(); }
+function setModo(m) {
+  modo = m; orgSeleccionada = null; candidatosSel = [];
+  document.getElementById('modo-partido').className = 'btn ' + (m === 'partido' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('modo-candidatos').className = 'btn ' + (m === 'candidatos' ? 'btn-primary' : 'btn-ghost');
+  document.getElementById('modo-ayuda').textContent = m === 'partido'
+    ? 'Si te unes a un partido, trabajas con ese partido y con los candidatos que están en él.'
+    : 'Elige los candidatos que quieres apoyar (uno por puesto). Pueden ser de partidos distintos.';
+  const q = document.querySelector('.org-search'); if (q) q.value = '';
+  renderOrgs(); renderCandidatos(); actualizarBotonPaso2();
+}
+function elegirOrg(id) { if (modo !== 'partido') { modo = 'partido'; } orgSeleccionada = id; candidatosSel = []; renderOrgs(document.querySelector('.org-search').value); renderCandidatos(); actualizarBotonPaso2(); }
+function renderCandidatos() {
+  const wrap = document.getElementById('cand-wrap'), cont = document.getElementById('cand-list');
+  const cands = modo !== 'partido' ? [] : organizaciones.filter(o => o.tipo === 'candidato' && o.partido_id && o.partido_id === orgSeleccionada);
+  if (!cands.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+  cont.innerHTML = cands.map(o => `
+    <div class="org-card ${candidatosSel.includes(o.id)?'selected':''}" onclick="toggleCandidato('${esc(o.id)}')">
+      <div class="org-logo" style="background:#5A9E2A;">${esc(o.nombre.substring(0,2).toUpperCase())}</div>
+      <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">${o.puesto ? 'Candidato a ' + esc(o.puesto) : 'Candidato'}</div></div>
+      <span class="org-type-badge badge-candidato">Candidato</span>
+      <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>`).join('');
+}
+function toggleCandidato(id) {
+  if (candidatosSel.includes(id)) candidatosSel = candidatosSel.filter(x => x !== id);
+  else {
+    if (modo === 'candidatos') { // un candidato por puesto: elegir otro del mismo puesto reemplaza al anterior
+      const nuevo = organizaciones.find(o => o.id === id);
+      if (nuevo && nuevo.puesto) candidatosSel = candidatosSel.filter(x => (organizaciones.find(o => o.id === x) || {}).puesto !== nuevo.puesto);
+    }
+    candidatosSel = [...candidatosSel, id];
+  }
+  if (modo === 'candidatos') renderOrgs(document.querySelector('.org-search').value); else renderCandidatos();
+  actualizarBotonPaso2();
+}
 function elegirCategoria(cat) { categoriaSeleccionada = cat; document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.toggle('selected', b.dataset.cat===cat)); actualizarBotonPaso2(); }
-function actualizarBotonPaso2() { document.getElementById('btn-next-2').disabled = !orgSeleccionada; }
+function actualizarBotonPaso2() { document.getElementById('btn-next-2').disabled = modo === 'partido' ? !orgSeleccionada : !candidatosSel.length; }
 function elegirNotif(tipo) { notifPreferida = tipo; document.querySelectorAll('#notif-choice .cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.notif===tipo)); }
 
 function irPaso(n) {
@@ -402,8 +466,9 @@ async function validarPaso3() {
 }
 
 function actualizarResumen() {
-  const org = organizaciones.find(o => o.id === orgSeleccionada);
-  document.getElementById('sum-org').textContent = org ? org.nombre : '—';
+  const org = modo === 'partido' ? organizaciones.find(o => o.id === orgSeleccionada) : null;
+  const nomsC = candidatosSel.map(id => (organizaciones.find(o => o.id === id) || {}).nombre).filter(Boolean);
+  document.getElementById('sum-org').textContent = org ? org.nombre + (nomsC.length ? ' · Apoyo a: ' + nomsC.join(', ') : '') : (nomsC.length ? nomsC.join(', ') : '—');
   document.getElementById('sum-nombre').textContent = document.getElementById('f-nombre').value + ' ' + document.getElementById('f-apellido').value;
   document.getElementById('sum-notif').textContent = notifPreferida === 'llamada' ? '📞 Por llamada' : '📧 Por correo';
 }
@@ -416,7 +481,7 @@ async function enviarSolicitud() {
   btn.disabled = true; btn.textContent = 'Enviando…'; err.classList.remove('show');
 
   const argsSolicitud = {
-    p_organizacion_id: orgSeleccionada,
+    p_organizacion_id: null,
     p_categoria: categoriaSeleccionada,
     p_nombre: document.getElementById('f-nombre').value.trim(),
     p_apellido: document.getElementById('f-apellido').value.trim(),
@@ -438,10 +503,19 @@ async function enviarSolicitud() {
     p_estructura_sugerida: null,
     p_provincia: document.getElementById('f-provincia').value
   };
-  let { data, error } = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
-  if (error && /p_provincia|schema cache/i.test(error.message)) {
-    delete argsSolicitud.p_provincia;
-    ({ data, error } = await db.rpc('crear_solicitud_afiliacion', argsSolicitud));
+  let data = null, error = null;
+  const destinos = modo === 'partido' ? [orgSeleccionada, ...candidatosSel] : [...candidatosSel];
+  for (const orgId of destinos) {
+    argsSolicitud.p_organizacion_id = orgId;
+    let r = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
+    if (r.error && /p_provincia|schema cache/i.test(r.error.message)) {
+      delete argsSolicitud.p_provincia;
+      r = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
+    }
+    // Si ya existe una solicitud para esa organización, seguir con las demás
+    if (r.error && /ya (tiene|existe|enviaste)|duplic/i.test(r.error.message) && orgId !== destinos[0]) continue;
+    if (r.error) { error = r.error; break; }
+    data = r.data;
   }
 
   if (error) {
@@ -452,13 +526,13 @@ async function enviarSolicitud() {
     return;
   }
 
-  const org = organizaciones.find(o => o.id === orgSeleccionada);
+  const org = organizaciones.find(o => o.id === destinos[0]);
   document.getElementById('stepper').style.display = 'none';
   document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
   document.getElementById('content-confirm').style.display = 'block';
   const canal = notifPreferida === 'llamada' ? 'por llamada telefónica' : 'por correo';
   document.getElementById('confirm-text').innerHTML =
-    `Tu solicitud para unirte a <b>${org?org.nombre:''}</b> fue enviada. Te vamos a avisar ${canal} cuando la revisen.`;
+    `Tu solicitud para unirte a <b>${org?org.nombre:''}</b>${candidatosSel.length && modo === 'partido' ? ' y apoyar a ' + candidatosSel.map(id => '<b>' + esc((organizaciones.find(o => o.id === id)||{}).nombre || '') + '</b>').join(', ') : ''} fue enviada.${candidatosSel.length && modo === 'candidatos' ? ' (' + candidatosSel.length + ' candidato(s))' : ''} Te vamos a avisar ${canal} cuando la revisen.`;
 }
 
 init();

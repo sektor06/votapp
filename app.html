@@ -2582,12 +2582,17 @@ let eleccionActivaApp = false;
 let permisosRolApp = null; // permisos del rol de currentDirigente, null = sin restricción (rol no asignado)
 
 async function aplicarPermisosRolApp(dir) {
-  permisosRolApp = null;
-  if (!dir?.rol_id) return; // sin rol asignado -> no restringe nada (compatibilidad con dirigentes existentes)
+  // Sin rol asignado = persona normal: solo padrón y su lista (agregar gente). Sin votación ni actas.
+  permisosRolApp = { app_ver_padron: true, app_subir_actas: false, app_ver_votacion: false };
+  if (!dir?.rol_id) { aplicarTabsRolApp(); return; }
 
   const { data: rol } = await db.from('roles').select('permisos').eq('id', dir.rol_id).maybeSingle();
   permisosRolApp = rol?.permisos || null;
 
+  aplicarTabsRolApp();
+}
+
+function aplicarTabsRolApp() {
   const tabHome         = document.getElementById('tab-home');
   const tabComprometidos = document.getElementById('tab-comprometidos');
 

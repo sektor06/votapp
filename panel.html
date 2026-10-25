@@ -2107,7 +2107,6 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         <div class="kpi-card"><div class="kpi-n" id="dir-k-total">—</div><div class="kpi-l">Total dirigentes</div></div>
         <div class="kpi-card"><div class="kpi-n" id="dir-k-activos">—</div><div class="kpi-l">Activos</div></div>
         <div class="kpi-card"><div class="kpi-n" id="dir-k-compromisos" style="color:var(--seguro)">—</div><div class="kpi-l">Compromisos totales</div></div>
-        <div class="kpi-card"><div class="kpi-n" id="dir-k-encuestas" style="color:var(--prm)">—</div><div class="kpi-l">Encuestas aplicadas</div></div>
         <div class="kpi-card"><div class="kpi-n" id="dir-k-vacantes" style="color:var(--dudoso)">—</div><div class="kpi-l">Estructura sin cobertura</div></div>
       </div>
 
@@ -2189,7 +2188,6 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
                   <th class="num">Comprometidos</th>
                   <th class="num">Meta</th>
                   <th class="num">% Meta</th>
-                  <th class="num">Encuestas</th>
                   <th>Desempeño</th>
                 </tr>
               </thead>
@@ -4091,10 +4089,10 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
       <div class="content-h">
         <div class="content-h-l">
           <h1 class="content-title">Usuarios y accesos</h1>
-          <p class="content-sub">Invita a candidatos y colaboradores y elige qué módulos puede ver cada uno</p>
+          <p class="content-sub">Elige a una persona que ya tenga cuenta y marca qué módulos puede ver</p>
         </div>
         <div class="content-h-r">
-          <button class="btn-primary" onclick="abrirModalAcceso()" style="font-size:12px;padding:8px 14px;">+ Invitar usuario</button>
+          <button class="btn-primary" onclick="abrirModalAcceso()" style="font-size:12px;padding:8px 14px;">+ Dar acceso</button>
         </div>
       </div>
       <div class="panel" style="margin-bottom:16px;">
@@ -4136,9 +4134,14 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         <div class="modal-handle"></div>
         <div class="modal-title" id="acc-title">Invitar usuario</div>
         <input type="hidden" id="acc-edit-id">
-        <div class="mf-row2">
-          <div class="mf-group"><label class="mf-label">Nombre *</label><input class="mf-input" id="acc-nombre" placeholder="Nombre del candidato"></div>
-          <div class="mf-group"><label class="mf-label">Correo de Google *</label><input class="mf-input" id="acc-email" type="email" placeholder="correo@gmail.com"></div>
+        <div class="mf-group" id="acc-persona-wrap">
+          <label class="mf-label">Persona *</label>
+          <select class="mf-input" id="acc-persona"><option value="">Selecciona a alguien que ya tiene cuenta…</option></select>
+          <div id="acc-persona-vacio" style="display:none;font-size:12px;color:var(--mute);margin-top:6px;">No hay personas con cuenta disponibles. Primero deben registrarse en ATENAS y ser aceptadas como afiliadas.</div>
+        </div>
+        <div class="mf-row2" id="acc-datos-wrap">
+          <div class="mf-group"><label class="mf-label">Nombre</label><input class="mf-input" id="acc-nombre" disabled></div>
+          <div class="mf-group"><label class="mf-label">Correo</label><input class="mf-input" id="acc-email" type="email" disabled></div>
         </div>
         <div class="mf-group">
           <label class="mf-label">Paquete de módulos</label>
@@ -5031,7 +5034,7 @@ async function loadAccesos() {
     <td>${u.modulos === null
       ? '<span class="pill pill-good" style="font-size:10px;">Administrador (todo)</span>'
       : u.modulos.map(m => `<span class="pill pill-info" style="font-size:10px;margin:1px;">${esc(etiqueta(m))}</span>`).join('')}</td>
-    <td><span class="pill ${u.activo ? 'pill-good' : 'pill-dud'}" style="font-size:10px;">${u.activo ? (u.vinculado ? 'Activo' : 'Invitado (aún no entra)') : 'Desactivado'}</span></td>
+    <td><span class="pill ${u.activo ? 'pill-good' : 'pill-dud'}" style="font-size:10px;">${u.activo ? (u.vinculado ? 'Activo' : 'Aún no ha entrado') : 'Desactivado'}</span></td>
     <td>${u.modulos === null ? '' : `<button class="btn-qr" onclick="abrirModalAcceso('${esc(u.id)}')">Editar</button>
       <button class="btn-qr" onclick="toggleAcceso('${esc(u.id)}')" style="margin-left:4px;">${u.activo ? 'Desactivar' : 'Activar'}</button>`}</td>
   </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--mute)">Sin usuarios.</td></tr>';
@@ -5046,13 +5049,23 @@ async function abrirModalAcceso(id) {
     paquetesAcceso.map(p => `<option value="${esc(p.id)}">${esc(p.nombre)} — ${esc(p.descripcion||'')}</option>`).join('');
   const u = id ? usuariosAcceso.find(x => x.id === id) : null;
   document.getElementById('acc-edit-id').value = id || '';
-  document.getElementById('acc-title').textContent = u ? 'Editar accesos' : 'Invitar usuario';
-  document.getElementById('acc-btn').textContent = u ? 'Guardar cambios' : 'Invitar';
+  document.getElementById('acc-title').textContent = u ? 'Editar accesos' : 'Dar acceso al panel';
+  document.getElementById('acc-btn').textContent = u ? 'Guardar cambios' : 'Dar acceso';
   document.getElementById('acc-btn').disabled = false;
   document.getElementById('acc-nombre').value = u?.nombre || '';
   document.getElementById('acc-email').value = u?.email || '';
-  document.getElementById('acc-nombre').disabled = !!u;
-  document.getElementById('acc-email').disabled = !!u;
+  document.getElementById('acc-persona-wrap').style.display = u ? 'none' : 'block';
+  document.getElementById('acc-datos-wrap').style.display = u ? 'grid' : 'none';
+  if (!u) {
+    const sel = document.getElementById('acc-persona');
+    sel.innerHTML = '<option value="">Cargando…</option>';
+    db.rpc('listar_personas_para_acceso').then(({ data, error }) => {
+      const lista = data || [];
+      sel.innerHTML = '<option value="">Selecciona a alguien que ya tiene cuenta…</option>' +
+        lista.map(p => `<option value="${esc(p.afiliado_id)}">${esc(p.nombre)} · ${esc(p.cedula || '')} · ${esc(p.email || '')}</option>`).join('');
+      document.getElementById('acc-persona-vacio').style.display = (error || !lista.length) ? 'block' : 'none';
+    });
+  }
   document.getElementById('acc-modulos').innerHTML = MODULOS_PANEL.map(m =>
     `<label style="display:flex;gap:7px;align-items:center;font-size:12px;"><input type="checkbox" class="acc-mod" value="${esc(m.key)}" ${u?.modulos?.includes(m.key) ? 'checked' : ''} onchange="document.getElementById('acc-paquete').value=''"> ${esc(m.label)}</label>`).join('');
   document.getElementById('acc-error').style.display = 'none';
@@ -5076,18 +5089,19 @@ async function guardarAcceso() {
   const btn = document.getElementById('acc-btn');
   errEl.style.display = 'none';
   if (!modulos.length) { errEl.textContent = 'Elige al menos un módulo.'; errEl.style.display = 'block'; return; }
-  if (!id && (!nombre || !email)) { errEl.textContent = 'Nombre y correo son obligatorios.'; errEl.style.display = 'block'; return; }
+  const personaId = document.getElementById('acc-persona').value;
+  if (!id && !personaId) { errEl.textContent = 'Selecciona a la persona.'; errEl.style.display = 'block'; return; }
   btn.disabled = true;
   let error;
   if (id) {
     const u = usuariosAcceso.find(x => x.id === id);
     ({ error } = await db.rpc('actualizar_usuario_panel', { p_id: id, p_modulos: modulos, p_activo: u ? u.activo : true }));
   } else {
-    ({ error } = await db.rpc('invitar_usuario_panel', { p_nombre: nombre, p_email: email, p_modulos: modulos }));
+    ({ error } = await db.rpc('dar_acceso_panel', { p_afiliado_id: personaId, p_modulos: modulos }));
   }
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; btn.disabled = false; return; }
   cerrarModalAcceso();
-  toast('ok', id ? 'Accesos actualizados' : 'Usuario invitado. Que entre con ese correo de Google.');
+  toast('ok', id ? 'Accesos actualizados' : 'Listo: esa persona ya puede entrar al panel con su cuenta.');
   loadAccesos();
 }
 
@@ -10715,7 +10729,6 @@ function actualizarKPIsDirigentes(dirs, encResp) {
   document.getElementById('dir-k-total').textContent      = dirs.length;
   document.getElementById('dir-k-activos').textContent    = activos;
   document.getElementById('dir-k-compromisos').textContent = fmtNum(totalComp);
-  document.getElementById('dir-k-encuestas').textContent   = fmtNum(totalEnc);
   document.getElementById('dir-k-vacantes').textContent    = vacantes;
   document.getElementById('dir-sub').textContent = `${dirs.length} dirigentes · ${activos} activos · ${[...zonasConDir].length} zonas cubiertas`;
 }
@@ -10775,7 +10788,6 @@ function renderDesempeno() {
       <td class="num" style="font-weight:700;">${fmtNum(d.stats.total)}</td>
       <td class="num" style="color:var(--mute);">${fmtNum(meta)}</td>
       <td class="num"><div style="background:var(--line);border-radius:4px;height:6px;width:80px;display:inline-block;vertical-align:middle;"><div style="background:${pct>=100?'var(--seguro)':pct>=60?'var(--probable)':'var(--dudoso)'};height:6px;border-radius:4px;width:${pct}%;"></div></div><span style="margin-left:6px;font-size:11px;">${pct}%</span></td>
-      <td class="num">${esc(d.encuestas || 0)}</td>
       <td><span class="pill ${badge}">${label}</span></td>
     </tr>`;
   }).join('');
