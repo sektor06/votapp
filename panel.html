@@ -2092,6 +2092,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         </div>
         <div class="content-h-r" style="display:flex;gap:8px;">
           <button class="btn-secondary" onclick="descargarListaDirigente(null)" style="font-size:12px;padding:8px 14px;">⬇ Todas las listas</button>
+          <button class="btn-secondary" id="btn-mi-gente" onclick="verVotantesCandidato(miCandidato.id, miCandidato.nombre)" style="display:none;font-size:12px;padding:8px 14px;">👥 Mi gente</button>
           <button class="btn-secondary" onclick="mostrarVacantes()" style="font-size:12px;padding:8px 14px;">
             ⚠️ Vacantes
           </button>
@@ -3105,6 +3106,11 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         </div></div>
       </div>
 
+      <div id="sol-reg-wrap" style="display:none;margin-bottom:22px;">
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">Personas trabajando sin cargo</div>
+        <p style="font-size:12px;color:var(--mute);margin-bottom:12px;">Se registraron desde la app, apoyan a los candidatos que ves y van armando su lista de votantes. No tienen cargo hasta que se lo des. Al darle un rol, su lista pasa a ser su equipo.</p>
+        <div id="sol-reg-lista" style="display:flex;flex-direction:column;gap:12px;"></div>
+      </div>
       <div id="sol-dir-wrap" style="display:none;margin-bottom:22px;">
         <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">Solicitudes para ser dirigente</div>
         <p style="font-size:12px;color:var(--mute);margin-bottom:12px;">Personas que crearon su cuenta con Google en la app. Al aceptar, les asignas rol y cargo y pasan a ser dirigentes. El recinto y el colegio se asignan después en Montaje Electoral.</p>
@@ -8782,6 +8788,74 @@ async function loadSolicitudes() {
   actualizarBadgeSolicitudes(solicitudesData.length + solicitudesDirData.length);
   renderSolicitudesDirigente();
   renderSolicitudes();
+  cargarRegistradores();
+}
+
+let registradoresData = [];
+async function cargarRegistradores() {
+  const wrap = document.getElementById('sol-reg-wrap'), cont = document.getElementById('sol-reg-lista');
+  if (!wrap || miCandidato) return;
+  const { data, error } = await db.rpc('listar_registradores');
+  if (error || !data || !data.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  registradoresData = data;
+  wrap.style.display = 'block';
+  const ops = rolesDirigente.map(r => `<option value="${esc(r.id)}">${esc(r.nombre)}</option>`).join('');
+  cont.innerHTML = data.map(r => `
+    <div class="panel"><div class="panel-b" style="padding:16px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--prm);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${esc(ini(r.nombre))}</div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:14px;">${esc(r.nombre)}</div>
+          <div style="font-size:12px;color:var(--mute);">${esc(r.cedula || '—')}${r.telefono ? ' · ' + esc(r.telefono) : ''}</div></div>
+        <a href="#" onclick="verVotantesRegistrador('${esc(r.auth_user_id)}');return false;" style="font-weight:700;font-size:13px;color:var(--prm);text-decoration:none;">👥 ${Number(r.votantes)} votantes</a>
+      </div>
+      <div style="font-size:12px;color:var(--mute);margin-bottom:10px;">Apoya a: ${(r.candidatos && r.candidatos.length) ? esc(r.candidatos.join(' · ')) : 'ningún candidato todavía'}</div>
+      <div id="reg-error-${esc(r.auth_user_id)}" style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:8px;display:none;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;">
+        <div><label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Rol</label>
+          <select class="mf-input" id="reg-rol-${esc(r.auth_user_id)}" style="font-size:13px;padding:8px 10px;">${ops}</select></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;display:block;margin-bottom:4px;">Cargo / función</label>
+          <input class="mf-input" id="reg-cargo-${esc(r.auth_user_id)}" placeholder="Ej: Presidente de comité de base" style="font-size:13px;padding:8px 10px;"></div>
+        <button class="btn-modal-ok" style="padding:10px 16px;" onclick="promoverRegistrador('${esc(r.auth_user_id)}')">Dar cargo</button>
+      </div>
+    </div></div>`).join('');
+}
+
+async function promoverRegistrador(uid) {
+  const err = document.getElementById('reg-error-' + uid); err.style.display = 'none';
+  const rol = document.getElementById('reg-rol-' + uid).value;
+  const cargo = document.getElementById('reg-cargo-' + uid).value.trim() || null;
+  if (!confirm('¿Darle este cargo? Sus votantes pasarán a ser su equipo.')) return;
+  const { error } = await db.rpc('promover_registrador', { p_auth_user_id: uid, p_rol_id: rol, p_cargo: cargo });
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+  toast('ok', 'Cargo asignado ✓');
+  loadSolicitudes();
+}
+
+function abrirListaModal(titulo, filasHtml, vacio, cols) {
+  let ov = document.getElementById('modal-apoyadores');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'modal-apoyadores'; ov.className = 'modal-overlay'; document.body.appendChild(ov); }
+  ov.innerHTML = `<div class="modal-sheet" style="max-width:680px;"><div class="modal-handle"></div>
+    <div class="modal-title">${titulo}</div>
+    <div style="max-height:60vh;overflow:auto;"><table class="data-table" style="width:100%;"><thead><tr>${cols.map(c => '<th>' + c + '</th>').join('')}</tr></thead>
+    <tbody>${filasHtml || `<tr><td colspan="${cols.length}" style="text-align:center;padding:24px;color:var(--mute)">${vacio}</td></tr>`}</tbody></table></div>
+    <div style="margin-top:14px;text-align:right;"><button class="btn-secondary" onclick="document.getElementById('modal-apoyadores').classList.remove('show')">Cerrar</button></div></div>`;
+  ov.classList.add('show');
+}
+
+async function verVotantesRegistrador(uid) {
+  const r = registradoresData.find(x => x.auth_user_id === uid);
+  const { data, error } = await db.rpc('votantes_de_registrador', { p_auth_user_id: uid });
+  if (error) { alert('Error: ' + error.message); return; }
+  const filas = (data || []).map(v => `<tr><td>${esc(v.nombre)}</td><td>${esc(v.cedula || '—')}</td><td>${esc(v.telefono || '—')}</td><td>${esc((v.candidatos || []).join(', ') || '—')}</td></tr>`).join('');
+  abrirListaModal('Votantes de ' + esc(r?.nombre || ''), filas, 'Todavía no ha registrado a nadie.', ['Nombre', 'Cédula', 'Teléfono', 'Apoya a']);
+}
+
+async function verVotantesCandidato(id, nombre) {
+  const [ap, vo] = await Promise.all([db.rpc('apoyadores_candidato', { p_candidato_id: id }), db.rpc('votantes_de_candidato', { p_candidato_id: id })]);
+  if (ap.error || vo.error) { alert('Error: ' + (ap.error || vo.error).message); return; }
+  const f1 = (ap.data || []).map(a => `<tr><td>${esc(a.nombre || '—')}</td><td>${esc(a.cedula || '—')}</td><td>${esc(a.telefono || '—')}</td><td>Trabaja para ti</td></tr>`).join('');
+  const f2 = (vo.data || []).map(v => `<tr><td>${esc(v.nombre)}</td><td>${esc(v.cedula || '—')}</td><td>${esc(v.telefono || '—')}</td><td>Registrado por ${esc(v.registrador)}</td></tr>`).join('');
+  abrirListaModal(`Gente de ${esc(nombre || '')} — ${(ap.data || []).length} trabajan · ${(vo.data || []).length} votantes`, f1 + f2, 'Todavía nadie lo ha elegido.', ['Nombre', 'Cédula', 'Teléfono', 'Detalle']);
 }
 
 function renderSolicitudesDirigente() {
@@ -8965,7 +9039,7 @@ async function loadCandidatos() {
       <div style="font-weight:700;font-size:13px;color:var(--text);">${esc(c.nombre)}</div>
       <div style="font-size:12px;color:var(--mute);margin-top:2px;">${esc(c.cargo || '—')}</div>
       ${c.activo === false ? '<div style="margin-top:6px;"><span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Inactivo</span></div>' : ''}
-      <div style="margin-top:8px;font-size:12px;"><a href="#" onclick="verApoyadores('${esc(c.id)}');return false;" style="color:var(--prm);font-weight:600;text-decoration:none;">👥 ${apoyosPorCand[c.id] || 0} lo apoyan</a></div>
+      <div style="margin-top:8px;font-size:12px;"><a href="#" onclick="verVotantesCandidato('${esc(c.id)}','${esc(c.nombre)}');return false;" style="color:var(--prm);font-weight:600;text-decoration:none;">👥 ${apoyosPorCand[c.id] || 0} lo apoyan</a></div>
       <div style="margin-top:6px;">${c.auth_user_id ? '<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Con acceso</span>' : `<button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="darAccesoCandidato('${esc(c.id)}')">Dar acceso</button>`}</div>
       <div style="display:flex;gap:6px;margin-top:10px;">
         <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;" onclick="abrirModalCandidato('${esc(c.id)}')">Editar</button>
@@ -10495,6 +10569,7 @@ async function loadDirigentes() {
   tb.innerHTML = '<tr><td colspan="9" class="loading-row">Cargando…</td></tr>';
 
   let dirs;
+  { const bg = document.getElementById('btn-mi-gente'); if (bg) bg.style.display = miCandidato ? 'inline-flex' : 'none'; }
   if (miCandidato) {
     const r = await db.rpc('mi_equipo');
     dirs = r.error ? [] : (r.data || []);

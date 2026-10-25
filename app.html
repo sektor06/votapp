@@ -1271,9 +1271,16 @@ button { background: none; border: none; cursor: pointer; }
         <input class="field-input" style="color:var(--ink);background:var(--line-2);border-color:var(--line);" id="pend-reg-cedula" placeholder="000-0000000-0" inputmode="numeric" maxlength="13" oninput="this.value=fmtCed(this.value)">
         <div class="field-label" style="color:var(--mute);">Teléfono</div>
         <input class="field-input" style="color:var(--ink);background:var(--line-2);border-color:var(--line);" id="pend-reg-telefono" placeholder="809-000-0000">
+        <div class="field-label" style="color:var(--mute);margin-top:10px;">¿A quién apoya esta persona?</div>
+        <div id="pend-reg-apoyos" style="margin-bottom:4px;"></div>
         <button type="button" class="btn btn-prm btn-block" style="margin-top:12px;" onclick="registrarPersonaPendiente()">Registrar</button>
         <p id="pend-reg-err" style="color:var(--dudoso);font-size:var(--fs-sm);display:none;margin-top:8px;"></p>
         <p id="pend-reg-ok" style="color:var(--seguro);font-size:var(--fs-sm);display:none;margin-top:8px;"></p>
+      </div>
+      <div class="action-box">
+        <div class="action-title">Mi lista</div>
+        <div class="action-sub">Las personas que has registrado y a quién apoya cada una.</div>
+        <div id="pend-votantes"><div class="empty-text">Todavía no has registrado a nadie.</div></div>
       </div>
     </section>
   </main>
@@ -2140,6 +2147,9 @@ async function mostrarPendiente() {
   document.getElementById('pend-total').textContent = colab?.[0]?.total_registros ?? 0;
   const { data: apoyos } = await db.rpc('mis_apoyos');
   document.getElementById('pend-apoyo').textContent = apoyos && apoyos.length ? apoyos.map(a=>a.candidato_nombre).join(', ') : '—';
+  misApoyosApp = apoyos || [];
+  pintarApoyosRegistro();
+  cargarMisVotantes();
   goPage('pg-pendiente');
   mostrarEstadoSolicitudDirigente(meta);
 }
@@ -2149,10 +2159,7 @@ async function mostrarEstadoSolicitudDirigente(meta) {
   const box = document.getElementById('pend-sol-dir');
   if (!box) return;
   try {
-    const partes = (meta.nombre || '').trim().split(/\s+/);
-    const nombre = partes.slice(0, Math.max(1, Math.ceil(partes.length / 2))).join(' ');
-    const apellido = partes.slice(Math.max(1, Math.ceil(partes.length / 2))).join(' ');
-    await db.rpc('solicitar_acceso_dirigente', { p_nombre: nombre, p_apellido: apellido, p_cedula: meta.cedula || '', p_telefono: meta.telefono || '' });
+    // Ya no se pide ser dirigente automáticamente: el partido o el candidato decide si le da un rol.
     const { data } = await db.rpc('mi_solicitud_dirigente');
     const sol = Array.isArray(data) ? data[0] : null;
     if (!sol) { box.style.display = 'none'; return; }
@@ -2293,6 +2300,39 @@ async function consultarPadronPendiente() {
   }
 }
 
+let misApoyosApp = [];
+
+function checksApoyos(nombreGrupo, marcados, onchange) {
+  if (!misApoyosApp.length) return '<div style="font-size:12px;color:var(--mute);">Aún no apoyas a ningún candidato.</div>';
+  return misApoyosApp.map(a => `<label style="display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 0;color:var(--ink);">
+    <input type="checkbox" value="${esc(a.candidato_id)}" ${marcados.includes(a.candidato_id) ? 'checked' : ''} ${onchange ? `onchange="${onchange}"` : ''}>
+    <span>${esc(a.candidato_nombre)} <span style="color:var(--mute);">· ${esc(a.cargo || '')}</span></span></label>`).join('');
+}
+
+function pintarApoyosRegistro() {
+  const c = document.getElementById('pend-reg-apoyos');
+  if (c) c.innerHTML = checksApoyos('reg', misApoyosApp.map(a => a.candidato_id), '');
+}
+
+async function cargarMisVotantes() {
+  const cont = document.getElementById('pend-votantes');
+  if (!cont) return;
+  const { data, error } = await db.rpc('mis_votantes');
+  if (error || !data || !data.length) { cont.innerHTML = '<div class="empty-text">Todavía no has registrado a nadie.</div>'; return; }
+  cont.innerHTML = data.map(v => `
+    <div style="border-top:1px solid var(--line);padding:10px 0;">
+      <div style="font-weight:700;font-size:14px;color:var(--ink);">${esc(v.nombre)}</div>
+      <div style="font-size:12px;color:var(--mute);margin-bottom:4px;">${esc(v.cedula || '')}${v.telefono ? ' · ' + esc(v.telefono) : ''}</div>
+      <div id="vot-${esc(v.afiliado_id)}">${checksApoyos('v', v.candidatos || [], `guardarApoyoVotante('${esc(v.afiliado_id)}')`)}</div>
+    </div>`).join('');
+}
+
+async function guardarApoyoVotante(afiliadoId) {
+  const marcados = [...document.querySelectorAll('#vot-' + afiliadoId + ' input:checked')].map(i => i.value);
+  const { error } = await db.rpc('apoyar_votante', { p_afiliado_id: afiliadoId, p_candidatos: marcados });
+  if (error) toast('err', 'No se pudo guardar: ' + error.message); else toast('ok', 'Guardado');
+}
+
 async function registrarPersonaPendiente() {
   const err = document.getElementById('pend-reg-err');
   const ok = document.getElementById('pend-reg-ok');
@@ -2309,14 +2349,21 @@ async function registrarPersonaPendiente() {
     return;
   }
 
-  const { error } = await db.rpc('crear_registro_colaborador', { p_nombre: nombre, p_apellido: apellido, p_cedula: cedulaFmt, p_telefono_celular: telefono });
+  const { data: sol, error } = await db.rpc('crear_registro_colaborador', { p_nombre: nombre, p_apellido: apellido, p_cedula: cedulaFmt, p_telefono_celular: telefono });
   if (error) { err.textContent = 'No se pudo registrar: ' + error.message; err.style.display = 'block'; return; }
+  const marcados = [...document.querySelectorAll('#pend-reg-apoyos input:checked')].map(i => i.value);
+  const afId = sol && sol.afiliado_creado_id;
+  if (afId && marcados.length) {
+    const { error: eAp } = await db.rpc('apoyar_votante', { p_afiliado_id: afId, p_candidatos: marcados });
+    if (eAp) { err.textContent = 'La persona se registró, pero no se pudo guardar a quién apoya: ' + eAp.message; err.style.display = 'block'; }
+  }
   ok.textContent = '¡Persona registrada!';
   ok.style.display = 'block';
   ['pend-cedula','pend-reg-nombre','pend-reg-apellido','pend-reg-cedula','pend-reg-telefono'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
   document.getElementById('pend-padron-resultado').innerHTML = '';
   const { data: colab } = await db.rpc('mi_colaboracion');
   document.getElementById('pend-total').textContent = colab?.[0]?.total_registros ?? 0;
+  cargarMisVotantes();
 }
 
 async function setupApp(dir) {
