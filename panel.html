@@ -2545,6 +2545,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <select class="mf-input" id="og-select-zona" onchange="ogCambiarZona()" style="width:200px;display:none;">
             <option value="">Selecciona estructura…</option>
           </select>
+          <span id="og-prov-label" style="display:none;font-size:13px;font-weight:700;color:var(--text);padding:7px 12px;background:var(--bg);border-radius:8px;"></span>
           <button type="button" id="og-btn-nueva" class="btn-qr" onclick="ogNuevaEstructura()" style="display:none;padding:7px 12px;font-size:12px;">+ Nueva</button>
         </div>
       </div>
@@ -9804,6 +9805,9 @@ document.getElementById('modal-rol').addEventListener('click', function(e) {
 // ═══ MÓDULO ORGANIGRAMA (Municipal / Zonal, cargos_catalogo) ═══
 let ogNivel = 'municipal';
 let ogReservasPorCargo = {};
+const OG_MUNICIPIOS_PROV = {
+  'San Pedro de Macorís': ['San Pedro de Macorís', 'Consuelo', 'Guayacanes', 'Quisqueya', 'Ramón Santana', 'San José de Los Llanos']
+};
 let ogMuni = '';
 let ogMuniLista = null;
 const ogZonaLabel = n => (String(n).length <= 2 ? 'Zona ' : '') + n;
@@ -9830,8 +9834,9 @@ async function ogInit() {
       db.from('organigrama_instancias').select('territorio').eq('organizacion_id', currentOrg.id).eq('nivel', 'municipal')
     ]);
     const set = new Set();
-    if (prov) set.add(prov);
-    (mun || []).forEach(m => m.nombre && set.add(m.nombre));
+    const oficial = OG_MUNICIPIOS_PROV[prov];
+    if (oficial) oficial.forEach(n => set.add(n));
+    else (mun || []).forEach(m => m.nombre && set.add(m.nombre));
     (ins || []).forEach(i => i.territorio && set.add(i.territorio));
     if (!set.size) set.add(currentOrg.nombre || 'Municipio');
     ogMuniLista = [...set];
@@ -9877,6 +9882,9 @@ function ogCambiarNivel(nivel) {
   document.getElementById('og-select-zona').style.display = nivel === 'zonal' ? 'block' : 'none';
   document.getElementById('og-select-muni').style.display = nivel === 'municipal' ? 'block' : 'none';
   document.getElementById('og-btn-nueva').style.display = nivel === 'provincial' ? 'none' : 'inline-block';
+  const lblProv = document.getElementById('og-prov-label');
+  lblProv.textContent = 'Provincia: ' + (currentOrg.provincia || currentOrg.nombre || '');
+  lblProv.style.display = nivel === 'provincial' ? 'inline-block' : 'none';
 
   if (nivel === 'municipal' || nivel === 'provincial') {
     ogZonaId = '';
@@ -9945,7 +9953,7 @@ async function ogCargarInstancia() {
     inst = nueva;
   }
   ogInstanciaId = inst.id;
-  document.getElementById('og-sub').textContent = inst.nombre;
+  document.getElementById('og-sub').textContent = ogNivel === 'provincial' ? `Comité Provincial ${currentOrg.provincia || ''}`.trim() : inst.nombre;
 
   const [{ data: cargos }, { data: asigs }] = await Promise.all([
     db.from('cargos_catalogo').select('*').eq('organizacion_id', currentOrg.id).eq('nivel', ogNivel).eq('activo', true).order('orden'),
