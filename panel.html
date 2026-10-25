@@ -4740,7 +4740,7 @@ async function showApp() {
 
   // 2. Confirmar que la organización tiene el acceso activo (el pago confirmado)
   const { data: org } = await db.from('organizaciones')
-    .select('id, nombre, estado_acceso')
+    .select('id, nombre, estado_acceso, provincia')
     .eq('id', perfil.organizacion_id)
     .maybeSingle();
 
