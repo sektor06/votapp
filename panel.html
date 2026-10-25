@@ -2541,9 +2541,11 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
             <button type="button" id="og-tab-zonal" onclick="ogCambiarNivel('zonal')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Zonal</button>
             <button type="button" id="og-tab-provincial" onclick="ogCambiarNivel('provincial')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Provincial</button>
           </div>
-          <select class="mf-input" id="og-select-zona" onchange="ogCambiarZona()" style="width:170px;display:none;">
+          <select class="mf-input" id="og-select-muni" onchange="ogCambiarMuni()" style="width:230px;display:none;"></select>
+          <select class="mf-input" id="og-select-zona" onchange="ogCambiarZona()" style="width:200px;display:none;">
             <option value="">Selecciona estructura…</option>
           </select>
+          <button type="button" id="og-btn-nueva" class="btn-qr" onclick="ogNuevaEstructura()" style="display:none;padding:7px 12px;font-size:12px;">+ Nueva</button>
         </div>
       </div>
 
@@ -9802,6 +9804,9 @@ document.getElementById('modal-rol').addEventListener('click', function(e) {
 // ═══ MÓDULO ORGANIGRAMA (Municipal / Zonal, cargos_catalogo) ═══
 let ogNivel = 'municipal';
 let ogReservasPorCargo = {};
+let ogMuni = '';
+let ogMuniLista = null;
+const ogZonaLabel = n => (String(n).length <= 2 ? 'Zona ' : '') + n;
 let ogZonaId = '';
 let ogInstanciaId = null;
 let ogCargos = [];
@@ -9816,9 +9821,47 @@ async function ogInit() {
     const { data } = await db.from('zonas_organizacion').select('id,nombre').eq('organizacion_id', currentOrg.id).order('nombre');
     ogZonasCache = data || [];
     document.getElementById('og-select-zona').innerHTML = '<option value="">Selecciona zona…</option>' +
-      ogZonasCache.map(z => `<option value="${esc(z.id)}">Zona ${esc(z.nombre)}</option>`).join('');
+      ogZonasCache.map(z => `<option value="${esc(z.id)}">${esc(ogZonaLabel(z.nombre))}</option>`).join('');
+  }
+  if (!ogMuniLista) {
+    const prov = currentOrg.provincia || '';
+    const [{ data: mun }, { data: ins }] = await Promise.all([
+      prov ? db.from('municipios').select('nombre').eq('provincia', prov) : Promise.resolve({ data: [] }),
+      db.from('organigrama_instancias').select('territorio').eq('organizacion_id', currentOrg.id).eq('nivel', 'municipal')
+    ]);
+    const set = new Set();
+    if (prov) set.add(prov);
+    (mun || []).forEach(m => m.nombre && set.add(m.nombre));
+    (ins || []).forEach(i => i.territorio && set.add(i.territorio));
+    if (!set.size) set.add(currentOrg.nombre || 'Municipio');
+    ogMuniLista = [...set];
+    if (!ogMuni) ogMuni = ogMuniLista[0];
+    ogPintarMuni();
   }
   ogCambiarNivel(ogNivel);
+}
+
+function ogPintarMuni() {
+  const sel = document.getElementById('og-select-muni');
+  sel.innerHTML = (ogMuniLista || []).map(m => `<option value="${esc(m)}" ${m === ogMuni ? 'selected' : ''}>${esc(m)}</option>`).join('');
+}
+function ogCambiarMuni() { ogMuni = document.getElementById('og-select-muni').value; ogCargarInstancia(); }
+async function ogNuevaEstructura() {
+  if (ogNivel === 'municipal') {
+    const n = (prompt('Nombre del municipio o distrito municipal:') || '').trim();
+    if (!n) return;
+    if (!ogMuniLista.includes(n)) ogMuniLista.push(n);
+    ogMuni = n; ogPintarMuni(); ogCargarInstancia();
+  } else if (ogNivel === 'zonal') {
+    const n = (prompt('Nombre de la nueva estructura (por ejemplo: Barrio Médico, Playa Mercado, Zona J):') || '').trim();
+    if (!n) return;
+    const { data, error } = await db.from('zonas_organizacion').insert({ organizacion_id: currentOrg.id, nombre: n, orden: (ogZonasCache || []).length + 1 }).select('id,nombre').single();
+    if (error) { toast('err', 'No se pudo crear la estructura: ' + error.message); return; }
+    ogZonasCache.push(data);
+    const sel = document.getElementById('og-select-zona');
+    sel.insertAdjacentHTML('beforeend', `<option value="${esc(data.id)}">${esc(ogZonaLabel(data.nombre))}</option>`);
+    sel.value = data.id; ogZonaId = data.id; ogCargarInstancia();
+  }
 }
 
 function ogCambiarNivel(nivel) {
@@ -9832,6 +9875,8 @@ function ogCambiarNivel(nivel) {
   btnP.style.background = nivel === 'provincial' ? 'var(--prm)' : 'transparent';
   btnP.style.color = nivel === 'provincial' ? '#fff' : 'var(--mute)';
   document.getElementById('og-select-zona').style.display = nivel === 'zonal' ? 'block' : 'none';
+  document.getElementById('og-select-muni').style.display = nivel === 'municipal' ? 'block' : 'none';
+  document.getElementById('og-btn-nueva').style.display = nivel === 'provincial' ? 'none' : 'inline-block';
 
   if (nivel === 'municipal' || nivel === 'provincial') {
     ogZonaId = '';
@@ -9883,18 +9928,18 @@ async function ogCargarInstancia() {
   await ogEnsureCatalogo(ogNivel);
 
   let q = db.from('organigrama_instancias').select('id,nombre').eq('organizacion_id', currentOrg.id).eq('nivel', ogNivel);
-  q = ogNivel === 'zonal' ? q.eq('zona_id', ogZonaId) : q.is('zona_id', null);
+  q = ogNivel === 'zonal' ? q.eq('zona_id', ogZonaId) : (ogNivel === 'municipal' ? q.is('zona_id', null).eq('territorio', ogMuni) : q.is('zona_id', null));
   let { data: inst } = await q.maybeSingle();
 
   if (!inst) {
     const nombreZona = document.getElementById('og-select-zona').selectedOptions[0]?.textContent || '';
     const nombreInst = ogNivel === 'municipal'
-      ? `Comité Municipal ${currentOrg.nombre || ''}`.trim()
+      ? `Comité Municipal ${ogMuni || currentOrg.nombre || ''}`.trim()
       : ogNivel === 'provincial'
         ? `Comité Provincial ${currentOrg.nombre || ''}`.trim()
         : `Comité ${nombreZona}`;
     const { data: nueva, error } = await db.from('organigrama_instancias')
-      .insert({ organizacion_id: currentOrg.id, nivel: ogNivel, zona_id: ogNivel === 'zonal' ? ogZonaId : null, nombre: nombreInst })
+      .insert({ organizacion_id: currentOrg.id, nivel: ogNivel, zona_id: ogNivel === 'zonal' ? ogZonaId : null, territorio: ogNivel === 'municipal' ? ogMuni : null, nombre: nombreInst })
       .select('id,nombre').single();
     if (error) { toast('err', 'No se pudo crear la instancia: ' + error.message); return; }
     inst = nueva;
