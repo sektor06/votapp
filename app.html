@@ -1286,6 +1286,50 @@ button { background: none; border: none; cursor: pointer; }
   </main>
 </div>
 
+<!-- CANDIDATO: vista de consulta (el candidato y su equipo de monitoreo) -->
+<div class="page app-shell" id="pg-candidato">
+  <header class="app-header" role="banner">
+    <div class="app-av" id="cand-av" aria-hidden="true">C</div>
+    <div class="app-id"><div class="app-name" id="cand-nombre">Candidato</div><div class="app-loc" id="cand-sub">—</div></div>
+    <button type="button" class="btn-icon" onclick="cargarVistaCandidato()" aria-label="Actualizar">↻</button>
+    <button type="button" class="btn-icon" onclick="doLogout()" aria-label="Cerrar sesión">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </header>
+  <main class="main">
+    <section class="view active" style="padding:14px;">
+      <div id="cand-modo-voto" style="display:none;background:#ecfdf5;border:1.5px solid #a7f3d0;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#065f46;font-weight:600;">🗳️ Día de elecciones — se actualiza solo cada 30 segundos</div>
+      <div class="comp-stats" style="grid-template-columns:1fr 1fr;">
+        <div class="cs-cell total"><div class="cs-v" id="cand-k-trab">0</div><div class="cs-l">Trabajan para ti</div></div>
+        <div class="cs-cell"><div class="cs-v" id="cand-k-vot">0</div><div class="cs-l">Votantes que te apoyan</div></div>
+        <div class="cs-cell"><div class="cs-v" id="cand-k-voto">0</div><div class="cs-l">Ya votaron</div></div>
+        <div class="cs-cell"><div class="cs-v" id="cand-k-hoy">0</div><div class="cs-l">Nuevos hoy</div></div>
+      </div>
+      <div class="action-box">
+        <div class="action-title">Participación de tu gente</div>
+        <div style="height:12px;background:var(--line-2);border-radius:99px;overflow:hidden;margin:10px 0 6px;"><div id="cand-barra" style="height:100%;width:0;background:var(--prm);"></div></div>
+        <div class="action-sub" id="cand-barra-txt">—</div>
+      </div>
+      <div class="action-box">
+        <div class="action-title">Quienes trabajan para ti</div>
+        <div class="action-sub" id="cand-lista-sub">Cada persona con los votantes que ha registrado.</div>
+        <div id="cand-lista"><div class="empty-text">Todavía nadie se ha sumado.</div></div>
+      </div>
+      <div class="action-box">
+        <div class="action-title">Quién falta por votar</div>
+        <div class="action-sub">Para llamar o mover gente. Se marca solo cuando el delegado registra el voto.</div>
+        <button type="button" class="btn btn-prm btn-block" style="margin-top:10px;" onclick="cargarPendientesCandidato()">Ver lista de pendientes</button>
+        <div id="cand-pendientes"></div>
+      </div>
+      <div class="action-box" id="cand-monitores-box" style="display:none;">
+        <div class="action-title">Mi equipo de monitoreo</div>
+        <div class="action-sub">Marca a quienes pueden ver esta pantalla desde su propio teléfono, con su propia cuenta. Los puedes quitar cuando quieras.</div>
+        <div id="cand-monitores"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
 <div class="page error-box" id="pg-error" role="alert">
   <div class="error-icon" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1858,6 +1902,19 @@ async function cargarUsuario() {
     foto: meta.foto_url || meta.avatar_url || ''
   });
 
+  if (!meta.perfil_completo && !window._previoIntentado) {
+    // ¿Ya se registró por la web? Es el mismo registro: se reconoce y no se pide de nuevo.
+    window._previoIntentado = true;
+    try {
+      const { data: prev } = await db.rpc('mi_registro_previo');
+      if (prev && prev.cedula) {
+        await db.auth.updateUser({ data: { nombre: prev.nombre, cedula: prev.cedula, telefono: prev.telefono || '', provincia: prev.provincia || null, perfil_completo: true } });
+        if (prev.organizacion_id) { try { await db.rpc('registrar_colaborador', { p_organizacion_id: prev.organizacion_id }); } catch (e) {} }
+        return cargarUsuario();
+      }
+    } catch (e) {}
+  }
+
   if (!meta.perfil_completo) {
     document.getElementById('perfil-nombre').value = meta.nombre || user?.user_metadata?.full_name || '';
     goPage('pg-perfil');
@@ -1866,6 +1923,9 @@ async function cargarUsuario() {
 
   // Cuentas anteriores: asegurar que la cédula esté registrada en perfiles (idempotente)
   try { const pn = partirNombre(meta.nombre || ''); await db.rpc('registrar_perfil', { p_cedula: meta.cedula, p_nombre: pn.nombre, p_apellido: pn.apellido }); } catch (e) {}
+
+  // ¿Es candidato (o está autorizado a monitorear a uno)? Ve su pantalla de candidato.
+  try { const { data: rc } = await db.rpc('mi_rol_candidato'); if (rc && rc.candidato_id) { await mostrarCandidato(rc); return; } } catch (e) {}
 
   // ¿Ya está vinculado como dirigente (reconocido automáticamente)?
   const { data: dir } = await db.rpc('vincular_dirigente_por_cedula', { p_cedula: meta.cedula, p_foto_url: null });
@@ -1931,6 +1991,8 @@ async function guardarPerfil() {
       return;
     }
     await db.auth.updateUser({ data: { nombre, cedula: cedulaFmt, telefono, provincia, foto_url: fotoUrl, perfil_completo: true } });
+
+    try { const { data: rc } = await db.rpc('mi_rol_candidato'); if (rc && rc.candidato_id) { await mostrarCandidato(rc); return; } } catch (e) {}
 
     const { data: dir } = await db.rpc('vincular_dirigente_por_cedula', { p_cedula: cedulaFmt, p_foto_url: fotoUrl, p_nombre: nombre, p_telefono: telefono });
     if (dir && dir.id) {
@@ -2300,6 +2362,72 @@ async function consultarPadronPendiente() {
   }
 }
 
+let candRol = null, candTimer = null;
+
+async function mostrarCandidato(rc) {
+  candRol = rc;
+  document.getElementById('cand-av').textContent = ini(rc.nombre);
+  document.getElementById('cand-nombre').textContent = rc.nombre || 'Candidato';
+  document.getElementById('cand-sub').textContent = (rc.cargo || '') + (rc.es_monitor ? ' · Equipo de monitoreo' : '');
+  document.getElementById('cand-monitores-box').style.display = rc.es_candidato ? 'block' : 'none';
+  goPage('pg-candidato');
+  await cargarVistaCandidato();
+  if (candTimer) clearInterval(candTimer);
+  candTimer = setInterval(() => { if (document.getElementById('pg-candidato').classList.contains('active')) cargarVistaCandidato(); }, 30000);
+}
+
+async function cargarVistaCandidato() {
+  const { data, error } = await db.rpc('candidato_resumen');
+  if (error || !data) { toast('err', 'No se pudo cargar: ' + (error?.message || '')); return; }
+  document.getElementById('cand-k-trab').textContent = data.trabajadores;
+  document.getElementById('cand-k-vot').textContent = data.votantes;
+  document.getElementById('cand-k-voto').textContent = data.votaron;
+  document.getElementById('cand-k-hoy').textContent = data.nuevos_hoy;
+  const pct = data.votantes ? Math.round(data.votaron * 100 / data.votantes) : 0;
+  document.getElementById('cand-barra').style.width = pct + '%';
+  document.getElementById('cand-barra-txt').textContent = `${data.votaron} de ${data.votantes} ya votaron (${pct}%)`;
+  document.getElementById('cand-modo-voto').style.display = data.eleccion_activa ? 'block' : 'none';
+  const lista = data.lista || [];
+  document.getElementById('cand-lista').innerHTML = lista.length ? lista.map(t => `
+    <div style="border-top:1px solid var(--line);padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <div><div style="font-weight:700;font-size:14px;color:var(--ink);">${esc(t.nombre || '—')}</div>
+        <div style="font-size:12px;color:var(--mute);">${t.votantes} votantes · ${t.votaron} ya votaron</div></div>
+      <div style="font-weight:800;font-size:15px;color:${t.votantes - t.votaron > 0 ? 'var(--dudoso)' : 'var(--seguro)'};">${t.votantes - t.votaron > 0 ? 'faltan ' + (t.votantes - t.votaron) : '✓'}</div>
+    </div>`).join('') : '<div class="empty-text">Todavía nadie se ha sumado.</div>';
+  if (candRol && candRol.es_candidato) cargarMonitores();
+}
+
+async function cargarPendientesCandidato() {
+  const cont = document.getElementById('cand-pendientes');
+  cont.innerHTML = '<div class="empty-text">Cargando…</div>';
+  const { data, error } = await db.rpc('candidato_pendientes');
+  if (error) { cont.innerHTML = '<div class="empty-text">No se pudo cargar.</div>'; return; }
+  if (!data || !data.length) { cont.innerHTML = '<div class="empty-text">No falta nadie por votar 🎉</div>'; return; }
+  cont.innerHTML = data.map(v => `
+    <div style="border-top:1px solid var(--line);padding:9px 0;">
+      <div style="font-weight:700;font-size:14px;color:var(--ink);">${esc(v.nombre)}</div>
+      <div style="font-size:12px;color:var(--mute);">${esc(v.cedula || '')} · lo registró ${esc(v.trabajador || '—')}</div>
+      ${v.telefono ? `<a href="tel:${esc(v.telefono)}" style="font-size:13px;font-weight:700;color:var(--prm);text-decoration:none;">📞 ${esc(v.telefono)}</a>` : ''}
+    </div>`).join('');
+}
+
+async function cargarMonitores() {
+  const cont = document.getElementById('cand-monitores');
+  const { data, error } = await db.rpc('mis_posibles_monitores');
+  if (error || !data || !data.length) { cont.innerHTML = '<div class="empty-text">Aquí aparecerán las personas que trabajan para ti.</div>'; return; }
+  cont.innerHTML = data.map(m => `
+    <label style="display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding:10px 0;font-size:14px;color:var(--ink);">
+      <input type="checkbox" ${m.es_monitor ? 'checked' : ''} onchange="alternarMonitor('${esc(m.auth_user_id)}', this.checked, this)">
+      <span><b>${esc(m.nombre || '—')}</b><br><span style="font-size:12px;color:var(--mute);">${esc(m.cedula || '')}</span></span>
+    </label>`).join('');
+}
+
+async function alternarMonitor(uid, activar, el) {
+  const { error } = await db.rpc('alternar_monitor', { p_auth_user_id: uid, p_activar: activar });
+  if (error) { el.checked = !activar; toast('err', error.message); return; }
+  toast('ok', activar ? 'Ahora puede monitorear' : 'Acceso quitado');
+}
+
 let misApoyosApp = [];
 
 function checksApoyos(nombreGrupo, marcados, onchange) {
@@ -2322,7 +2450,7 @@ async function cargarMisVotantes() {
   cont.innerHTML = data.map(v => `
     <div style="border-top:1px solid var(--line);padding:10px 0;">
       <div style="font-weight:700;font-size:14px;color:var(--ink);">${esc(v.nombre)}</div>
-      <div style="font-size:12px;color:var(--mute);margin-bottom:4px;">${esc(v.cedula || '')}${v.telefono ? ' · ' + esc(v.telefono) : ''}</div>
+      <div style="font-size:12px;color:var(--mute);margin-bottom:4px;">${esc(v.cedula || '')}${v.telefono ? ' · ' + esc(v.telefono) : ''} ${v.voto ? '<b style="color:var(--seguro);">· ✓ Ya votó</b>' : '<b style="color:var(--dudoso);">· Falta</b>'}</div>
       <div id="vot-${esc(v.afiliado_id)}">${checksApoyos('v', v.candidatos || [], `guardarApoyoVotante('${esc(v.afiliado_id)}')`)}</div>
     </div>`).join('');
 }

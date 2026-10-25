@@ -9040,7 +9040,7 @@ async function loadCandidatos() {
       <div style="font-size:12px;color:var(--mute);margin-top:2px;">${esc(c.cargo || '—')}</div>
       ${c.activo === false ? '<div style="margin-top:6px;"><span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Inactivo</span></div>' : ''}
       <div style="margin-top:8px;font-size:12px;"><a href="#" onclick="verVotantesCandidato('${esc(c.id)}','${esc(c.nombre)}');return false;" style="color:var(--prm);font-weight:600;text-decoration:none;">👥 ${apoyosPorCand[c.id] || 0} lo apoyan</a></div>
-      <div style="margin-top:6px;">${c.auth_user_id ? '<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Con acceso</span>' : `<button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="darAccesoCandidato('${esc(c.id)}')">Dar acceso</button>`}</div>
+      <div style="margin-top:6px;">${c.auth_user_id ? '<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Vinculado a la app</span>' : c.cedula_acceso ? '<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Esperando que se registre en la app</span>' : `<button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="darAccesoCandidato('${esc(c.id)}')">Vincular cédula</button>`}</div>
       <div style="display:flex;gap:6px;margin-top:10px;">
         <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;" onclick="abrirModalCandidato('${esc(c.id)}')">Editar</button>
         <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;color:#dc2626;" onclick="eliminarCandidato('${esc(c.id)}')">Eliminar</button>
@@ -9147,11 +9147,13 @@ async function guardarCandidato() {
 
 async function darAccesoCandidato(id) {
   const c = candidatosData.find(x => x.id === id);
-  const ced = prompt(`Cédula de la persona que será ${c?.nombre || 'este candidato'} (debe estar registrada en ATENAS). Tendrá acceso para ver a la gente que lo apoya y su equipo.`);
+  const ced = prompt(`Cédula de la persona que será ${c?.nombre || 'este candidato'}. Cuando se registre en la app de ATENAS con esa cédula, la app lo reconoce como candidato y le muestra a la gente que lo apoya y su equipo. (El panel web es aparte: lo pide como solicitud.)`);
   if (!ced) return;
-  const { error } = await db.rpc('dar_acceso_candidato', { p_candidato_id: id, p_cedula: ced });
+  const { data: res, error } = await db.rpc('dar_acceso_candidato', { p_candidato_id: id, p_cedula: ced });
   if (error) { alert('No se pudo dar el acceso: ' + error.message); return; }
-  alert('Listo. El candidato ya puede entrar al panel con su cuenta.');
+  alert(res === 'pendiente'
+    ? 'Listo. Esa cédula todavía no está registrada: cuando la persona se registre en la app con esa cédula, quedará reconocida como candidato.'
+    : 'Listo. El candidato ya está vinculado y verá su pantalla en la app.');
   loadCandidatos();
 }
 
