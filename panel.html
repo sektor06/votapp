@@ -2080,6 +2080,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
           <p class="empty-d">Escribe la cédula completa (11 dígitos) o al menos 3 letras del nombre.</p>
         </div>
       </div>
+      <div id="padron-pager"></div>
     </main>
 
     <!-- ─── DIRIGENCIAL ─── -->
@@ -2469,6 +2470,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
       <div class="panel" style="margin-bottom:12px;">
         <div class="panel-b" style="padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <input class="mf-input" id="rec-q" type="search" placeholder="Buscar recinto por nombre o código…" oninput="renderRecintosPanel()" style="flex:1;min-width:220px;max-width:360px;">
+          <select class="mf-input" id="rec-f-mun" onchange="renderRecintosPanel()" style="width:200px;"><option value="">Todos los municipios</option></select>
           <select class="mf-input" id="rec-f-circ" onchange="renderRecintosPanel()" style="width:200px;"><option value="">Todas las circunscripciones</option></select>
           <select class="mf-input" id="rec-f-zona" onchange="renderRecintosPanel()" style="width:180px;"><option value="">Todas las estructuras</option></select>
         </div>
@@ -2481,6 +2483,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
               <tr>
                 <th>Código</th>
                 <th>Nombre</th>
+                <th>Municipio</th>
                 <th>Circunscripción</th>
                 <th>Estructura</th>
                 <th class="num">Electores</th>
@@ -2489,7 +2492,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
               </tr>
             </thead>
             <tbody id="rec-tb">
-              <tr><td colspan="7" class="loading-row">Cargando…</td></tr>
+              <tr><td colspan="8" class="loading-row">Cargando…</td></tr>
             </tbody>
           </table>
         </div>
@@ -5542,11 +5545,32 @@ async function _expEjecutar(fmt) {
 function searchPadron(q) {
   clearTimeout(searchTimer);
   if (q.length < 3 && q.length > 0) return;
-  searchTimer = setTimeout(() => doSearchPadron(q.trim()), 300);
+  searchTimer = setTimeout(() => doSearchPadron(q.trim(), 0), 300);
 }
 
-async function doSearchPadron(q) {
+const PADRON_PAGINA = 50;
+let padronPag = 0, padronTotal = 0, padronQActual = '';
+function irPaginaPadron(p) {
+  const max = Math.max(0, Math.ceil(padronTotal / PADRON_PAGINA) - 1);
+  doSearchPadron(padronQActual, Math.min(Math.max(0, p), max));
+  const l = document.getElementById('padron-list'); if (l && l.scrollIntoView) l.scrollIntoView({ block: 'start' });
+}
+function renderPagerPadron() {
+  const el = document.getElementById('padron-pager'); if (!el) return;
+  const pags = Math.ceil(padronTotal / PADRON_PAGINA);
+  if (pags <= 1) { el.innerHTML = ''; return; }
+  const btn = (t, p, dis) => `<button type="button" class="topbar-btn" ${dis ? 'disabled style="opacity:.4;cursor:default"' : `onclick="irPaginaPadron(${p})"`}>${t}</button>`;
+  el.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:18px 0;flex-wrap:wrap">
+    ${btn('« Primera', 0, padronPag === 0)}${btn('‹ Anterior', padronPag - 1, padronPag === 0)}
+    <span style="font-size:13px;color:var(--mute)">Página ${(padronPag + 1).toLocaleString()} de ${pags.toLocaleString()}</span>
+    ${btn('Siguiente ›', padronPag + 1, padronPag >= pags - 1)}${btn('Última »', pags - 1, padronPag >= pags - 1)}</div>`;
+}
+
+async function doSearchPadron(q, page = 0) {
   const list = document.getElementById('padron-list');
+  const pager = document.getElementById('padron-pager');
+  if (pager) pager.innerHTML = '';
+  padronQActual = q; padronPag = page; padronTotal = 0;
 
   if (!q) {
     list.innerHTML = `<div class="empty">
@@ -5569,16 +5593,23 @@ async function doSearchPadron(q) {
     ({ data, error } = await db.rpc('candidato_buscar_cedula', { p_cedula: dig }));
     padronCache = {}; (data || []).forEach(e => { padronCache[e.id] = e; });
   } else if (/^\d/.test(q)) {
-    ({ data, error } = await db.rpc('buscar_padron_cedula_flexible', { p_query: q, p_filtro: currentFilter }));
+    const off = page * PADRON_PAGINA;
+    const [r1, r2] = await Promise.all([
+      db.rpc('buscar_padron_cedula_flexible', { p_query: q, p_filtro: currentFilter, p_limite: PADRON_PAGINA, p_offset: off }),
+      db.rpc('contar_padron_cedula', { p_query: q, p_filtro: currentFilter })
+    ]);
+    ({ data, error } = r1); padronTotal = Number(r2.data) || (data ? data.length : 0);
   } else {
     // Búsqueda por nombre vía RPC: usa el índice trigram (con .ilike() + RLS recorría todo el padrón).
-    // Aplica los mismos filtros (todos/prm/comp/duros) y los mismos permisos del panel.
-    ({ data, error } = await db.rpc('buscar_padron_por_nombre', {
-      p_texto: q.toUpperCase(),
-      p_filtro: currentFilter,
-      p_limite: 50
-    }));
+    // Aplica los mismos filtros (todos/prm/comp/duros) y los mismos permisos del panel. Paginada de 50 en 50.
+    const off = page * PADRON_PAGINA;
+    const [r1, r2] = await Promise.all([
+      db.rpc('buscar_padron_por_nombre', { p_texto: q.toUpperCase(), p_filtro: currentFilter, p_limite: PADRON_PAGINA, p_offset: off }),
+      db.rpc('contar_padron_por_nombre', { p_texto: q.toUpperCase(), p_filtro: currentFilter })
+    ]);
+    ({ data, error } = r1); padronTotal = Number(r2.data) || (data ? data.length : 0);
   }
+  if (miCandidato) padronTotal = data ? data.length : 0;
 
   if (error) {
     list.innerHTML = `<div class="empty"><div class="empty-t">Error al buscar</div><p class="empty-d">${esc(error.message)}</p></div>`;
@@ -5613,7 +5644,11 @@ async function doSearchPadron(q) {
     </button>
   `).join('');
 
-  document.getElementById('padron-sub').textContent = `${data.length} resultados`;
+  const desde = page * PADRON_PAGINA + 1, hasta = page * PADRON_PAGINA + data.length;
+  document.getElementById('padron-sub').textContent = padronTotal > data.length
+    ? `Mostrando ${desde.toLocaleString()}–${hasta.toLocaleString()} de ${padronTotal.toLocaleString()} resultados`
+    : `${data.length} resultados`;
+  renderPagerPadron();
 }
 
 function filterPadron(f, btn) {
@@ -5621,7 +5656,7 @@ function filterPadron(f, btn) {
   document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const q = document.getElementById('padron-search').value;
-  if (q.length >= 3) doSearchPadron(q);
+  if (q.length >= 3) doSearchPadron(q, 0);
 }
 
 // ═══ FICHA MODAL ═══
@@ -11125,13 +11160,13 @@ document.getElementById('modal-dirigente').addEventListener('click', function(e)
 let recData = [];
 async function loadRecintos() {
   const tb = document.getElementById('rec-tb');
-  tb.innerHTML = '<tr><td colspan="7" class="loading-row">Cargando…</td></tr>';
+  tb.innerHTML = '<tr><td colspan="8" class="loading-row">Cargando…</td></tr>';
 
-  const { data } = await db.from('recintos_prm').select('*').order('zona, codigo');
+  const { data } = await db.from('recintos_prm').select('*').order('municipio').order('zona', { nullsFirst: false }).order('codigo');
   recData = data || [];
 
   if (!recData.length) {
-    tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
     return;
   }
   // llenar los filtros con los valores que existen
@@ -11141,6 +11176,7 @@ async function loadRecintos() {
     sel.value = actual;
   };
   const uniq = k => [...new Set(recData.map(r => r[k]).filter(v => v != null && v !== ''))].sort((a,b) => String(a).localeCompare(String(b), 'es', {numeric:true}));
+  llenar('rec-f-mun', uniq('municipio'));
   llenar('rec-f-circ', uniq('circunscripcion'), v => 'Circunscripción ' + v);
   llenar('rec-f-zona', uniq('zona'), v => 'Estructura ' + v);
   renderRecintosPanel();
@@ -11151,13 +11187,15 @@ function renderRecintosPanel() {
   const q = (document.getElementById('rec-q').value || '').trim().toLowerCase();
   const circ = document.getElementById('rec-f-circ').value;
   const zona = document.getElementById('rec-f-zona').value;
+  const mun = document.getElementById('rec-f-mun').value;
   const lista = recData.filter(r =>
+    (!mun || String(r.municipio) === mun) &&
     (!circ || String(r.circunscripcion) === circ) &&
     (!zona || String(r.zona) === zona) &&
     (!q || String(r.nombre || '').toLowerCase().includes(q) || String(r.codigo || '').toLowerCase().includes(q)));
 
   if (!lista.length) {
-    tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--mute)">Ningún recinto coincide con la búsqueda</td></tr>';
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--mute)">Ningún recinto coincide con la búsqueda</td></tr>';
   } else {
     tb.innerHTML = lista.map(r => {
       const ganador = r.ganado_2020_por || '—';
@@ -11165,7 +11203,8 @@ function renderRecintosPanel() {
       return `
       <tr>
         <td class="mono bold">${esc(r.codigo)}</td>
-        <td class="bold">${esc(r.nombre)}</td>
+        <td class="bold">${esc(r.nombre)}${r.alias ? `<div style="font-weight:400;font-size:11px;color:var(--mute)">También: ${esc(r.alias)}</div>` : ''}</td>
+        <td>${r.municipio ? esc(r.municipio) : '—'}${r.distrito && /\(DM\)/.test(r.distrito) ? `<div style="font-size:11px;color:var(--mute)">${esc(r.distrito)}</div>` : ''}</td>
         <td>${r.circunscripcion ? esc(r.circunscripcion) : '—'}</td>
         <td>${r.zona ? 'Estructura ' + esc(r.zona) : '—'}</td>
         <td class="num">${fmtNum(r.total_electores)}</td>
