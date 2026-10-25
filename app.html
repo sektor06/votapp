@@ -1202,6 +1202,8 @@ button { background: none; border: none; cursor: pointer; }
     <input class="field-input" id="perfil-cedula" placeholder="000-0000000-0" inputmode="numeric">
     <div class="field-label">Teléfono</div>
     <input class="field-input" id="perfil-telefono" placeholder="809-000-0000">
+    <div class="field-label">Provincia</div>
+    <select class="field-input" id="perfil-provincia"><option>Azua</option><option>Baoruco</option><option>Barahona</option><option>Dajabón</option><option>Distrito Nacional</option><option>Duarte</option><option>El Seibo</option><option>Elías Piña</option><option>Espaillat</option><option>Hato Mayor</option><option>Hermanas Mirabal</option><option>Independencia</option><option>La Altagracia</option><option>La Romana</option><option>La Vega</option><option>María Trinidad Sánchez</option><option>Monseñor Nouel</option><option>Monte Cristi</option><option>Monte Plata</option><option>Pedernales</option><option>Peravia</option><option>Puerto Plata</option><option>Samaná</option><option>San Cristóbal</option><option>San José de Ocoa</option><option>San Juan</option><option selected>San Pedro de Macorís</option><option>Sánchez Ramírez</option><option>Santiago</option><option>Santiago Rodríguez</option><option>Santo Domingo</option><option>Valverde</option></select>
 
     <button type="button" class="btn btn-prm btn-block" style="margin-top:20px;background:white;color:var(--prm);" id="btn-guardar-perfil" onclick="guardarPerfil()">Guardar y continuar</button>
     <p id="perfil-err" style="color:#fca5a5;font-size:var(--fs-sm);margin-top:10px;display:none;"></p>
@@ -1210,8 +1212,13 @@ button { background: none; border: none; cursor: pointer; }
 
 <!-- ORGANIZACIÓN: solo para quien no fue reconocido automáticamente como dirigente -->
 <div class="page" id="pg-org" role="main" aria-label="Elegir organización">
-  <header class="app-header" role="banner"><div class="app-id"><div class="app-name">¿A quién quieres apoyar?</div><div class="app-loc">Elige una organización</div></div></header>
+  <header class="app-header" role="banner"><div class="app-id"><div class="app-name">¿A quién quieres apoyar?</div><div class="app-loc">Un partido, o candidatos de varios partidos</div></div></header>
   <main class="main" style="padding:16px 14px;">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button type="button" id="modo-partido" class="btn btn-prm" style="flex:1;" onclick="setModoOrg('partido')">Un partido</button>
+      <button type="button" id="modo-candidatos" class="btn" style="flex:1;background:#fff;color:var(--prm);border:1.5px solid var(--line);" onclick="setModoOrg('candidatos')">Candidatos</button>
+    </div>
+    <p id="modo-ayuda" style="font-size:12px;color:var(--ink-2);margin:0 0 12px;"></p>
     <input class="field-input" style="color:var(--ink);background:#fff;border-color:var(--line);" id="org-search" placeholder="Buscar por nombre…" oninput="renderOrgs(this.value)">
     <div id="org-list" style="margin-top:14px;"><div class="empty-text">Cargando organizaciones…</div></div>
     <p id="org-err" style="color:var(--dudoso);font-size:var(--fs-sm);display:none;"></p>
@@ -1850,6 +1857,9 @@ async function cargarUsuario() {
     return;
   }
 
+  // Cuentas anteriores: asegurar que la cédula esté registrada en perfiles (idempotente)
+  try { const pn = partirNombre(meta.nombre || ''); await db.rpc('registrar_perfil', { p_cedula: meta.cedula, p_nombre: pn.nombre, p_apellido: pn.apellido }); } catch (e) {}
+
   // ¿Ya está vinculado como dirigente (reconocido automáticamente)?
   const { data: dir } = await db.rpc('vincular_dirigente_por_cedula', { p_cedula: meta.cedula, p_foto_url: null });
   if (dir && dir.id) {
@@ -1905,7 +1915,15 @@ async function guardarPerfil() {
       if (!upErr) fotoUrl = db.storage.from('fotos-dirigentes').getPublicUrl(path).data.publicUrl;
     }
 
-    await db.auth.updateUser({ data: { nombre, cedula: cedulaFmt, telefono, foto_url: fotoUrl, perfil_completo: true } });
+    const provincia = document.getElementById('perfil-provincia').value;
+    const { error: ePerfil } = await db.rpc('registrar_perfil', { p_cedula: cedulaFmt, p_nombre: partirNombre(nombre).nombre, p_apellido: partirNombre(nombre).apellido });
+    if (ePerfil) {
+      err.textContent = /otra cuenta/i.test(ePerfil.message) ? 'Esa cédula ya está registrada con otra cuenta. Si es tuya, entra con esa cuenta.' : ePerfil.message;
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Guardar y continuar';
+      return;
+    }
+    await db.auth.updateUser({ data: { nombre, cedula: cedulaFmt, telefono, provincia, foto_url: fotoUrl, perfil_completo: true } });
 
     const { data: dir } = await db.rpc('vincular_dirigente_por_cedula', { p_cedula: cedulaFmt, p_foto_url: fotoUrl, p_nombre: nombre, p_telefono: telefono });
     if (dir && dir.id) {
@@ -1928,19 +1946,63 @@ async function guardarPerfil() {
 let organizaciones = [];
 let orgSeleccionada = null;
 
+let modoOrg = 'partido';
+let candidatosPub = [];
+let candidatosSel = [];
+
+function partirNombre(full) {
+  const w = String(full || '').trim().split(/\s+/).filter(Boolean);
+  if (w.length <= 1) return { nombre: w[0] || '', apellido: w[0] || '' };
+  const nAp = w.length === 2 ? 1 : 2;
+  return { nombre: w.slice(0, w.length - nAp).join(' '), apellido: w.slice(w.length - nAp).join(' ') };
+}
+
 async function cargarOrganizaciones() {
   goPage('pg-org');
-  const { data, error } = await db.from('organizaciones').select('id, nombre, tipo, provincia').eq('activa', true).order('nombre');
+  const { data, error } = await db.from('organizaciones').select('id, nombre, tipo, provincia, puesto').eq('activa', true).order('nombre');
   if (error) { document.getElementById('org-list').innerHTML = '<div class="empty-text">No se pudo cargar el directorio.</div>'; return; }
   organizaciones = data || [];
+  try { const rc = await db.rpc('listar_candidatos_publicos'); candidatosPub = rc.data || []; } catch (e) { candidatosPub = []; }
+  setModoOrg('partido');
+}
+
+function setModoOrg(m) {
+  modoOrg = m; orgSeleccionada = null; candidatosSel = [];
+  const bp = document.getElementById('modo-partido'), bc = document.getElementById('modo-candidatos');
+  bp.style.cssText = m === 'partido' ? 'flex:1;' : 'flex:1;background:#fff;color:var(--prm);border:1.5px solid var(--line);';
+  bc.style.cssText = m === 'candidatos' ? 'flex:1;' : 'flex:1;background:#fff;color:var(--prm);border:1.5px solid var(--line);';
+  bp.className = 'btn' + (m === 'partido' ? ' btn-prm' : ''); bc.className = 'btn' + (m === 'candidatos' ? ' btn-prm' : '');
+  document.getElementById('modo-ayuda').textContent = m === 'partido'
+    ? 'Si te unes a un partido, trabajas con ese partido y con sus candidatos.'
+    : 'Elige los candidatos que quieres apoyar (uno por cargo). Pueden ser de partidos distintos.';
+  const q = document.getElementById('org-search'); if (q) q.value = '';
   renderOrgs();
+}
+
+function itemsCandidatosApp() {
+  const porOrg = id => (organizaciones.find(o => o.id === id) || {}).nombre;
+  const deParti = candidatosPub.map(c => ({ key: 'c:' + c.id, kind: 'cand', id: c.id, orgId: c.organizacion_id, nombre: c.nombre, puesto: c.cargo, partido: c.partido || porOrg(c.organizacion_id) || '' }));
+  const indep = organizaciones.filter(o => o.tipo === 'candidato').map(o => ({ key: 'o:' + o.id, kind: 'org', id: o.id, orgId: o.id, nombre: o.nombre, puesto: o.puesto, partido: '' }));
+  return [...deParti, ...indep];
 }
 
 function renderOrgs(filtro = '') {
   const cont = document.getElementById('org-list');
-  const colores = { partido: '#01173A', movimiento: '#B45309', candidato: '#047857' };
-  const badge = { partido: 'Partido', movimiento: 'Movimiento', candidato: 'Candidato' };
-  const lista = organizaciones.filter(o => o.nombre.toLowerCase().includes(filtro.toLowerCase()));
+  const q = filtro.toLowerCase();
+  if (modoOrg === 'candidatos') {
+    const items = itemsCandidatosApp().filter(i => i.nombre.toLowerCase().includes(q));
+    if (!items.length) { cont.innerHTML = '<div class="empty-text">No hay candidatos inscritos todavía.</div>'; return; }
+    cont.innerHTML = items.map(i => `
+      <div class="org-item ${candidatosSel.includes(i.key)?'selected':''}" onclick="toggleCandidatoApp('${esc(i.key)}')">
+        <div class="org-avatar" style="background:#047857;">${esc(i.nombre.substring(0,2).toUpperCase())}</div>
+        <div class="org-info"><h4>${esc(i.nombre)}</h4><span>${i.puesto ? esc(i.puesto) : 'Candidato'} · ${i.partido ? esc(i.partido) : 'Independiente'}</span></div>
+        <div class="org-check"></div>
+      </div>`).join('') + `<button type="button" class="btn btn-prm btn-block" style="margin-top:10px;" onclick="confirmarCandidatos()" ${candidatosSel.length?'':'disabled'}>Continuar</button>`;
+    return;
+  }
+  const colores = { partido: '#01173A', movimiento: '#B45309' };
+  const badge = { partido: 'Partido', movimiento: 'Movimiento' };
+  const lista = organizaciones.filter(o => o.tipo !== 'candidato' && o.nombre.toLowerCase().includes(q));
   if (!lista.length) { cont.innerHTML = '<div class="empty-text">Sin resultados.</div>'; return; }
   cont.innerHTML = lista.map(o => `
     <div class="org-item ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${esc(o.id)}')">
@@ -1952,13 +2014,60 @@ function renderOrgs(filtro = '') {
 
 function elegirOrg(id) { orgSeleccionada = id; renderOrgs(document.getElementById('org-search').value); }
 
+function toggleCandidatoApp(key) {
+  if (candidatosSel.includes(key)) candidatosSel = candidatosSel.filter(x => x !== key);
+  else {
+    const todos = itemsCandidatosApp();
+    const nuevo = todos.find(i => i.key === key);
+    if (nuevo && nuevo.puesto) candidatosSel = candidatosSel.filter(k => { const o = todos.find(i => i.key === k); return !(o && o.puesto && o.puesto.toLowerCase() === nuevo.puesto.toLowerCase()); });
+    candidatosSel = [...candidatosSel, key];
+  }
+  renderOrgs(document.getElementById('org-search').value);
+}
+
+// Envía la solicitud de afiliación a una organización con los datos del perfil (misma que la del registro web)
+async function enviarSolicitudAfiliacionApp(orgId) {
+  const { data: { user } } = await db.auth.getUser();
+  const meta = user?.user_metadata || {};
+  const pn = partirNombre(meta.nombre);
+  const { error } = await db.rpc('crear_solicitud_afiliacion', {
+    p_organizacion_id: orgId, p_categoria: 'simpatizante', p_nombre: pn.nombre, p_apellido: pn.apellido, p_apodo: null,
+    p_cedula: meta.cedula || '', p_telefono_celular: meta.telefono || '', p_telefono_residencial: null, p_telefono_trabajo: null,
+    p_correo: user?.email || '', p_calle: null, p_numero: null, p_residencial_condominio: null, p_barrio: null, p_paraje_seccion: null,
+    p_ciudad_municipio: null, p_ocupacion: null, p_frente_sectorial: null, p_aviso_preferido: 'correo', p_estructura_sugerida: null,
+    p_provincia: meta.provincia || null
+  });
+  if (error && !/Ya tienes una solicitud/i.test(error.message)) throw error;
+}
+
 async function confirmarOrganizacion() {
   const err = document.getElementById('org-err');
   err.style.display = 'none';
   const { data, error } = await db.rpc('registrar_colaborador', { p_organizacion_id: orgSeleccionada });
   if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
   currentOrgId = data.organizacion_id;
+  try { await enviarSolicitudAfiliacionApp(orgSeleccionada); }
+  catch (e) { err.textContent = 'No se pudo enviar tu solicitud: ' + e.message; err.style.display = 'block'; return; }
   irACandidatos(currentOrgId);
+}
+
+async function confirmarCandidatos() {
+  const err = document.getElementById('org-err');
+  err.style.display = 'none';
+  const todos = itemsCandidatosApp();
+  const sel = candidatosSel.map(k => todos.find(i => i.key === k)).filter(Boolean);
+  const destinos = [...new Set(sel.map(i => i.orgId))];
+  try {
+    const { data, error } = await db.rpc('registrar_colaborador', { p_organizacion_id: destinos[0] });
+    if (error) throw error;
+    currentOrgId = data.organizacion_id;
+    for (const o of destinos) await enviarSolicitudAfiliacionApp(o);
+    for (const i of sel.filter(x => x.kind === 'cand')) {
+      const r = await db.rpc('elegir_apoyo', { p_candidato_id: i.id });
+      if (r.error) throw r.error;
+    }
+  } catch (e) { err.textContent = 'No se pudo guardar: ' + (e.message || e); err.style.display = 'block'; return; }
+  await continuarDespuesDeCandidatos();
 }
 
 let candidatosPorCargo = {};
