@@ -2962,7 +2962,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         <div class="mf-row2">
           <div class="mf-group">
             <label class="mf-label">Cargo al que aspira *</label>
-            <input class="mf-input" id="cand-cargo" placeholder="Alcalde, Diputado, Regidor…">
+            <select class="mf-input" id="cand-cargo"><option value="">Elige el cargo…</option><option>Presidente</option><option>Vicepresidente</option><option>Senador</option><option>Diputado</option><option>Alcalde</option><option>Vicealcalde</option><option>Regidor</option><option>Director de distrito municipal</option><option>Vocal de distrito municipal</option></select>
           </div>
           <div class="mf-group">
             <label class="mf-label">Provincia / Municipio</label>
@@ -8945,6 +8945,8 @@ async function loadCandidatos() {
     return;
   }
   candidatosData = data || [];
+  let apoyosPorCand = {};
+  try { const { data: ap } = await db.rpc('contar_apoyos_candidatos'); (ap || []).forEach(a => { apoyosPorCand[a.candidato_id] = Number(a.total); }); } catch (e) {}
 
   if (!candidatosData.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--mute);">
@@ -8963,6 +8965,8 @@ async function loadCandidatos() {
       <div style="font-weight:700;font-size:13px;color:var(--text);">${esc(c.nombre)}</div>
       <div style="font-size:12px;color:var(--mute);margin-top:2px;">${esc(c.cargo || '—')}</div>
       ${c.activo === false ? '<div style="margin-top:6px;"><span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Inactivo</span></div>' : ''}
+      <div style="margin-top:8px;font-size:12px;"><a href="#" onclick="verApoyadores('${esc(c.id)}');return false;" style="color:var(--prm);font-weight:600;text-decoration:none;">👥 ${apoyosPorCand[c.id] || 0} lo apoyan</a></div>
+      <div style="margin-top:6px;">${c.auth_user_id ? '<span style="background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;">Con acceso</span>' : `<button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="darAccesoCandidato('${esc(c.id)}')">Dar acceso</button>`}</div>
       <div style="display:flex;gap:6px;margin-top:10px;">
         <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;" onclick="abrirModalCandidato('${esc(c.id)}')">Editar</button>
         <button class="btn-secondary" style="flex:1;font-size:11px;padding:6px;color:#dc2626;" onclick="eliminarCandidato('${esc(c.id)}')">Eliminar</button>
@@ -8976,7 +8980,7 @@ function abrirModalCandidato(id) {
   document.getElementById('cand-modal-title').textContent = c ? `Editar candidato — ${esc(c.nombre)}` : 'Nuevo candidato';
   document.getElementById('cand-id').value = c?.id || '';
   document.getElementById('cand-nombre').value = c?.nombre || '';
-  document.getElementById('cand-cargo').value = c?.cargo || '';
+  { const sc = document.getElementById('cand-cargo'), v = c?.cargo || ''; if (v && ![...sc.options].some(o => o.value === v || o.text === v)) sc.add(new Option(v, v)); sc.value = v; }
   document.getElementById('cand-provincia').value = c?.provincia || '';
   document.getElementById('cand-telefono').value = c?.telefono || '';
   document.getElementById('cand-email').value = c?.email || '';
@@ -9065,6 +9069,31 @@ async function guardarCandidato() {
 
   cerrarModalCandidato();
   loadCandidatos();
+}
+
+async function darAccesoCandidato(id) {
+  const c = candidatosData.find(x => x.id === id);
+  const ced = prompt(`Cédula de la persona que será ${c?.nombre || 'este candidato'} (debe estar registrada en ATENAS). Tendrá acceso para ver a la gente que lo apoya y su equipo.`);
+  if (!ced) return;
+  const { error } = await db.rpc('dar_acceso_candidato', { p_candidato_id: id, p_cedula: ced });
+  if (error) { alert('No se pudo dar el acceso: ' + error.message); return; }
+  alert('Listo. El candidato ya puede entrar al panel con su cuenta.');
+  loadCandidatos();
+}
+
+async function verApoyadores(id) {
+  const c = candidatosData.find(x => x.id === id);
+  const { data, error } = await db.rpc('apoyadores_candidato', { p_candidato_id: id });
+  if (error) { alert('Error: ' + error.message); return; }
+  let ov = document.getElementById('modal-apoyadores');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'modal-apoyadores'; ov.className = 'modal-overlay'; document.body.appendChild(ov); }
+  const filas = (data || []).map(a => `<tr><td>${esc(a.nombre || '—')}</td><td>${esc(a.cedula || '—')}</td><td>${esc(a.telefono || '—')}</td><td>${esc((a.apoyando_desde || '').slice(0, 10))}</td></tr>`).join('');
+  ov.innerHTML = `<div class="modal-sheet" style="max-width:640px;"><div class="modal-handle"></div>
+    <div class="modal-title">Apoyan a ${esc(c?.nombre || '')} (${(data || []).length})</div>
+    <div style="max-height:55vh;overflow:auto;"><table class="data-table" style="width:100%;"><thead><tr><th>Nombre</th><th>Cédula</th><th>Teléfono</th><th>Desde</th></tr></thead>
+    <tbody>${filas || '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--mute)">Todavía nadie lo ha elegido.</td></tr>'}</tbody></table></div>
+    <div style="margin-top:14px;text-align:right;"><button class="btn-secondary" onclick="document.getElementById('modal-apoyadores').classList.remove('show')">Cerrar</button></div></div>`;
+  ov.classList.add('show');
 }
 
 async function eliminarCandidato(id) {

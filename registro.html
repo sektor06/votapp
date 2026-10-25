@@ -249,6 +249,7 @@ const db = supabase.createClient(SB_URL, SB_KEY);
 let sesionActual = null;
 let organizaciones = [];
 let candidatosSel = [];
+let candidatosPub = [];
 let modo = 'partido';
 let orgSeleccionada = null;
 
@@ -341,9 +342,12 @@ async function loginGoogle() {
 }
 
 async function cargarOrganizaciones() {
-  let { data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto, partido_id').eq('activa', true).order('nombre');
-  if (error) ({ data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto').eq('activa', true).order('nombre'));
+  let { data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto').eq('activa', true).order('nombre');
   if (error) ({ data } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre'));
+  try {
+    const rc = await db.rpc('listar_candidatos_publicos');
+    candidatosPub = rc.data || [];
+  } catch (e) { candidatosPub = []; }
   organizaciones = data || [];
   document.getElementById('modo-ayuda').textContent = 'Si te unes a un partido, trabajas con ese partido y con los candidatos que están en él.';
   renderOrgs();
@@ -363,6 +367,12 @@ function renderOrgs(filtro = '') {
   const colores = { partido: '#01173A', movimiento: '#B45309', candidato: '#5A9E2A' };
   const q = filtro.toLowerCase();
   if (modo === 'candidatos') {
+    const items = itemsCandidatos().filter(i => i.nombre.toLowerCase().includes(q));
+    if (!items.length) { cont.innerHTML = '<div class="loading-txt">No hay candidatos inscritos todavía.</div>'; return; }
+    cont.innerHTML = items.map(tarjetaCandidato).join('');
+    return;
+  }
+  if (false) {
     const cands = organizaciones.filter(o => o.tipo === 'candidato' && o.nombre.toLowerCase().includes(q));
     if (!cands.length) { cont.innerHTML = '<div class="loading-txt">No hay candidatos inscritos todavía.</div>'; return; }
     const nomPartido = id => (organizaciones.find(x => x.id === id) || {}).nombre;
@@ -399,25 +409,35 @@ function setModo(m) {
 function elegirOrg(id) { if (modo !== 'partido') { modo = 'partido'; } orgSeleccionada = id; candidatosSel = []; renderOrgs(document.querySelector('.org-search').value); renderCandidatos(); actualizarBotonPaso2(); }
 function renderCandidatos() {
   const wrap = document.getElementById('cand-wrap'), cont = document.getElementById('cand-list');
-  const cands = modo !== 'partido' ? [] : organizaciones.filter(o => o.tipo === 'candidato' && o.partido_id && o.partido_id === orgSeleccionada);
-  if (!cands.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  const items = modo !== 'partido' ? [] : itemsCandidatos().filter(i => i.kind === 'cand' && i.orgId === orgSeleccionada);
+  if (!items.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
   wrap.style.display = 'block';
-  cont.innerHTML = cands.map(o => `
-    <div class="org-card ${candidatosSel.includes(o.id)?'selected':''}" onclick="toggleCandidato('${esc(o.id)}')">
-      <div class="org-logo" style="background:#5A9E2A;">${esc(o.nombre.substring(0,2).toUpperCase())}</div>
-      <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">${o.puesto ? 'Candidato a ' + esc(o.puesto) : 'Candidato'}</div></div>
+  cont.innerHTML = items.map(tarjetaCandidato).join('');
+}
+
+function itemsCandidatos() {
+  const porOrg = id => (organizaciones.find(o => o.id === id) || {}).nombre;
+  const deParti = candidatosPub.map(c => ({ key: 'c:' + c.id, kind: 'cand', id: c.id, orgId: c.organizacion_id, nombre: c.nombre, puesto: c.cargo, partido: c.partido || porOrg(c.organizacion_id) || '' }));
+  const indep = organizaciones.filter(o => o.tipo === 'candidato').map(o => ({ key: 'o:' + o.id, kind: 'org', id: o.id, orgId: o.id, nombre: o.nombre, puesto: o.puesto, partido: '' }));
+  return [...deParti, ...indep];
+}
+function tarjetaCandidato(i) {
+  return `
+    <div class="org-card ${candidatosSel.includes(i.key)?'selected':''}" onclick="toggleCandidato('${esc(i.key)}')">
+      <div class="org-logo" style="background:#5A9E2A;">${esc(i.nombre.substring(0,2).toUpperCase())}</div>
+      <div><div class="org-name">${esc(i.nombre)}</div><div class="org-meta">${i.puesto ? 'Candidato a ' + esc(i.puesto) : 'Candidato'} · ${i.partido ? esc(i.partido) : 'Independiente'}</div></div>
       <span class="org-type-badge badge-candidato">Candidato</span>
       <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-    </div>`).join('');
+    </div>`;
 }
-function toggleCandidato(id) {
-  if (candidatosSel.includes(id)) candidatosSel = candidatosSel.filter(x => x !== id);
+function toggleCandidato(key) {
+  if (candidatosSel.includes(key)) candidatosSel = candidatosSel.filter(x => x !== key);
   else {
-    if (modo === 'candidatos') { // un candidato por puesto: elegir otro del mismo puesto reemplaza al anterior
-      const nuevo = organizaciones.find(o => o.id === id);
-      if (nuevo && nuevo.puesto) candidatosSel = candidatosSel.filter(x => (organizaciones.find(o => o.id === x) || {}).puesto !== nuevo.puesto);
-    }
-    candidatosSel = [...candidatosSel, id];
+    // un candidato por puesto: elegir otro del mismo puesto reemplaza al anterior
+    const todos = itemsCandidatos();
+    const nuevo = todos.find(i => i.key === key);
+    if (nuevo && nuevo.puesto) candidatosSel = candidatosSel.filter(k => { const o = todos.find(i => i.key === k); return !(o && o.puesto && o.puesto.toLowerCase() === nuevo.puesto.toLowerCase()); });
+    candidatosSel = [...candidatosSel, key];
   }
   if (modo === 'candidatos') renderOrgs(document.querySelector('.org-search').value); else renderCandidatos();
   actualizarBotonPaso2();
@@ -467,7 +487,7 @@ async function validarPaso3() {
 
 function actualizarResumen() {
   const org = modo === 'partido' ? organizaciones.find(o => o.id === orgSeleccionada) : null;
-  const nomsC = candidatosSel.map(id => (organizaciones.find(o => o.id === id) || {}).nombre).filter(Boolean);
+  const nomsC = candidatosSel.map(k => (itemsCandidatos().find(i => i.key === k) || {}).nombre).filter(Boolean);
   document.getElementById('sum-org').textContent = org ? org.nombre + (nomsC.length ? ' · Apoyo a: ' + nomsC.join(', ') : '') : (nomsC.length ? nomsC.join(', ') : '—');
   document.getElementById('sum-nombre').textContent = document.getElementById('f-nombre').value + ' ' + document.getElementById('f-apellido').value;
   document.getElementById('sum-notif').textContent = notifPreferida === 'llamada' ? '📞 Por llamada' : '📧 Por correo';
@@ -504,7 +524,9 @@ async function enviarSolicitud() {
     p_provincia: document.getElementById('f-provincia').value
   };
   let data = null, error = null;
-  const destinos = modo === 'partido' ? [orgSeleccionada, ...candidatosSel] : [...candidatosSel];
+  const sel = candidatosSel.map(k => itemsCandidatos().find(i => i.key === k)).filter(Boolean);
+  const apoyos = sel.filter(i => i.kind === 'cand').map(i => i.id);
+  const destinos = modo === 'partido' ? [orgSeleccionada] : [...new Set(sel.map(i => i.orgId))];
   for (const orgId of destinos) {
     argsSolicitud.p_organizacion_id = orgId;
     let r = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
@@ -512,10 +534,16 @@ async function enviarSolicitud() {
       delete argsSolicitud.p_provincia;
       r = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
     }
-    // Si ya existe una solicitud para esa organización, seguir con las demás
-    if (r.error && /ya (tiene|existe|enviaste)|duplic/i.test(r.error.message) && orgId !== destinos[0]) continue;
+    // Si ya tiene solicitud con esa organización, se sigue con las demás
+    if (r.error && /Ya tienes una solicitud con esta organizaci/i.test(r.error.message) && apoyos.length) continue;
     if (r.error) { error = r.error; break; }
     data = r.data;
+  }
+  if (!error && apoyos.length) {
+    for (const cid of apoyos) {
+      const ra = await db.rpc('elegir_apoyo', { p_candidato_id: cid });
+      if (ra.error) { error = ra.error; break; }
+    }
   }
 
   if (error) {
@@ -531,8 +559,10 @@ async function enviarSolicitud() {
   document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
   document.getElementById('content-confirm').style.display = 'block';
   const canal = notifPreferida === 'llamada' ? 'por llamada telefónica' : 'por correo';
-  document.getElementById('confirm-text').innerHTML =
-    `Tu solicitud para unirte a <b>${org?org.nombre:''}</b>${candidatosSel.length && modo === 'partido' ? ' y apoyar a ' + candidatosSel.map(id => '<b>' + esc((organizaciones.find(o => o.id === id)||{}).nombre || '') + '</b>').join(', ') : ''} fue enviada.${candidatosSel.length && modo === 'candidatos' ? ' (' + candidatosSel.length + ' candidato(s))' : ''} Te vamos a avisar ${canal} cuando la revisen.`;
+  const nomsSel = sel.map(i => '<b>' + esc(i.nombre) + '</b>').join(', ');
+  document.getElementById('confirm-text').innerHTML = modo === 'partido'
+    ? `Tu solicitud para unirte a <b>${org?esc(org.nombre):''}</b>${nomsSel ? ' y apoyar a ' + nomsSel : ''} fue enviada. Te vamos a avisar ${canal} cuando la revisen.`
+    : `Tu solicitud para apoyar a ${nomsSel} fue enviada. Te vamos a avisar ${canal} cuando la revisen.`;
 }
 
 init();
