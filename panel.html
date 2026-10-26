@@ -11184,13 +11184,15 @@ async function loadRecintos() {
   const tb = document.getElementById('rec-tb');
   tb.innerHTML = '<tr><td colspan="9" class="loading-row">Cargando…</td></tr>';
 
-  const [{ data }, { data: mil }] = await Promise.all([
+  const [{ data }, { data: mil }, { data: pad }] = await Promise.all([
     db.from('recintos_prm').select('*').order('municipio').order('zona', { nullsFirst: false }).order('codigo'),
-    db.rpc('militantes_por_recinto')
+    db.rpc('militantes_por_recinto'),
+    db.rpc('padron_por_recinto')
   ]);
   recData = data || [];
+  const padMap = {}; (pad || []).forEach(m => { padMap[m.recinto_id] = Number(m.total); });
   const milMap = {}; (mil || []).forEach(m => { milMap[m.recinto_id] = Number(m.militantes); });
-  recData.forEach(r => { r._mil = milMap[r.id] || 0; });
+  recData.forEach(r => { r._mil = milMap[r.id] || 0; r._pad = padMap[r.id] || 0; });
 
   if (!recData.length) {
     tb.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 40px; color: var(--mute)">Sin recintos cargados</td></tr>';
@@ -11234,7 +11236,7 @@ function renderRecintosPanel() {
         <td>${r.municipio ? esc(r.municipio) : '—'}${r.distrito && /\(DM\)/.test(r.distrito) ? `<div style="font-size:11px;color:var(--mute)">${esc(r.distrito)}</div>` : ''}</td>
         <td>${r.circunscripcion ? esc(r.circunscripcion) : '—'}</td>
         <td>${r.zona ? 'Estructura ' + esc(r.zona) : '—'}</td>
-        <td class="num">${r.total_electores ? fmtNum(r.total_electores) : '<span title="Falta el padrón completo de este municipio" style="color:var(--mute)">Sin padrón</span>'}</td>
+        <td class="num">${r.total_electores ? fmtNum(r.total_electores) : (r._pad ? '<span title="Personas cargadas en el padrón de este recinto. El padrón oficial completo de este municipio aún no está cargado" style="color:var(--mute)">' + fmtNum(r._pad) + ' <small>(parcial)</small></span>' : '<span title="Falta el padrón completo de este municipio" style="color:var(--mute)">Sin padrón</span>')}</td>
         <td class="num">${fmtNum(r._mil)}</td>
         <td class="num">${fmtNum(r.total_colegios)}</td>
         <td><span class="pill ${pillClass}">${esc(ganador)}</span></td>
