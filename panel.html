@@ -8852,8 +8852,11 @@ let registradoresData = [];
 async function cargarRegistradores() {
   const wrap = document.getElementById('sol-reg-wrap'), cont = document.getElementById('sol-reg-lista');
   if (!wrap || miCandidato) return;
-  const { data, error } = await db.rpc('listar_registradores');
-  if (error || !data || !data.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  const { data: dataAll, error } = await db.rpc('listar_registradores');
+  // Si la persona ya tiene una solicitud pendiente (misma cédula), solo se muestra en la solicitud, no dos veces
+  const cedPend = new Set([...solicitudesData, ...solicitudesDirData].map(s => String(s.cedula || '').replace(/\D/g, '')).filter(Boolean));
+  const data = (dataAll || []).filter(r => !cedPend.has(String(r.cedula || '').replace(/\D/g, '')));
+  if (error || !data.length) { wrap.style.display = 'none'; cont.innerHTML = ''; registradoresData = []; return; }
   registradoresData = data;
   wrap.style.display = 'block';
   const ops = rolesDirigente.map(r => `<option value="${esc(r.id)}">${esc(r.nombre)}</option>`).join('');
