@@ -9476,6 +9476,7 @@ document.getElementById('modal-aspirante').addEventListener('click', function(e)
 let afiliadosData = [];      // todos los cargados
 let afiliadosFiltrados = []; // después de filtros
 let afilPage = 0;
+let regPorCedula = {};
 const AFIL_PAGE_SIZE = 50;
 
 async function loadAfiliados() {
@@ -9528,6 +9529,17 @@ async function loadAfiliados() {
     fuente: 'directo',
     fecha: a.created_at ? a.created_at.substring(0,10) : '—'
   }));
+
+  // Quién ha registrado votantes (colaboradores de campo sin cargo): para el botón "Mi lista" de cada afiliado
+  regPorCedula = {};
+  try {
+    const { data: regs } = await db.rpc('listar_registradores');
+    (regs || []).forEach(r => {
+      const k = String(r.cedula || '').replace(/\D/g, '');
+      if (k) regPorCedula[k] = r;
+      if (!registradoresData.some(x => x.auth_user_id === r.auth_user_id)) registradoresData.push(r);
+    });
+  } catch (e) {}
 
   // Combinar eliminando duplicados por cédula (directo tiene precedencia)
   const cedulasDirectas = new Set(directosList.map(d => d.cedula));
@@ -9595,6 +9607,7 @@ function renderAfiliados() {
       <td><span class="pill ${a.fuente === 'padron' ? 'pill-info' : 'pill-good'}">${a.fuente === 'padron' ? 'Padrón' : 'Directo'}</span></td>
       <td style="font-size:11px;color:var(--mute)">${esc(a.fecha)}</td>
       <td>
+        ${(() => { const rg = regPorCedula[String(a.cedula || '').replace(/\D/g, '')]; return rg ? `<button class="btn-qr" onclick="verVotantesRegistrador('${esc(rg.auth_user_id)}')" title="Personas que ha registrado" style="margin-right:4px;">👥 Mi lista (${Number(rg.votantes)})</button>` : ''; })()}
         ${a.fuente === 'directo' ? `<button class="btn-qr" onclick="editarAfiliado('${esc(a.id)}')">Editar</button>${(a.tipo !== 'dirigente' && a.tipo !== 'coordinador') ? ` <button class="btn-qr" onclick="convertirADirigente('${esc(a.id)}')" title="Convertir en dirigente" style="margin-left:4px;">→ Dirigente</button>` : ''}` : '<span style="font-size:11px;color:var(--mute)">Padrón</span>'}
       </td>
     </tr>
