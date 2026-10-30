@@ -9489,8 +9489,11 @@ async function loadAfiliados() {
     .limit(2000);
 
   // Fuente 2: tabla afiliados propia
+  // Los votantes que registra un colaborador de campo (sin cargo) quedan en SU lista ("Mi lista" en la app),
+  // no en el módulo Afiliados del panel. Se ven desde "Personas trabajando sin cargo" → votantes.
   const { data: directos } = await db.from('afiliados')
     .select('*')
+    .or('registrado_por_colaborador.is.null,registrado_por_colaborador.eq.false')
     .order('created_at', { ascending: false })
     .limit(2000);
 
