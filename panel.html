@@ -8902,8 +8902,8 @@ function abrirListaModal(titulo, filasHtml, vacio, cols) {
   ov.classList.add('show');
 }
 
-async function verVotantesRegistrador(uid) {
-  const r = registradoresData.find(x => x.auth_user_id === uid);
+async function verVotantesRegistrador(uid, nombreFallback) {
+  const r = registradoresData.find(x => x.auth_user_id === uid) || (nombreFallback ? { nombre: nombreFallback } : null);
   const { data, error } = await db.rpc('votantes_de_registrador', { p_auth_user_id: uid });
   if (error) { alert('Error: ' + error.message); return; }
   const filas = (data || []).map(v => `<tr><td>${esc(v.nombre)}</td><td>${esc(v.cedula || '—')}</td><td>${esc(v.telefono || '—')}</td><td>${esc((v.candidatos || []).join(', ') || '—')}</td></tr>`).join('');
@@ -10688,8 +10688,15 @@ async function loadDirigentes() {
   fNivel.innerHTML = '<option value="">Todos los niveles</option>' +
     niveles.map(n => `<option value="${n}">${NIVEL_LABEL[n]||n}</option>`).join('');
 
+  // Votantes que cada dirigente registró desde la app (incluye los que registró antes de tener cargo)
+  const regCont = {};
+  if (!miCandidato) {
+    try { const { data: rc } = await db.rpc('conteo_votantes_registrados'); (rc || []).forEach(r => { regCont[r.auth_user_id] = Number(r.votantes); }); } catch (e) {}
+  }
+
   dirigentesData = dirigentesData.map(d => ({
     ...d,
+    _reg: d.auth_user_id ? (regCont[d.auth_user_id] || 0) : 0,
     stats: stats[d.id] || { total: 0, seguro: 0, probable: 0, dudoso: 0 },
     encuestas: encStats[d.id] || 0,
     superior_nombre: d.superior_id ? (nombreMap[d.superior_id] || '—') : '—'
@@ -10947,7 +10954,7 @@ function renderDirigentes() {
       <td>${d.zona ? '<span class="pill pill-info">Estructura '+d.zona+'</span>' : '—'}</td>
       <td style="font-size:12px;color:var(--mute);">${esc(d.territorio||'—')}</td>
       <td style="font-size:12px;color:var(--mute);">${esc(d.superior_nombre||'—')}</td>
-      <td class="num"><a href="#" onclick="verListaDirigente('${esc(d.id)}');return false;" title="Ver lista" style="font-weight:700;color:var(--prm);text-decoration:underline;">${fmtNum(d.stats.total)}</a>${d.meta ? '<div style="font-size:10px;color:'+(pctMeta>=100?'var(--seguro)':'var(--mute)')+';">'+pctMeta+'% meta</div>' : ''}</td>
+      <td class="num"><a href="#" onclick="verListaDirigente('${esc(d.id)}');return false;" title="Ver lista" style="font-weight:700;color:var(--prm);text-decoration:underline;">${fmtNum(d.stats.total)}</a>${d.meta ? '<div style="font-size:10px;color:'+(pctMeta>=100?'var(--seguro)':'var(--mute)')+';">'+pctMeta+'% meta</div>' : ''}${d._reg ? `<div style="margin-top:4px;"><button class="btn-qr" onclick="verVotantesRegistrador('${esc(d.auth_user_id)}','${esc(d.nombre)}')" title="Personas que registró desde la app">👥 ${d._reg} registrados</button></div>` : ''}</td>
       <td>${d.activo !== false ? '<span class="pill pill-good">Activo</span>' : '<span class="pill pill-mute">Inactivo</span>'}</td>
       <td><button class="btn-qr" onclick="editarDirigente('${esc(d.id)}')">Editar</button></td>
     </tr>`;
