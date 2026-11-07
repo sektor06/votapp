@@ -2929,10 +2929,10 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
     <main class="content" id="view-candidatos" data-view-content style="display:none">
       <div class="content-h">
         <div class="content-h-l">
-          <h1 class="content-title">Candidatos</h1>
-          <p class="content-sub">Se muestran con su foto en el directorio público y el material de campaña</p>
+          <h1 class="content-title" id="cand-title">Candidatos</h1>
+          <p class="content-sub" id="cand-subtitle">Se muestran con su foto en el directorio público y el material de campaña</p>
         </div>
-        <div class="content-h-r">
+        <div class="content-h-r" id="cand-nuevo-wrap">
           <button class="btn-primary" onclick="abrirModalCandidato()" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:8px 14px;">
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             Nuevo candidato
@@ -2940,6 +2940,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         </div>
       </div>
 
+      <div id="mi-campana" style="display:none;"></div>
       <div id="cand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
         <div style="color:var(--mute);font-size:13px;">Cargando candidatos…</div>
       </div>
@@ -4754,7 +4755,7 @@ async function showApp() {
 
   // 2. Confirmar que la organización tiene el acceso activo (el pago confirmado)
   const { data: org } = await db.from('organizaciones')
-    .select('id, nombre, estado_acceso, provincia')
+    .select('id, nombre, estado_acceso, provincia, tipo')
     .eq('id', perfil.organizacion_id)
     .maybeSingle();
 
@@ -9069,8 +9070,48 @@ async function resolverSolicitud(id, accion) {
 let candidatosData = [];
 let candidatoFotoFile = null;
 
+let miGenteData = null;
+async function cargarMiCampana() {
+  const box = document.getElementById('mi-campana'), grid = document.getElementById('cand-grid');
+  document.getElementById('cand-title').textContent = 'Mi campaña';
+  document.getElementById('cand-subtitle').textContent = 'Quiénes trabajan contigo y las personas que se han afiliado a ti';
+  document.getElementById('cand-nuevo-wrap').style.display = 'none';
+  grid.style.display = 'none'; box.style.display = 'block';
+  box.innerHTML = '<div style="color:var(--mute);font-size:13px;">Cargando…</div>';
+  const { data, error } = await db.rpc('mi_gente_organizacion');
+  if (error) { box.innerHTML = `<div style="color:#dc2626;font-size:13px;">Error: ${esc(error.message)}</div>`; return; }
+  miGenteData = data || { apoyadores: [], personas: [] };
+  renderMiCampana();
+}
+function renderMiCampana() {
+  const box = document.getElementById('mi-campana'); if (!box || !miGenteData) return;
+  const ap = miGenteData.apoyadores || [], pe = miGenteData.personas || [];
+  const votaron = pe.filter(p => p.voto).length;
+  const kpi = (n, t) => `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;flex:1;min-width:150px;"><div style="font-size:26px;font-weight:800;color:var(--prm);">${n}</div><div style="font-size:12px;color:var(--mute);margin-top:2px;">${t}</div></div>`;
+  box.innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+      ${kpi(ap.length, 'Trabajan para ti')}${kpi(pe.length, 'Personas afiliadas a ti')}${kpi(votaron, 'Ya votaron')}
+    </div>
+    <div class="panel" style="margin-bottom:18px;"><div class="panel-h"><div class="panel-t">Quienes trabajan para ti (${ap.length})</div></div>
+      <div class="panel-b" style="padding:0;overflow:auto;"><table class="dt"><thead><tr><th>Nombre</th><th>Cédula</th><th>Cargo</th><th>Personas que ha registrado</th><th>Desde</th></tr></thead><tbody>
+      ${ap.length ? ap.map(a => `<tr><td class="bold">${esc(a.nombre || '—')}</td><td>${esc(a.cedula || '—')}</td><td>${esc(a.cargo || 'Sin cargo todavía')}</td><td>${Number(a.votantes)}</td><td>${a.desde ? new Date(a.desde).toLocaleDateString('es-DO') : '—'}</td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--mute)">Todavía nadie trabaja contigo.</td></tr>'}
+      </tbody></table></div></div>
+    <div class="panel"><div class="panel-h" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><div class="panel-t">Personas afiliadas a ti (${pe.length})</div>
+      <input class="mf-input" id="mi-campana-q" placeholder="Buscar por nombre o cédula…" oninput="filtrarMiCampana()" style="max-width:260px;font-size:13px;padding:7px 10px;"></div>
+      <div class="panel-b" style="padding:0;overflow:auto;"><table class="dt"><thead><tr><th>Nombre</th><th>Cédula</th><th>Teléfono</th><th>Cómo llegó</th><th>Fecha</th><th>Votó</th></tr></thead><tbody id="mi-campana-tb"></tbody></table></div></div>`;
+  filtrarMiCampana();
+}
+function filtrarMiCampana() {
+  const tb = document.getElementById('mi-campana-tb'); if (!tb || !miGenteData) return;
+  const q = (document.getElementById('mi-campana-q')?.value || '').toLowerCase().trim();
+  const qd = q.replace(/\D/g, '');
+  const lista = (miGenteData.personas || []).filter(p => !q || (p.nombre || '').toLowerCase().includes(q) || (qd && String(p.cedula || '').replace(/\D/g, '').includes(qd)));
+  tb.innerHTML = lista.length ? lista.map(p => `<tr><td class="bold">${esc(p.nombre)}</td><td>${esc(p.cedula || '—')}</td><td>${esc(p.telefono || '—')}</td><td>${p.registrada_por ? 'Registrada por ' + esc(p.registrada_por) : 'Se afilió ella misma'}</td><td>${p.fecha ? new Date(p.fecha).toLocaleDateString('es-DO') : '—'}</td><td>${p.voto ? '✓ Sí' : '—'}</td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--mute)">' + (q ? 'Sin resultados.' : 'Todavía nadie se ha afiliado.') + '</td></tr>';
+}
+
 async function loadCandidatos() {
   const grid = document.getElementById('cand-grid');
+  if (currentOrg && currentOrg.tipo === 'candidato') { await cargarMiCampana(); return; }
   grid.innerHTML = '<div style="color:var(--mute);font-size:13px;">Cargando candidatos…</div>';
 
   const { data, error } = await db.from('candidatos').select('*').order('created_at', { ascending: false });
