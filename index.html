@@ -196,6 +196,40 @@
     .hero-inner .app-cta{max-width:520px}
     .hero-inner .hero-search{max-width:560px}
   }
+
+  /* ═══ Tema oscuro institucional (rediseño) ═══ */
+  body { background:var(--navy); color:#F5F7FA; }
+  .section-eyebrow { color:var(--green); }
+  .section-title { color:#fff; }
+  .section-sub { color:#9AACC9; }
+  .step-card, .why-card, .org-card, .search-bar { background:#0b2146; border:1px solid #1b3860; box-shadow:none; }
+  .step-card, .why-card { border-radius:16px; padding:28px 26px; transition:border-color .2s, box-shadow .2s; }
+  .step-card:hover, .why-card:hover, .org-card:hover { border-color:var(--green); box-shadow:0 0 26px -8px rgba(129,205,53,.35); transform:none; }
+  .step-num { background:rgba(129,205,53,.14); color:var(--green); border:1px solid rgba(129,205,53,.35); }
+  .step-title, .why-title, .org-name { color:#fff; }
+  .step-text, .why-text { color:#9AACC9; }
+  .step-text b { color:var(--green); }
+  .why-num { color:var(--green); }
+  .search-bar input { background:transparent; color:#fff; }
+  .search-bar input::placeholder { color:#64748B; }
+  .filter-chip { background:transparent; border:1px solid #1b3860; color:#C3CEE3; }
+  .filter-chip.active { background:rgba(129,205,53,.12); border-color:var(--green); color:#fff; }
+  .org-stats { color:#9AACC9; }
+  .btn-solicitar { background:var(--green); color:var(--navy); }
+  .btn-solicitar:hover { background:#92DB45; }
+  .cta-box { border:1px solid #1b3860; }
+  .hero-actions .btn-ghost2 { color:#fff; font-weight:600; font-size:14.5px; padding:16px 24px; border-radius:11px; border:1px solid #1b3860; background:rgba(15,39,68,.6); }
+  .hero-actions .btn-ghost2:hover { border-color:var(--green); }
+  .ind-box { margin:0 auto; max-width:1160px; border:1px solid var(--green); border-radius:20px; padding:34px 40px; display:flex; justify-content:space-between; align-items:center; gap:30px; flex-wrap:wrap; background:linear-gradient(135deg, rgba(129,205,53,.12), rgba(129,205,53,.02)); box-shadow:0 0 30px -8px rgba(129,205,53,.35); }
+  .ind-box .kick { color:var(--green); font-size:11.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
+  .ind-box h3 { font-family:'Sora',sans-serif; font-weight:800; font-size:24px; color:#fff; margin-top:8px; }
+  .ind-box p { color:#C3CEE3; margin-top:10px; line-height:1.6; max-width:640px; font-size:14.5px; }
+  .ind-wrap { padding:90px 24px 0; }
+  .mk-card { max-width:1160px; margin:24px auto 0; background:#0b2146; border:1px solid #1b3860; border-radius:16px; padding:24px 28px; }
+  .mk-card h3 { font-family:'Sora',sans-serif; font-size:17px; color:#fff; }
+  .mk-card p { color:#9AACC9; font-size:13.5px; margin-top:8px; line-height:1.6; }
+  .badge-soon { display:inline-block; background:rgba(255,176,32,.12); border:1px solid rgba(255,176,32,.35); color:#FFB020; font-size:10.5px; font-weight:800; letter-spacing:.8px; padding:3px 10px; border-radius:99px; margin-left:8px; vertical-align:middle; text-transform:uppercase; }
+  .mk-wrap { padding:0 24px; }
 </style>
 </head>
 <body>
@@ -222,6 +256,10 @@
       <h1 class="hero-headline">¿A quién quieres <span class="accent">apoyar?</span></h1>
       <p class="hero-sub" style="max-width:none;margin-bottom:0;"><span class="hero-sub-line1" style="white-space:nowrap;">Atenas conecta personas con proyectos y organizaciones políticas.</span></p>
       <p class="hero-sub" style="max-width:560px;margin-top:8px;">Todo bajo una misma plataforma. Conéctate con tu partido, movimiento o candidato y participa desde un solo lugar.</p>
+      <div class="hero-actions">
+        <a class="btn-hero-primary" href="#directorio">Sumarme a una campaña</a>
+        <a class="btn-ghost2" href="registro_organizacion.html" style="text-decoration:none;">Registrar partido o candidato →</a>
+      </div>
 
       <div class="app-cta" id="app">
         <div class="app-cta-icon">
@@ -325,16 +363,20 @@
     </div>
   </div>
 
-  <div class="section" id="modalidades">
-    <div class="section-head reveal">
-      <div class="section-eyebrow">Qué puedes hacer</div>
-      <h2 class="section-title">Para partidos, movimientos y candidatos independientes</h2>
-      <p class="section-sub">Cada quien organiza su campaña a su manera, sobre una misma base.</p>
+  <div class="ind-wrap reveal" id="independiente">
+    <div class="ind-box">
+      <div>
+        <div class="kick">★ Candidato independiente</div>
+        <h3>¿Haces campaña sin un partido?</h3>
+        <p>Te registras en el mismo lugar que los partidos, sumas aliados desde la app y miras en <b>Mi campaña</b> quién trabaja para ti, cuántas personas registró cada uno y quién ya votó.</p>
+      </div>
+      <a class="btn-hero-primary" href="registro_organizacion.html" style="white-space:nowrap;text-decoration:none;">Comenzar como independiente →</a>
     </div>
-    <div class="steps-grid">
-      <div class="step-card reveal"><div class="step-num">&#9733;</div><div class="step-title">Candidato independiente</div><div class="step-text">Haz campaña sin partido. Te registras en el mismo lugar que los partidos, sumas aliados desde la app y miras en <b>Mi campa&ntilde;a</b> qui&eacute;n trabaja para ti, a cu&aacute;ntas personas registr&oacute; cada uno y qui&eacute;n ya vot&oacute;. <a href="registro_organizacion.html" style="color:var(--green-dark);font-weight:700;">Reg&iacute;strate aqu&iacute; &rarr;</a></div></div>
-      <div class="step-card reveal"><div class="step-num">&#9638;</div><div class="step-title">Padr&oacute;n compartido</div><div class="step-text">Todas las organizaciones trabajan sobre un mismo padr&oacute;n con recintos, colegios y fotos. Cada una organiza su propia estructura: sus dirigentes, afiliados y comprometidos.</div></div>
-      <div class="step-card reveal"><div class="step-num">&#9830;</div><div class="step-title">Marketplace <span style="font-size:10px;font-weight:800;color:var(--green-dark);letter-spacing:.5px;text-transform:uppercase;margin-left:6px;">Pr&oacute;ximamente</span></div><div class="step-text">Tienda y servicios para campa&ntilde;as en un solo lugar: materiales, proveedores y herramientas para tu equipo.</div></div>
+  </div>
+  <div class="mk-wrap reveal">
+    <div class="mk-card">
+      <h3>Marketplace <span class="badge-soon">Próximamente</span></h3>
+      <p>Tienda y servicios para campañas en un solo lugar: materiales, proveedores y herramientas para tu equipo.</p>
     </div>
   </div>
 
