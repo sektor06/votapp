@@ -400,6 +400,12 @@ button { background: none; border: none; cursor: pointer; }
   margin-top: 1px;
 }
 
+.sb-item[data-view="recintos"],.sb-item[data-view="territorial"],.sb-item[data-view="tienda"],.sb-item[data-view="servicios"],#sb-sec-marketplace{display:none !important}
+.sb-header.cand{align-items:center;padding:18px 20px}
+.sb-header.cand .sb-mark{width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.25);font-size:16px}
+.sb-header.cand .sb-brand{font-size:14.5px;line-height:1.25}
+.sb-header.cand .sb-brand-sub{font-size:11.5px;color:rgba(255,255,255,.78);line-height:1.35;margin-top:3px}
+.sb-header.cand .sb-brand-sub .sb-partido{display:block;color:rgba(255,255,255,.5);font-size:10.5px}
 .sb-close {
   display: none;
   width: 32px;
@@ -1877,7 +1883,7 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
         Logística y Finanzas
       </button>
 
-      <div class="sb-section">Marketplace</div>
+      <div class="sb-section" id="sb-sec-marketplace">Marketplace</div>
       <button type="button" class="sb-item" data-view="tienda" onclick="navTo('tienda')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M9 13h6"/></svg>
         Tienda
@@ -4755,7 +4761,7 @@ async function showApp() {
 
   // 2. Confirmar que la organización tiene el acceso activo (el pago confirmado)
   const { data: org } = await db.from('organizaciones')
-    .select('id, nombre, estado_acceso, provincia, tipo')
+    .select('id, nombre, estado_acceso, provincia, tipo, puesto, partido_id')
     .eq('id', perfil.organizacion_id)
     .maybeSingle();
 
@@ -4779,6 +4785,7 @@ async function showApp() {
     .maybeSingle();
 
   aplicarApariencia(org, config);
+  await aplicarCabeceraCandidato(org);
 
   // 4. Mostrar el panel normalmente
   document.getElementById('app').style.display = 'flex';
@@ -10748,6 +10755,42 @@ async function loadDirigentes() {
   renderDirigentes();
 }
 
+
+// ═══ CABECERA DEL CANDIDATO (foto, nombre, cargo, partido) ═══
+async function aplicarCabeceraCandidato(org) {
+  const esIndep = org && org.tipo === 'candidato';
+  if (!esIndep && !miCandidato) return;
+  try {
+    const nombre = (miCandidato && miCandidato.nombre) || org.nombre;
+    const cargo = (miCandidato && miCandidato.cargo) || org.puesto || '';
+    let partido = (miCandidato && miCandidato.partido) || '';
+    if (!partido && org.partido_id) {
+      const { data: pa } = await db.from('partidos').select('nombre').eq('id', org.partido_id).maybeSingle();
+      partido = (pa && pa.nombre) || '';
+    }
+    document.getElementById('sb-brand').textContent = nombre;
+    document.getElementById('sb-brand-sub').innerHTML = esc(cargo) + (partido ? `<span class="sb-partido">${esc(partido)}</span>` : '');
+    document.querySelector('.sb-header').classList.add('cand');
+
+    const markEl = document.getElementById('sb-mark');
+    const iniciales = String(nombre || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    markEl.textContent = iniciales;
+    let foto = (miCandidato && miCandidato.foto_url) || null;
+    if (!foto) {
+      const { data: pf } = await db.from('perfiles').select('cedula').eq('auth_user_id', currentUser.id).maybeSingle();
+      const ced = pf && pf.cedula;
+      if (ced) {
+        const { data: su } = await db.storage.from('padron-fotos').createSignedUrl(ced + '.jpg', 3600);
+        foto = su && su.signedUrl;
+      }
+    }
+    if (foto) markEl.innerHTML = `<img class="sb-mark-img" src="${esc(foto)}" alt="" onerror="this.remove()">`;
+
+    const bt = document.querySelector('.sb-item[data-view="candidatos"]');
+    if (bt && bt.lastChild) bt.lastChild.textContent = ' Mi campaña';
+    const ct = document.getElementById('cand-title'); if (ct) ct.textContent = 'Mi campaña';
+  } catch (e) { /* si falla, queda la cabecera normal */ }
+}
 
 // ═══ EQUIPO DEL CANDIDATO ═══
 let miCandidato = null;

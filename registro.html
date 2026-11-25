@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#01173A">
-<title>ATENAS · Regístrate</title>
+<title>ATENAS · Registra tu organización</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzA5MTUyQiIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwMCAyMDApIHNjYWxlKC40NikgdHJhbnNsYXRlKC02MDggLTMyOSkiPjxwYXRoIGQ9Ik02MDcgNjYgTDg4NyA1OTIgTDc4NCA1OTIgTDYwNyAyNTggTDQzMCA1OTIgTDMyOSA1OTIgWiIgZmlsbD0iI0ZGRkZGRiIvPjxwYXRoIGQ9Ik02MDcgMzg4IEw3MDYgNTgwIEw1MDggNTgwIFoiIGZpbGw9IiM4MUNEMzUiLz48L2c+PC9zdmc+">
 <script src="https://js.sentry-cdn.com/f4cbd13364faf3fa015ef6a39603eb3f.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -52,20 +52,8 @@
   .account-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; }
   .account-info b { font-size: 14px; display: block; } .account-info span { font-size: 12px; color: var(--mute); }
 
-  .org-search { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 14px; font-size: 14px; margin-bottom: 16px; outline: none; }
-  .org-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
-  .org-card { display: flex; align-items: center; gap: 14px; border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; cursor: pointer; transition: border-color .15s, background .15s; }
-  .org-card.selected { border-color: var(--navy); background: #F4F7FC; }
-  .org-logo { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 15px; color: #fff; flex-shrink: 0; }
-  .org-name { font-weight: 700; font-size: 14px; } .org-meta { font-size: 12px; color: var(--mute); margin-top: 1px; }
-  .org-type-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; letter-spacing: .4px; margin-left: auto; flex-shrink: 0; }
-  .badge-partido { background: #E7EEF8; color: var(--navy); } .badge-movimiento { background: #FEF3E2; color: #B45309; } .badge-candidato { background: #EAF6DC; color: var(--green-dark); }
-  .org-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-  .org-card.selected .org-check { border-color: var(--navy); background: var(--navy); }
-  .org-check svg { display: none; width: 12px; height: 12px; } .org-card.selected .org-check svg { display: block; }
-
-  .cat-choice { display: flex; gap: 10px; }
-  .cat-btn { flex: 1; text-align: center; border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .cat-choice { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cat-btn { flex: 1; min-width: 100px; text-align: center; border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; font-weight: 600; font-size: 13px; cursor: pointer; transition: border-color .15s, background .15s; }
   .cat-btn.selected { border-color: var(--green-dark); background: #F4FAEE; color: var(--green-dark); }
 
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
@@ -73,7 +61,7 @@
   .f-group { display: flex; flex-direction: column; gap: 5px; }
   .f-group.span2 { grid-column: span 2; } @media (max-width: 480px) { .f-group.span2 { grid-column: span 1; } }
   .f-label { font-size: 11px; font-weight: 700; color: var(--mute); text-transform: uppercase; letter-spacing: .3px; }
-  .f-input { border: 1.5px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 14px; outline: none; }
+  .f-input { border: 1.5px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 14px; outline: none; font-family: inherit; }
   .f-input:focus { border-color: var(--navy); }
 
   .legal-box { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 12.5px; color: var(--mute); line-height: 1.6; max-height: 160px; overflow-y: auto; margin-bottom: 18px; }
@@ -98,7 +86,6 @@
 
   .error-box { background:#FEF2F2; color:var(--danger); border-radius:9px; padding:10px 14px; font-size:12.5px; font-weight:600; margin-bottom:14px; display:none; }
   .error-box.show { display:block; }
-  .loading-txt { text-align:center; color:var(--mute); font-size:13px; padding:20px; }
 </style>
 </head>
 <body>
@@ -116,9 +103,8 @@
   <div class="stepper-wrap">
     <div class="stepper" id="stepper">
       <div class="step active" data-step="1"><div class="step-dot">1</div><div class="step-label">Cuenta</div></div>
-      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">Tus datos</div></div>
-      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">A quién apoyás</div></div>
-      <div class="step" data-step="4"><div class="step-dot">4</div><div class="step-label">Confirmar</div></div>
+      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">Tu organización</div></div>
+      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">Confirmar</div></div>
     </div>
   </div>
 
@@ -127,7 +113,7 @@
 
       <div class="step-content" id="content-1">
         <div class="card-title">Creá tu cuenta</div>
-        <div class="card-sub">Usá tu cuenta de Google o tu correo (Hotmail, Outlook, de tu empresa, etc.) para registrarte — es gratis y toma un minuto.</div>
+        <div class="card-sub">Usá tu cuenta de Google o tu correo para solicitar tu organización en ATENAS — es gratis y toma un minuto.</div>
         <div class="error-box" id="err-1"></div>
         <button class="google-btn" id="btn-google" onclick="loginGoogle()">
           <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.78-2.4 3.63v3.02h3.88c2.27-2.09 3.57-5.17 3.57-8.84z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3.02c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54V6.62H1.27a12 12 0 0 0 0 10.76z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.62l4 3.11C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
@@ -160,73 +146,48 @@
       </div>
 
       <div class="step-content" id="content-2" style="display:none;">
-        <div class="card-title">Tus datos</div>
-        <div class="card-sub">Esta información queda vinculada a tu solicitud de afiliación.</div>
+        <div class="card-title">Contanos de tu organización</div>
+        <div class="card-sub">Esta información se revisa antes de activarse — no se crea de inmediato.</div>
         <div class="form-grid">
+          <div class="f-group span2"><label class="f-label" id="lbl-nombre">Nombre de la organización *</label><input class="f-input" id="f-nombre" placeholder="Ej. Partido de la Liberación Dominicana"></div>
           <div class="f-group span2">
-            <label class="f-label">Cédula *</label>
-            <input class="f-input" id="f-cedula" placeholder="000-0000000-0">
-            <div id="f-cedula-status" style="font-size:12px;margin-top:4px;display:none;"></div>
+            <label class="f-label">Tipo *</label>
+            <div class="cat-choice">
+              <div class="cat-btn" data-tipo="partido" onclick="elegirTipo('partido')">Partido</div>
+              <div class="cat-btn" data-tipo="movimiento" onclick="elegirTipo('movimiento')">Movimiento</div>
+              <div class="cat-btn" data-tipo="candidato" onclick="elegirTipo('candidato')">Candidato</div>
+            </div>
           </div>
-          <div class="f-group"><label class="f-label">Nombre(s) *</label><input class="f-input" id="f-nombre"></div>
-          <div class="f-group"><label class="f-label">Apellido(s) *</label><input class="f-input" id="f-apellido"></div>
-          <div class="f-group"><label class="f-label">Teléfono celular *</label><input class="f-input" id="f-telefono" placeholder="809-000-0000"></div>
-          <div class="f-group"><label class="f-label">Correo electrónico</label><input class="f-input" id="f-correo" disabled style="background:#F4F4F4;color:var(--mute);"></div>
-          <div class="f-group span2"><label class="f-label">Calle, avenida o carretera</label><input class="f-input" id="f-calle" placeholder="Calle Principal #12"></div>
-          <div class="f-group"><label class="f-label">Barrio o sector</label><input class="f-input" id="f-barrio" list="barrios-lista" placeholder="Escribí para buscar…" autocomplete="off"><datalist id="barrios-lista"><option value="24 de Abril"><option value="30 de Mayo"><option value="Alto de Abraham"><option value="Alto de San Pedro"><option value="Bajo Manhattan"><option value="Barrio Azul"><option value="Barrio Blanco"><option value="Barrio Kilometro 3 1/2"><option value="Barrio Lindo"><option value="Barrio Lindo II"><option value="Barrio Mexico"><option value="Barrio Restauración"><option value="Brizas del Este"><option value="Buenos Aires"><option value="Cacarajicara"><option value="Campus UCE"><option value="Centro"><option value="Ciudad Codiana"><option value="El Batey Central"><option value="El Brisal"><option value="El Golfo"><option value="El Ocho"><option value="El Patio"><option value="El Retiro"><option value="El Silencio"><option value="El Toconal"><option value="Enrriquillo"><option value="Invi CEA"><option value="Jaime Brugal"><option value="Japón"><option value="Jardines del Este"><option value="José Blanche"><option value="Juan Pablo Duarte"><option value="Kennedy I"><option value="Kennedy II"><option value="La Arena"><option value="La Barca"><option value="La Belleza"><option value="La Piedra"><option value="La Puerta"><option value="La Roca"><option value="Las Caobas"><option value="Las Colinas I"><option value="Las Colinas II"><option value="Las Filipinas"><option value="Las Flores"><option value="Loma del Cochero"><option value="Los 4 Caminos"><option value="Los Bomberitos"><option value="Los Cajones"><option value="Los Guandules"><option value="Los Maestros"><option value="Los Multis"><option value="Los Profesionales"><option value="Los Transformadores"><option value="Lotificación CEA"><option value="Maranatha"><option value="Miramar"><option value="Nueva Esperanza"><option value="Palo de Azucar"><option value="Paraiso"><option value="Pedro Justo Carrión"><option value="Perez Marquez"><option value="Petropolis"><option value="Placer Bonito"><option value="Playa de Muerto"><option value="Proyecto Lotificación"><option value="Puerto Rico"><option value="Punta Pescadora"><option value="Punta de Garza"><option value="San Anton"><option value="Santa Clara"><option value="Santa Fe"><option value="Sarmiento I"><option value="Sarmiento II"><option value="Sin Nombre"><option value="Urb, Marina"><option value="Urb. Evangelina Rodriguez"><option value="Urb. Garden"><option value="Urb. Hazim"><option value="Urb. Independencia"><option value="Urb. La Bendición"><option value="Urb. Mallen"><option value="Urb. Naime"><option value="Urb. Oriental"><option value="Urb. Peréz Bernal"><option value="Urb. Vicini"><option value="Villa Azucarera"><option value="Villa Cañera"><option value="Villa Centro"><option value="Villa Cesarina"><option value="Villa Coral"><option value="Villa España"><option value="Villa Faro"><option value="Villa Magdalena"><option value="Villa Mexico"><option value="Villa Municipal"><option value="Villa Olimpica"><option value="Villa Orilla"><option value="Villa Progreso I"><option value="Villa Progreso II"><option value="Villa Providencia"><option value="Villa Providencia II"><option value="Villa Velasquez"><option value="Villa Vizan"><option value="Villla Hermosa"><option value="Vitania"></datalist></div>
-          <div class="f-group"><label class="f-label">Provincia</label><select class="f-input" id="f-provincia"><option>Azua</option><option>Bahoruco</option><option>Barahona</option><option>Dajabón</option><option>Distrito Nacional</option><option>Duarte</option><option>El Seibo</option><option>Elías Piña</option><option>Espaillat</option><option>Hato Mayor</option><option>Hermanas Mirabal</option><option>Independencia</option><option>La Altagracia</option><option>La Romana</option><option>La Vega</option><option>María Trinidad Sánchez</option><option>Monseñor Nouel</option><option>Monte Cristi</option><option>Monte Plata</option><option>Pedernales</option><option>Peravia</option><option>Puerto Plata</option><option>Samaná</option><option>San Cristóbal</option><option>San José de Ocoa</option><option>San Juan</option><option selected>San Pedro de Macorís</option><option>Sánchez Ramírez</option><option>Santiago</option><option>Santiago Rodríguez</option><option>Santo Domingo</option><option>Valverde</option></select></div>
-          <div class="f-group"><label class="f-label">Ciudad / Municipio</label><input class="f-input" id="f-ciudad" value="San Pedro de Macorís"></div>
-          <div class="f-group"><label class="f-label">Ocupación</label><input class="f-input" id="f-ocupacion" placeholder="Ej: Comerciante"></div>
-          <div class="f-group"><label class="f-label">Frente sectorial <span style="text-transform:none;font-weight:500;">(opcional)</span></label>
-            <select class="f-input" id="f-frente"><option value="">No aplica</option><option>Frente Juvenil</option><option>Frente Femenino</option><option>Frente Sindical</option><option>Frente Profesional</option></select>
+          <div class="f-group span2" id="g-puesto" style="display:none"><label class="f-label">Cargo al que aspira *</label>
+            <select class="f-input" id="f-puesto"><option value="">Elige el cargo…</option><option>Presidente</option><option>Vicepresidente</option><option>Senador</option><option>Diputado</option><option>Alcalde</option><option>Vicealcalde</option><option>Regidor</option><option>Director de distrito municipal</option><option>Vocal de distrito municipal</option></select>
           </div>
+          <div class="f-group"><label class="f-label">Provincia</label><input class="f-input" id="f-provincia" placeholder="San Pedro de Macorís"></div>
+          <div class="f-group"><label class="f-label">Plan de interés</label>
+            <select class="f-input" id="f-plan"><option value="pro">Pro</option><option value="basico">Básico</option></select>
+          </div>
+          <div class="f-group"><label class="f-label">Tu nombre completo *</label><input class="f-input" id="f-contacto"></div>
+          <div class="f-group"><label class="f-label">Tu teléfono *</label><input class="f-input" id="f-telefono" placeholder="809-000-0000"></div>
         </div>
-        <div>
-          <div class="f-label" style="margin-bottom:8px;">¿Cómo querés que te avisemos si te aceptan?</div>
-          <div class="cat-choice" id="notif-choice">
-            <div class="cat-btn" data-notif="correo" onclick="elegirNotif('correo')">📧 Por correo</div>
-            <div class="cat-btn" data-notif="llamada" onclick="elegirNotif('llamada')">📞 Por llamada</div>
-          </div>
-        </div>
-        <div class="error-box" id="err-3"></div>
-        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(1)">Atrás</button><button class="btn btn-primary" onclick="validarPaso3()">Continuar</button></div>
+        <div class="error-box" id="err-2"></div>
+        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(1)">Atrás</button><button class="btn btn-primary" onclick="validarPaso2()">Continuar</button></div>
       </div>
 
       <div class="step-content" id="content-3" style="display:none;">
-        <div class="card-title">¿A quién querés apoyar?</div>
-        <div class="card-sub">Podés apoyar a un partido (y trabajar con sus candidatos) o apoyar candidatos sueltos, aunque sean de partidos distintos.</div>
-        <div style="display:flex;gap:8px;margin-bottom:14px;">
-          <button type="button" id="modo-partido" class="btn btn-primary" style="flex:1;" onclick="setModo('partido')">Un partido</button>
-          <button type="button" id="modo-candidatos" class="btn btn-ghost" style="flex:1;" onclick="setModo('candidatos')">Candidatos</button>
-        </div>
-        <div id="modo-ayuda" style="font-size:12px;color:#64748B;margin-bottom:12px;"></div>
-        <input class="org-search" placeholder="Buscar por nombre…" oninput="filtrarOrgs(this.value)">
-        <div class="org-list" id="org-list"><div class="loading-txt">Cargando organizaciones…</div></div>
-        <div id="cand-wrap" style="display:none;margin-top:18px;">
-          <div style="font-weight:700;font-size:14px;margin-bottom:4px;">¿A quién apoyas en este partido?</div>
-          <div style="font-size:12px;color:#64748B;margin-bottom:10px;">Marca los candidatos que vas a apoyar. Puedes marcar varios.</div>
-          <div class="org-list" id="cand-list"></div>
-        </div>
-        <div class="nav-row">
-          <button class="btn btn-ghost" onclick="irPaso(2)">Atrás</button>
-          <button class="btn btn-primary" id="btn-next-2" onclick="irPaso(4)" disabled>Continuar</button>
-        </div>
-      </div>
-
-      <div class="step-content" id="content-4" style="display:none;">
         <div class="card-title">Confirmá tu solicitud</div>
-        <div class="card-sub">Revisá los datos antes de enviar.</div>
+        <div class="card-sub">Revisá los datos antes de enviar. Un administrador de ATENAS la revisará antes de activarla.</div>
         <div class="summary-box">
-          <div class="summary-row"><span>Solicitás unirte a</span><span id="sum-org">—</span></div>
-          <div class="summary-row"><span>Nombre</span><span id="sum-nombre">—</span></div>
-          <div class="summary-row"><span>Aviso de respuesta</span><span id="sum-notif">—</span></div>
+          <div class="summary-row"><span>Organización</span><span id="sum-nombre">—</span></div>
+          <div class="summary-row" id="sum-puesto-row" style="display:none"><span>Cargo al que aspira</span><span id="sum-puesto">—</span></div>
+          <div class="summary-row"><span>Tipo</span><span id="sum-tipo">—</span></div>
+          <div class="summary-row"><span>Provincia</span><span id="sum-provincia">—</span></div>
+          <div class="summary-row"><span>Contacto</span><span id="sum-contacto">—</span></div>
         </div>
         <div class="legal-box">
-          Al enviar esta solicitud, autorizás a la organización elegida a incluirte en su registro interno de afiliados/simpatizantes, conforme a la legislación vigente sobre partidos y agrupaciones políticas de la República Dominicana. Tus datos personales serán tratados conforme a la Ley 172-13 de Protección de Datos, y solo serán visibles para la organización a la que solicitás unirte — ninguna otra organización que use ATENAS puede acceder a tu información.
+          Al enviar esta solicitud, autorizás a ATENAS a contactarte para completar el proceso de activación, incluyendo la confirmación de pago de tu plan. Tus datos personales serán tratados conforme a la Ley 172-13 de Protección de Datos. Tu organización solo será visible en la plataforma una vez sea revisada y activada por el equipo de ATENAS.
         </div>
         <div class="consent-row"><input type="checkbox" id="chk-consent" onchange="toggleEnviar()"><label for="chk-consent">Leí y acepto los términos anteriores, y confirmo que la información que proporcioné es correcta.</label></div>
-        <div class="error-box" id="err-4"></div>
-        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(3)">Atrás</button><button class="btn btn-primary" id="btn-enviar" onclick="enviarSolicitud()" disabled>Enviar solicitud</button></div>
+        <div class="error-box" id="err-3"></div>
+        <div class="nav-row"><button class="btn btn-ghost" onclick="irPaso(2)">Atrás</button><button class="btn btn-primary" id="btn-enviar" onclick="enviarSolicitud()" disabled>Enviar solicitud</button></div>
       </div>
 
       <div class="step-content" id="content-confirm" style="display:none;">
@@ -241,69 +202,12 @@
   </main>
 
 <script>
-function esc(v){return v==null?'':String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 const SB_URL = 'https://izyqrakicqqdzgdlmxfb.supabase.co';
 const SB_KEY = 'sb_publishable_LxVGpJqr_dwbcC3F5I8gfQ_j2O4UZ-H';
 const db = supabase.createClient(SB_URL, SB_KEY);
 
 let sesionActual = null;
-let organizaciones = [];
-let candidatosSel = [];
-let candidatosPub = [];
-let modo = 'partido';
-let orgSeleccionada = null;
-
-// Acepta la cédula con o sin guiones, y la reformatea a 000-0000000-0
-function formatearCedula(valor) {
-  const digitos = (valor || '').replace(/\D/g, '');
-  if (digitos.length !== 11) return null;
-  return digitos.slice(0,3) + '-' + digitos.slice(3,10) + '-' + digitos.slice(10);
-}
-
-async function autocompletarPorCedula() {
-  const input = document.getElementById('f-cedula');
-  const statusEl = document.getElementById('f-cedula-status');
-  const cedulaFmt = formatearCedula(input.value);
-
-  if (!cedulaFmt) {
-    statusEl.style.display = 'none';
-    return;
-  }
-
-  statusEl.style.display = 'block';
-  statusEl.style.color = 'var(--mute)';
-  statusEl.textContent = 'Buscando en el padrón…';
-
-  const { data } = await db.rpc('buscar_elector_registro_publico', { p_cedula: cedulaFmt });
-  const elector = data?.[0] || null;
-
-  if (!elector) {
-    statusEl.style.color = '#b45309';
-    statusEl.textContent = 'No se encontró en el padrón — completa tus datos manualmente.';
-    return;
-  }
-
-  // El nombre en el padrón viene como "APELLIDOS, NOMBRES"
-  const partes = (elector.nombre || '').split(',');
-  const apellido = (partes[0] || '').trim();
-  const nombre = (partes[1] || '').trim();
-
-  if (nombre) document.getElementById('f-nombre').value = nombre;
-  if (apellido) document.getElementById('f-apellido').value = apellido;
-  if (elector.celular || elector.telefono) document.getElementById('f-telefono').value = elector.celular || elector.telefono;
-  if (elector.direccion) document.getElementById('f-calle').value = elector.direccion;
-  if (elector.municipio) document.getElementById('f-ciudad').value = elector.municipio;
-
-  statusEl.style.color = 'var(--green-dark)';
-  statusEl.textContent = '✓ Encontrado en el padrón — revisa que tus datos estén correctos.';
-}
-
-document.getElementById('f-cedula').addEventListener('input', () => {
-  clearTimeout(window._cedulaTimeout);
-  window._cedulaTimeout = setTimeout(autocompletarPorCedula, 400);
-});
-let categoriaSeleccionada = 'simpatizante'; // la categoría ya no se pregunta; la define la organización al aceptar
-let notifPreferida = 'correo';
+let tipoSeleccionado = null;
 
 async function init() {
   const { data: { session } } = await db.auth.getSession();
@@ -323,7 +227,7 @@ function mostrarCuentaConectada(user) {
   document.getElementById('btn-google').style.display = 'none';
   var _em=document.getElementById('em-wrap'); if(_em)_em.style.display='none';
   document.getElementById('btn-next-1').disabled = false;
-  document.getElementById('f-correo').value = user.email;
+  document.getElementById('f-contacto').value = nombre;
 }
 
 async function loginGoogle() {
@@ -341,144 +245,40 @@ async function loginGoogle() {
   }
 }
 
-async function cargarOrganizaciones() {
-  let { data, error } = await db.from('organizaciones').select('id, nombre, tipo, puesto').eq('activa', true).order('nombre');
-  if (error) ({ data } = await db.from('organizaciones').select('id, nombre, tipo').eq('activa', true).order('nombre'));
-  try {
-    const rc = await db.rpc('listar_candidatos_publicos');
-    candidatosPub = rc.data || [];
-  } catch (e) { candidatosPub = []; }
-  organizaciones = data || [];
-  document.getElementById('modo-ayuda').textContent = 'Si te unes a un partido, trabajas con ese partido y con los candidatos que están en él.';
-  renderOrgs();
-
-  // Si venimos desde el directorio público con una organización elegida, preseleccionarla
-  const orgDesdeUrl = new URLSearchParams(window.location.search).get('org');
-  if (orgDesdeUrl && organizaciones.some(o => o.id === orgDesdeUrl)) {
-    elegirOrg(orgDesdeUrl);
-  }
+function elegirTipo(tipo) {
+  tipoSeleccionado = tipo;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.tipo === tipo));
+  const esC = tipo === 'candidato';
+  document.getElementById('g-puesto').style.display = esC ? '' : 'none';
+  document.getElementById('lbl-nombre').textContent = esC ? 'Nombre completo del candidato *' : 'Nombre de la organización *';
+  document.getElementById('f-nombre').placeholder = esC ? 'Ej. Juan Pérez' : 'Ej. Partido de la Liberación Dominicana';
 }
-
-function renderOrgs(filtro = '') {
-  const cont = document.getElementById('org-list');
-  if (!organizaciones.length) { cont.innerHTML = '<div class="loading-txt">No hay organizaciones disponibles todavía.</div>'; return; }
-  if (modo === 'partido' && !organizaciones.some(o => o.tipo !== 'candidato')) { cont.innerHTML = '<div class="loading-txt">No hay partidos disponibles todavía.</div>'; return; }
-  const badge = { partido: 'Partido', movimiento: 'Movimiento', candidato: 'Candidato' };
-  const colores = { partido: '#01173A', movimiento: '#B45309', candidato: '#5A9E2A' };
-  const q = filtro.toLowerCase();
-  if (modo === 'candidatos') {
-    const items = itemsCandidatos().filter(i => i.nombre.toLowerCase().includes(q));
-    if (!items.length) { cont.innerHTML = '<div class="loading-txt">No hay candidatos inscritos todavía.</div>'; return; }
-    cont.innerHTML = items.map(tarjetaCandidato).join('');
-    return;
-  }
-  if (false) {
-    const cands = organizaciones.filter(o => o.tipo === 'candidato' && o.nombre.toLowerCase().includes(q));
-    if (!cands.length) { cont.innerHTML = '<div class="loading-txt">No hay candidatos inscritos todavía.</div>'; return; }
-    const nomPartido = id => (organizaciones.find(x => x.id === id) || {}).nombre;
-    cont.innerHTML = cands.map(o => `
-      <div class="org-card ${candidatosSel.includes(o.id)?'selected':''}" onclick="toggleCandidato('${esc(o.id)}')">
-        <div class="org-logo" style="background:#5A9E2A;">${esc(o.nombre.substring(0,2).toUpperCase())}</div>
-        <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">${o.puesto ? 'Candidato a ' + esc(o.puesto) : 'Candidato'} · ${o.partido_id && nomPartido(o.partido_id) ? esc(nomPartido(o.partido_id)) : 'Independiente'}</div></div>
-        <span class="org-type-badge badge-candidato">Candidato</span>
-        <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-      </div>`).join('');
-    return;
-  }
-  const lista = organizaciones.filter(o => o.tipo !== 'candidato' && o.nombre.toLowerCase().includes(q));
-  if (!lista.length) { cont.innerHTML = '<div class="loading-txt">Sin resultados.</div>'; return; }
-  cont.innerHTML = lista.map(o => `
-    <div class="org-card ${orgSeleccionada===o.id?'selected':''}" onclick="elegirOrg('${esc(o.id)}')">
-      <div class="org-logo" style="background:${esc(colores[o.tipo]||'#64748B')};">${o.nombre.substring(0,2).toUpperCase()}</div>
-      <div><div class="org-name">${esc(o.nombre)}</div><div class="org-meta">${o.tipo==='candidato' && o.puesto ? 'Candidato a ' + esc(o.puesto) : 'Inscrito en ATENAS'}</div></div>
-      <span class="org-type-badge badge-${esc(o.tipo)}">${badge[o.tipo]||o.tipo}</span>
-      <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-    </div>`).join('');
-}
-function filtrarOrgs(q) { renderOrgs(q); }
-function setModo(m) {
-  modo = m; orgSeleccionada = null; candidatosSel = [];
-  document.getElementById('modo-partido').className = 'btn ' + (m === 'partido' ? 'btn-primary' : 'btn-ghost');
-  document.getElementById('modo-candidatos').className = 'btn ' + (m === 'candidatos' ? 'btn-primary' : 'btn-ghost');
-  document.getElementById('modo-ayuda').textContent = m === 'partido'
-    ? 'Si te unes a un partido, trabajas con ese partido y con los candidatos que están en él.'
-    : 'Elige los candidatos que quieres apoyar (uno por puesto). Pueden ser de partidos distintos.';
-  const q = document.querySelector('.org-search'); if (q) q.value = '';
-  renderOrgs(); renderCandidatos(); actualizarBotonPaso2();
-}
-function elegirOrg(id) { if (modo !== 'partido') { modo = 'partido'; } orgSeleccionada = id; candidatosSel = []; renderOrgs(document.querySelector('.org-search').value); renderCandidatos(); actualizarBotonPaso2(); }
-function renderCandidatos() {
-  const wrap = document.getElementById('cand-wrap'), cont = document.getElementById('cand-list');
-  const items = modo !== 'partido' ? [] : itemsCandidatos().filter(i => i.kind === 'cand' && i.orgId === orgSeleccionada);
-  if (!items.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
-  wrap.style.display = 'block';
-  cont.innerHTML = items.map(tarjetaCandidato).join('');
-}
-
-function itemsCandidatos() {
-  const porOrg = id => (organizaciones.find(o => o.id === id) || {}).nombre;
-  const deParti = candidatosPub.map(c => ({ key: 'c:' + c.id, kind: 'cand', id: c.id, orgId: c.organizacion_id, nombre: c.nombre, puesto: c.cargo, partido: c.partido || porOrg(c.organizacion_id) || '' }));
-  const indep = organizaciones.filter(o => o.tipo === 'candidato').map(o => ({ key: 'o:' + o.id, kind: 'org', id: o.id, orgId: o.id, nombre: o.nombre, puesto: o.puesto, partido: '' }));
-  return [...deParti, ...indep];
-}
-function tarjetaCandidato(i) {
-  return `
-    <div class="org-card ${candidatosSel.includes(i.key)?'selected':''}" onclick="toggleCandidato('${esc(i.key)}')">
-      <div class="org-logo" style="background:#5A9E2A;">${esc(i.nombre.substring(0,2).toUpperCase())}</div>
-      <div><div class="org-name">${esc(i.nombre)}</div><div class="org-meta">${i.puesto ? 'Candidato a ' + esc(i.puesto) : 'Candidato'} · ${i.partido ? esc(i.partido) : 'Independiente'}</div></div>
-      <span class="org-type-badge badge-candidato">Candidato</span>
-      <div class="org-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-    </div>`;
-}
-function toggleCandidato(key) {
-  if (candidatosSel.includes(key)) candidatosSel = candidatosSel.filter(x => x !== key);
-  else {
-    // un candidato por puesto: elegir otro del mismo puesto reemplaza al anterior
-    const todos = itemsCandidatos();
-    const nuevo = todos.find(i => i.key === key);
-    if (nuevo && nuevo.puesto) candidatosSel = candidatosSel.filter(k => { const o = todos.find(i => i.key === k); return !(o && o.puesto && o.puesto.toLowerCase() === nuevo.puesto.toLowerCase()); });
-    candidatosSel = [...candidatosSel, key];
-  }
-  if (modo === 'candidatos') renderOrgs(document.querySelector('.org-search').value); else renderCandidatos();
-  actualizarBotonPaso2();
-}
-function elegirCategoria(cat) { categoriaSeleccionada = cat; document.querySelectorAll('.cat-btn[data-cat]').forEach(b => b.classList.toggle('selected', b.dataset.cat===cat)); actualizarBotonPaso2(); }
-function actualizarBotonPaso2() { document.getElementById('btn-next-2').disabled = modo === 'partido' ? !orgSeleccionada : !candidatosSel.length; }
-function elegirNotif(tipo) { notifPreferida = tipo; document.querySelectorAll('#notif-choice .cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.notif===tipo)); }
 
 function irPaso(n) {
-  document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.step-content').forEach(s => s.style.display = 'none');
   document.getElementById('content-' + n).style.display = 'block';
   document.querySelectorAll('.step').forEach(s => {
-    const num = parseInt(s.dataset.step);
-    s.classList.toggle('active', num === n);
-    s.classList.toggle('done', num < n);
+    const step = parseInt(s.dataset.step);
+    s.classList.toggle('active', step === n);
+    s.classList.toggle('done', step < n);
   });
-  if (n === 3 && !organizaciones.length) cargarOrganizaciones();
-  if (n === 4) actualizarResumen();
+  if (n === 3) actualizarResumen();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-async function validarPaso3() {
-  const err = document.getElementById('err-3');
-  const cedula = document.getElementById('f-cedula').value.trim();
+function validarPaso2() {
+  const err = document.getElementById('err-2');
+  err.classList.remove('show');
   const nombre = document.getElementById('f-nombre').value.trim();
-  const apellido = document.getElementById('f-apellido').value.trim();
+  const contacto = document.getElementById('f-contacto').value.trim();
   const telefono = document.getElementById('f-telefono').value.trim();
-  if (cedula.replace(/\D/g,'').length < 11 || !nombre || !apellido || !telefono) {
-    err.textContent = 'Completá cédula (11 dígitos), nombre, apellido y teléfono antes de continuar.';
+  if (!nombre || !tipoSeleccionado || !contacto || !telefono) {
+    err.textContent = 'Nombre de la organización, tipo, tu nombre y tu teléfono son obligatorios.';
     err.classList.add('show');
     return;
   }
-  err.classList.remove('show');
-  // Una cédula = una cuenta. Se registra aquí; si ya pertenece a otra cuenta, se rechaza.
-  const btn = document.querySelector('#content-2 .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'Verificando…'; }
-  const { error: ePerfil } = await db.rpc('registrar_perfil', { p_cedula: cedula, p_nombre: nombre, p_apellido: apellido });
-  if (btn) { btn.disabled = false; btn.textContent = 'Continuar'; }
-  if (ePerfil) {
-    err.textContent = ePerfil.message.includes('otra cuenta')
-      ? 'Esa cédula ya está registrada con otra cuenta. Si es tuya, inicia sesión con esa cuenta o escríbenos.'
-      : ePerfil.message;
+  if (tipoSeleccionado === 'candidato' && !document.getElementById('f-puesto').value) {
+    err.textContent = 'Indica el cargo al que aspiras.';
     err.classList.add('show');
     return;
   }
@@ -486,83 +286,52 @@ async function validarPaso3() {
 }
 
 function actualizarResumen() {
-  const org = modo === 'partido' ? organizaciones.find(o => o.id === orgSeleccionada) : null;
-  const nomsC = candidatosSel.map(k => (itemsCandidatos().find(i => i.key === k) || {}).nombre).filter(Boolean);
-  document.getElementById('sum-org').textContent = org ? org.nombre + (nomsC.length ? ' · Apoyo a: ' + nomsC.join(', ') : '') : (nomsC.length ? nomsC.join(', ') : '—');
-  document.getElementById('sum-nombre').textContent = document.getElementById('f-nombre').value + ' ' + document.getElementById('f-apellido').value;
-  document.getElementById('sum-notif').textContent = notifPreferida === 'llamada' ? '📞 Por llamada' : '📧 Por correo';
+  const TIPO_LABEL = { partido: 'Partido', movimiento: 'Movimiento', candidato: 'Candidato' };
+  document.getElementById('sum-nombre').textContent = document.getElementById('f-nombre').value.trim();
+  document.getElementById('sum-tipo').textContent = TIPO_LABEL[tipoSeleccionado] || '—';
+  document.getElementById('sum-provincia').textContent = document.getElementById('f-provincia').value.trim() || '—';
+  const esC = tipoSeleccionado === 'candidato';
+  document.getElementById('sum-puesto-row').style.display = esC ? '' : 'none';
+  document.getElementById('sum-puesto').textContent = document.getElementById('f-puesto').value || '—';
+  document.getElementById('sum-contacto').textContent = document.getElementById('f-contacto').value.trim();
 }
 
-function toggleEnviar() { document.getElementById('btn-enviar').disabled = !document.getElementById('chk-consent').checked; }
+function toggleEnviar() {
+  document.getElementById('btn-enviar').disabled = !document.getElementById('chk-consent').checked;
+}
 
 async function enviarSolicitud() {
   const btn = document.getElementById('btn-enviar');
-  const err = document.getElementById('err-4');
-  btn.disabled = true; btn.textContent = 'Enviando…'; err.classList.remove('show');
+  const err = document.getElementById('err-3');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
 
-  const argsSolicitud = {
-    p_organizacion_id: null,
-    p_categoria: categoriaSeleccionada,
+  const { error } = await db.rpc('crear_solicitud_organizacion', {
     p_nombre: document.getElementById('f-nombre').value.trim(),
-    p_apellido: document.getElementById('f-apellido').value.trim(),
-    p_apodo: null,
-    p_cedula: document.getElementById('f-cedula').value.trim(),
-    p_telefono_celular: document.getElementById('f-telefono').value.trim(),
-    p_telefono_residencial: null,
-    p_telefono_trabajo: null,
-    p_correo: document.getElementById('f-correo').value,
-    p_calle: document.getElementById('f-calle').value.trim() || null,
-    p_numero: null,
-    p_residencial_condominio: null,
-    p_barrio: document.getElementById('f-barrio').value.trim() || null,
-    p_paraje_seccion: null,
-    p_ciudad_municipio: document.getElementById('f-ciudad').value.trim() || null,
-    p_ocupacion: document.getElementById('f-ocupacion').value.trim() || null,
-    p_frente_sectorial: document.getElementById('f-frente').value || null,
-    p_aviso_preferido: notifPreferida,
-    p_estructura_sugerida: null,
-    p_provincia: document.getElementById('f-provincia').value
-  };
-  let data = null, error = null;
-  const sel = candidatosSel.map(k => itemsCandidatos().find(i => i.key === k)).filter(Boolean);
-  const apoyos = sel.filter(i => i.kind === 'cand').map(i => i.id);
-  const destinos = modo === 'partido' ? [orgSeleccionada] : [...new Set(sel.map(i => i.orgId))];
-  for (const orgId of destinos) {
-    argsSolicitud.p_organizacion_id = orgId;
-    let r = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
-    if (r.error && /p_provincia|schema cache/i.test(r.error.message)) {
-      delete argsSolicitud.p_provincia;
-      r = await db.rpc('crear_solicitud_afiliacion', argsSolicitud);
-    }
-    // Si ya tiene solicitud con esa organización, se sigue con las demás
-    if (r.error && /Ya tienes una solicitud con esta organizaci/i.test(r.error.message) && apoyos.length) continue;
-    if (r.error) { error = r.error; break; }
-    data = r.data;
-  }
-  if (!error && apoyos.length) {
-    for (const cid of apoyos) {
-      const ra = await db.rpc('elegir_apoyo', { p_candidato_id: cid });
-      if (ra.error) { error = ra.error; break; }
-    }
-  }
+    p_tipo: tipoSeleccionado,
+    p_provincia: document.getElementById('f-provincia').value.trim() || null,
+    p_plan: document.getElementById('f-plan').value,
+    p_nombre_contacto: document.getElementById('f-contacto').value.trim(),
+    p_telefono_contacto: document.getElementById('f-telefono').value.trim(),
+    p_puesto: tipoSeleccionado === 'candidato' ? document.getElementById('f-puesto').value : null
+  });
 
   if (error) {
-    err.textContent = 'No se pudo enviar la solicitud: ' + error.message;
+    err.textContent = error.message;
     err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'Enviar solicitud';
+    btn.disabled = false;
+    btn.textContent = 'Enviar solicitud';
     if (window.Sentry) Sentry.captureException(error);
     return;
   }
 
-  const org = organizaciones.find(o => o.id === destinos[0]);
-  document.getElementById('stepper').style.display = 'none';
-  document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.step-content').forEach(s => s.style.display = 'none');
   document.getElementById('content-confirm').style.display = 'block';
-  const canal = notifPreferida === 'llamada' ? 'por llamada telefónica' : 'por correo';
-  const nomsSel = sel.map(i => '<b>' + esc(i.nombre) + '</b>').join(', ');
-  document.getElementById('confirm-text').innerHTML = modo === 'partido'
-    ? `Tu solicitud para unirte a <b>${org?esc(org.nombre):''}</b>${nomsSel ? ' y apoyar a ' + nomsSel : ''} fue enviada. Te vamos a avisar ${canal} cuando la revisen.`
-    : `Tu solicitud para apoyar a ${nomsSel} fue enviada. Te vamos a avisar ${canal} cuando la revisen.`;
+  document.getElementById('confirm-title').textContent = '¡Solicitud enviada!';
+  document.getElementById('confirm-text').textContent = 'El equipo de ATENAS va a revisar tu solicitud y se pondrá en contacto contigo para completar la activación. Gracias por tu interés.';
+  document.getElementById('stepper').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 init();
