@@ -2547,15 +2547,17 @@ window.onloadTurnstile=function(){tsRender('ts-login');tsRender('ts-olvido');};
       <div class="panel" style="margin-bottom:12px;">
         <div class="panel-b" style="padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
           <div style="display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:4px;">
-            <button type="button" id="og-tab-municipal" onclick="ogCambiarNivel('municipal')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--prm);color:#fff;">Municipal</button>
+            <button type="button" id="og-tab-provincial" onclick="ogCambiarNivel('provincial')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--prm);color:#fff;">Provincial</button>
+            <button type="button" id="og-tab-municipal" onclick="ogCambiarNivel('municipal')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Municipal</button>
             <button type="button" id="og-tab-zonal" onclick="ogCambiarNivel('zonal')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Zonal</button>
-            <button type="button" id="og-tab-provincial" onclick="ogCambiarNivel('provincial')" style="padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--mute);">Provincial</button>
           </div>
+          <span id="og-prov-label" style="display:none;font-size:13px;font-weight:700;color:var(--text);padding:7px 12px;background:var(--bg);border-radius:8px;"></span>
+          <span id="og-flecha1" style="display:none;color:var(--mute);">›</span>
           <select class="mf-input" id="og-select-muni" onchange="ogCambiarMuni()" style="width:230px;display:none;"></select>
+          <span id="og-flecha2" style="display:none;color:var(--mute);">›</span>
           <select class="mf-input" id="og-select-zona" onchange="ogCambiarZona()" style="width:200px;display:none;">
             <option value="">Selecciona estructura…</option>
           </select>
-          <span id="og-prov-label" style="display:none;font-size:13px;font-weight:700;color:var(--text);padding:7px 12px;background:var(--bg);border-radius:8px;"></span>
           <button type="button" id="og-btn-nueva" class="btn-qr" onclick="ogNuevaEstructura()" style="display:none;padding:7px 12px;font-size:12px;">+ Nueva</button>
         </div>
       </div>
@@ -4761,7 +4763,7 @@ async function showApp() {
 
   // 2. Confirmar que la organización tiene el acceso activo (el pago confirmado)
   const { data: org } = await db.from('organizaciones')
-    .select('id, nombre, estado_acceso, provincia, tipo, puesto, partido_id')
+    .select('id, nombre, estado_acceso, provincia, tipo, puesto, partido_id, foto_url')
     .eq('id', perfil.organizacion_id)
     .maybeSingle();
 
@@ -10046,7 +10048,8 @@ document.getElementById('modal-rol').addEventListener('click', function(e) {
 });
 
 // ═══ MÓDULO ORGANIGRAMA (Municipal / Zonal, cargos_catalogo) ═══
-let ogNivel = 'municipal';
+let ogNivel = 'provincial';
+let ogMuniZ = '';
 let ogReservasPorCargo = {};
 const OG_MUNICIPIOS_PROV = {
   'San Pedro de Macorís': ['San Pedro de Macorís', 'Consuelo', 'Guayacanes', 'Quisqueya', 'Ramón Santana', 'San José de Los Llanos']
@@ -10065,10 +10068,9 @@ let ogDirBusquedaTimer = null;
 
 async function ogInit() {
   if (!ogZonasCache) {
-    const { data } = await db.from('zonas_organizacion').select('id,nombre').eq('organizacion_id', currentOrg.id).order('nombre');
+    const { data } = await db.from('zonas_organizacion').select('id,nombre,municipio_nombre').eq('organizacion_id', currentOrg.id).order('nombre');
     ogZonasCache = data || [];
-    document.getElementById('og-select-zona').innerHTML = '<option value="">Selecciona zona…</option>' +
-      ogZonasCache.map(z => `<option value="${esc(z.id)}">${esc(ogZonaLabel(z.nombre))}</option>`).join('');
+    ogPintarZonas();
   }
   if (!ogMuniLista) {
     const prov = currentOrg.provincia || '';
@@ -10091,9 +10093,36 @@ async function ogInit() {
 
 function ogPintarMuni() {
   const sel = document.getElementById('og-select-muni');
-  sel.innerHTML = (ogMuniLista || []).map(m => `<option value="${esc(m)}" ${m === ogMuni ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  const zonal = ogNivel === 'zonal';
+  const actual = zonal ? ogMuniZ : ogMuni;
+  sel.innerHTML = (zonal ? '<option value="">Selecciona municipio…</option>' : '') +
+    (ogMuniLista || []).map(m => `<option value="${esc(m)}" ${m === actual ? 'selected' : ''}>${esc(m)}</option>`).join('');
 }
-function ogCambiarMuni() { ogMuni = document.getElementById('og-select-muni').value; ogCargarInstancia(); }
+function ogPintarZonas() {
+  const sel = document.getElementById('og-select-zona');
+  const lista = (ogZonasCache || []).filter(z => z.municipio_nombre === ogMuniZ);
+  sel.innerHTML = '<option value="">Selecciona zona…</option>' +
+    lista.map(z => `<option value="${esc(z.id)}" ${z.id === ogZonaId ? 'selected' : ''}>${esc(ogZonaLabel(z.nombre))}</option>`).join('');
+}
+function ogVaciarVista(msg) {
+  document.getElementById('og-sub').textContent = msg;
+  document.getElementById('og-content').innerHTML = '';
+  document.getElementById('og-vacantes-list').innerHTML = '';
+  document.getElementById('og-vacantes-count').textContent = '0';
+  ogSetKpis(0, 0, 0);
+}
+function ogCambiarMuni() {
+  const v = document.getElementById('og-select-muni').value;
+  if (ogNivel === 'zonal') {
+    ogMuniZ = v; ogZonaId = '';
+    ogPintarZonas();
+    document.getElementById('og-select-zona').style.display = v ? 'block' : 'none';
+    document.getElementById('og-flecha2').style.display = v ? 'inline' : 'none';
+    ogVaciarVista(v ? 'Selecciona una zona para continuar.' : 'Selecciona un municipio para continuar.');
+    return;
+  }
+  ogMuni = v; ogCargarInstancia();
+}
 async function ogNuevaEstructura() {
   if (ogNivel === 'municipal') {
     const n = (prompt('Nombre del municipio o distrito municipal:') || '').trim();
@@ -10103,12 +10132,11 @@ async function ogNuevaEstructura() {
   } else if (ogNivel === 'zonal') {
     const n = (prompt('Nombre de la nueva estructura (por ejemplo: Barrio Médico, Playa Mercado, Zona J):') || '').trim();
     if (!n) return;
-    const { data, error } = await db.from('zonas_organizacion').insert({ organizacion_id: currentOrg.id, nombre: n, orden: (ogZonasCache || []).length + 1 }).select('id,nombre').single();
+    if (!ogMuniZ) { toast('err', 'Primero selecciona el municipio.'); return; }
+    const { data, error } = await db.from('zonas_organizacion').insert({ organizacion_id: currentOrg.id, nombre: n, orden: (ogZonasCache || []).length + 1, municipio_nombre: ogMuniZ }).select('id,nombre,municipio_nombre').single();
     if (error) { toast('err', 'No se pudo crear la estructura: ' + error.message); return; }
     ogZonasCache.push(data);
-    const sel = document.getElementById('og-select-zona');
-    sel.insertAdjacentHTML('beforeend', `<option value="${esc(data.id)}">${esc(ogZonaLabel(data.nombre))}</option>`);
-    sel.value = data.id; ogZonaId = data.id; ogCargarInstancia();
+    ogZonaId = data.id; ogPintarZonas(); ogCargarInstancia();
   }
 }
 
@@ -10122,24 +10150,25 @@ function ogCambiarNivel(nivel) {
   const btnP = document.getElementById('og-tab-provincial');
   btnP.style.background = nivel === 'provincial' ? 'var(--prm)' : 'transparent';
   btnP.style.color = nivel === 'provincial' ? '#fff' : 'var(--mute)';
-  document.getElementById('og-select-zona').style.display = nivel === 'zonal' ? 'block' : 'none';
-  document.getElementById('og-select-muni').style.display = nivel === 'municipal' ? 'block' : 'none';
+  const zonal = nivel === 'zonal';
+  document.getElementById('og-select-muni').style.display = nivel === 'provincial' ? 'none' : 'block';
+  document.getElementById('og-flecha1').style.display = nivel === 'provincial' ? 'none' : 'inline';
+  document.getElementById('og-select-zona').style.display = zonal && ogMuniZ ? 'block' : 'none';
+  document.getElementById('og-flecha2').style.display = zonal && ogMuniZ ? 'inline' : 'none';
   document.getElementById('og-btn-nueva').style.display = nivel === 'provincial' ? 'none' : 'inline-block';
   const lblProv = document.getElementById('og-prov-label');
   lblProv.textContent = 'Provincia: ' + (currentOrg.provincia || currentOrg.nombre || '');
-  lblProv.style.display = nivel === 'provincial' ? 'inline-block' : 'none';
+  lblProv.style.display = 'inline-block';
+  if (ogMuniLista) ogPintarMuni();
+  if (zonal) ogPintarZonas();
 
   if (nivel === 'municipal' || nivel === 'provincial') {
     ogZonaId = '';
     ogCargarInstancia();
-  } else if (ogZonaId) {
+  } else if (ogZonaId && ogMuniZ) {
     ogCargarInstancia();
   } else {
-    document.getElementById('og-sub').textContent = 'Selecciona una estructura (zona) para continuar.';
-    document.getElementById('og-content').innerHTML = '';
-    document.getElementById('og-vacantes-list').innerHTML = '';
-    document.getElementById('og-vacantes-count').textContent = '0';
-    ogSetKpis(0, 0, 0);
+    ogVaciarVista(ogMuniZ ? 'Selecciona una zona para continuar.' : 'Selecciona un municipio para continuar.');
   }
 }
 
@@ -10775,7 +10804,7 @@ async function aplicarCabeceraCandidato(org) {
     const markEl = document.getElementById('sb-mark');
     const iniciales = String(nombre || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
     markEl.textContent = iniciales;
-    let foto = (miCandidato && miCandidato.foto_url) || null;
+    let foto = (miCandidato && miCandidato.foto_url) || org.foto_url || null;
     if (!foto) {
       const { data: pf } = await db.from('perfiles').select('cedula').eq('auth_user_id', currentUser.id).maybeSingle();
       const ced = pf && pf.cedula;

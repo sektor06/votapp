@@ -161,6 +161,12 @@
           <div class="f-group span2" id="g-puesto" style="display:none"><label class="f-label">Cargo al que aspira *</label>
             <select class="f-input" id="f-puesto"><option value="">Elige el cargo…</option><option>Presidente</option><option>Vicepresidente</option><option>Senador</option><option>Diputado</option><option>Alcalde</option><option>Vicealcalde</option><option>Regidor</option><option>Director de distrito municipal</option><option>Vocal de distrito municipal</option></select>
           </div>
+          <div class="f-group span2" id="g-foto" style="display:none"><label class="f-label">Tu foto * <span style="font-weight:400;color:#6b7280">(se verá en tu panel y en el directorio)</span></label>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <img id="foto-prev" alt="" style="width:76px;height:76px;border-radius:50%;object-fit:cover;background:#e5e7eb;display:none;">
+              <input type="file" id="f-foto" accept="image/jpeg,image/png,image/webp" onchange="prepararFoto(this)" style="font-size:13px;">
+            </div>
+          </div>
           <div class="f-group"><label class="f-label">Provincia</label><input class="f-input" id="f-provincia" placeholder="San Pedro de Macorís"></div>
           <div class="f-group"><label class="f-label">Plan de interés</label>
             <select class="f-input" id="f-plan"><option value="pro">Pro</option><option value="basico">Básico</option></select>
@@ -245,11 +251,32 @@ async function loginGoogle() {
   }
 }
 
+let fotoBlob = null;
+function prepararFoto(inp) {
+  const f = inp.files && inp.files[0];
+  fotoBlob = null;
+  const prev = document.getElementById('foto-prev');
+  prev.style.display = 'none';
+  if (!f) return;
+  if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { alert('Usa una foto JPG, PNG o WEBP.'); inp.value = ''; return; }
+  const img = new Image();
+  img.onload = () => {
+    const L = 800, k = Math.min(1, L / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    c.toBlob(b => { fotoBlob = b; prev.src = URL.createObjectURL(b); prev.style.display = 'block'; }, 'image/jpeg', 0.85);
+  };
+  img.onerror = () => { alert('No se pudo leer la foto. Prueba con otra.'); inp.value = ''; };
+  img.src = URL.createObjectURL(f);
+}
+
 function elegirTipo(tipo) {
   tipoSeleccionado = tipo;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('selected', b.dataset.tipo === tipo));
   const esC = tipo === 'candidato';
   document.getElementById('g-puesto').style.display = esC ? '' : 'none';
+  document.getElementById('g-foto').style.display = esC ? '' : 'none';
   document.getElementById('lbl-nombre').textContent = esC ? 'Nombre completo del candidato *' : 'Nombre de la organización *';
   document.getElementById('f-nombre').placeholder = esC ? 'Ej. Juan Pérez' : 'Ej. Partido de la Liberación Dominicana';
 }
@@ -282,6 +309,11 @@ function validarPaso2() {
     err.classList.add('show');
     return;
   }
+  if (tipoSeleccionado === 'candidato' && !fotoBlob) {
+    err.textContent = 'Sube tu foto para continuar.';
+    err.classList.add('show');
+    return;
+  }
   irPaso(3);
 }
 
@@ -307,6 +339,22 @@ async function enviarSolicitud() {
   btn.disabled = true;
   btn.textContent = 'Enviando…';
 
+  let fotoUrl = null;
+  if (tipoSeleccionado === 'candidato') {
+    try {
+      const { data: { user } } = await db.auth.getUser();
+      const ruta = 'solicitudes/' + user.id + '.jpg';
+      const { error: eUp } = await db.storage.from('fotos-candidatos').upload(ruta, fotoBlob, { upsert: true, contentType: 'image/jpeg' });
+      if (eUp) throw eUp;
+      fotoUrl = db.storage.from('fotos-candidatos').getPublicUrl(ruta).data.publicUrl;
+    } catch (e) {
+      err.textContent = 'No se pudo subir la foto: ' + (e.message || e);
+      err.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Enviar solicitud';
+      return;
+    }
+  }
   const { error } = await db.rpc('crear_solicitud_organizacion', {
     p_nombre: document.getElementById('f-nombre').value.trim(),
     p_tipo: tipoSeleccionado,
@@ -314,7 +362,8 @@ async function enviarSolicitud() {
     p_plan: document.getElementById('f-plan').value,
     p_nombre_contacto: document.getElementById('f-contacto').value.trim(),
     p_telefono_contacto: document.getElementById('f-telefono').value.trim(),
-    p_puesto: tipoSeleccionado === 'candidato' ? document.getElementById('f-puesto').value : null
+    p_puesto: tipoSeleccionado === 'candidato' ? document.getElementById('f-puesto').value : null,
+    p_foto_url: fotoUrl
   });
 
   if (error) {
