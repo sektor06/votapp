@@ -10073,13 +10073,16 @@ async function ogInit() {
     ogPintarZonas();
   }
   if (!ogMuniLista) {
+    const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
     const prov = currentOrg.provincia || '';
-    const [{ data: mun }, { data: ins }] = await Promise.all([
-      prov ? db.from('municipios').select('nombre').eq('provincia', prov) : Promise.resolve({ data: [] }),
+    const [{ data: munTodos }, { data: ins }] = await Promise.all([
+      prov ? db.from('municipios').select('nombre,provincia') : Promise.resolve({ data: [] }),
       db.from('organigrama_instancias').select('territorio').eq('organizacion_id', currentOrg.id).eq('nivel', 'municipal')
     ]);
     const set = new Set();
-    const oficial = OG_MUNICIPIOS_PROV[prov];
+    const mun = (munTodos || []).filter(m => norm(m.provincia) === norm(prov));
+    const kOficial = Object.keys(OG_MUNICIPIOS_PROV).find(k => norm(k) === norm(prov));
+    const oficial = kOficial ? OG_MUNICIPIOS_PROV[kOficial] : null;
     if (oficial) oficial.forEach(n => set.add(n));
     else (mun || []).forEach(m => m.nombre && set.add(m.nombre));
     (ins || []).forEach(i => i.territorio && set.add(i.territorio));
